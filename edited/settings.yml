@@ -1,0 +1,11 @@
+# Setup Geodatabase references 
+gdb:
+  original: 'PC414 CWI Million Acres.gdb'
+  # versions of gdbs listed top-down by date created
+  versions:
+    - 'PC414 CWI Million Acres Testing.gdb'
+    - 'PC414 CWI Million Acres Testing Older.gdb'
+
+# do we need versions of scratch.gdbs?
+scratch:
+  
