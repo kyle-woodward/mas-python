@@ -7,6 +7,7 @@ import os
 from utils import init_gdb, runner
 original_gdb, workspace, scratch_workspace = init_gdb()
 
+# Assigns Domains to the workspace Geodatabase using the Domain Tables .xlsx
 def TablesToDomains():  # 2a Tables to Domains
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
