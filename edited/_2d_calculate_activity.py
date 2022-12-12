@@ -9,7 +9,8 @@ from utils import init_gdb, runner
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 def Activity(Input_Table):  # 2d Calculate Activity
-
+    """Assign new values to ACTIVITY_DESCRIPTION field in the input table. Requires that Fuels_Treatments_Piles_Crosswalk table is already joined to the input table."""
+    
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
 
