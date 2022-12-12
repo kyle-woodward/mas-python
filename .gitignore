@@ -1,3 +1,10 @@
+# ArcGIS files
+*.aprx
+ImportLog
+Default.tbx
+Index
+.backups
+
 # data/databases
 *.gdb
 *.zip
