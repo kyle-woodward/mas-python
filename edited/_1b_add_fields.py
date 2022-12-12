@@ -35,7 +35,8 @@ def AlterExisting(schema,featureclass):
                                                 #   field_type=type, 
                                                 #   field_length=length 
                                                   )
-    return altered                   
+    # return altered # referenced before assignment error when if clause conditions never met, altered is never defined...    
+    return featureclass
 
 
 def AddFields2(Input_Table):  # 1b Add Fields
@@ -141,7 +142,7 @@ def AddFields2(Input_Table):  # 1b Add Fields
     altered = AlterExisting(schema,Input_Table)
     
     # Process: Add Projects Fields (multiple) (Add Fields (multiple)) (management)
-    add_fields = arcpy.management.AddFields(in_table=altered, field_description=schema)[0]
+    add_fields = arcpy.management.AddFields(in_table=Input_Table, field_description=schema)[0]
 
     return add_fields
 
@@ -164,4 +165,4 @@ if __name__ == '__main__':
     transferGDBAttributeProperties=True, 
     workspace=workspace):
         
-        AddFields2(Input_Table=os.path.join(workspace,"BLM_20220627"))
+        AddFields2(Input_Table=os.path.join(workspace,"WFR_TF_Template"))
