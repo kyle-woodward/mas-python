@@ -8,7 +8,6 @@ import os
 from utils import init_gdb, runner
 original_gdb, workspace, scratch_workspace = init_gdb()
 
-# def Units(StateParks_XY_enriched_20220708_StateParks_XY_enriched_20220708_2_="ModelBuilder\\StateParks_XY_enriched_20220708:StateParks_XY_enriched_20220708"):  # 2c Units Domain
 def Units(in_table):  # 2c Units Domain
 
     # To allow overwriting outputs change overwriteOutput option to True.
@@ -33,7 +32,7 @@ def Units(in_table):  # 2c Units Domain
         return \"EA\"
     else:
         return Units""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
-
+    print(calculatedUOM)
     return calculatedUOM
 
 if __name__ == '__main__':
@@ -47,4 +46,4 @@ if __name__ == '__main__':
     transferDomains=True, 
     transferGDBAttributeProperties=True, 
     workspace=workspace):
-        Units(in_table=os.path.join(workspace,"StateParks_XY_enriched_20220708"))
+        Units(in_table=os.path.join(workspace,"StateParks_XY_enriched_20220708_modifiedAcres_1")) #testing on a dataset that i had edited the field's values back to 'Acres' from 'AC'
