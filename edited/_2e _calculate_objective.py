@@ -9,7 +9,7 @@ import arcpy
 import os
 from sys import argv
 
-def Objective(Input_Table, crosswalk):  # 2e Calculate Objective
+def Objective(Input_Table):  # 2e Calculate Objective
 
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
@@ -86,4 +86,8 @@ if __name__ == '__main__':
     transferDomains=True, 
     transferGDBAttributeProperties=True, 
     workspace=workspace):
-        Objective(Input_Table = os.path.join(workspace,"BLM_20220627"), crosswalk = os.path.join(workspace, "Fuels_Treatments_Piles_Crosswalk.Objective"))
+        Objective(Input_Table = os.path.join(workspace,"BLM_20220627"))
+
+
+# def Objective(Input_Table, crosswalk):
+# Objective(Input_Table = os.path.join(workspace,"BLM_20220627"), crosswalk = os.path.join(workspace, "Fuels_Treatments_Piles_Crosswalk.Objective"))
