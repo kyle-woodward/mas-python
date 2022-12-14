@@ -57,10 +57,10 @@ out_feature_class7 = os.path.join(scratch_workspace, "BLM_20220627_calcYear")
 # print(calcRes)
 # arcpy.management.CopyFeatures(in_features=in_feature_class, out_feature_class=out_feature_class6, config_keyword="", spatial_grid_1=None, spatial_grid_2=None, spatial_grid_3=None)
 
-##
-calcYear = Year(Input_Table=out_feature_class5)[0]
-print(calcYear)
-arcpy.management.CopyFeatures(in_features=in_feature_class, out_feature_class=out_feature_class7, config_keyword="", spatial_grid_1=None, spatial_grid_2=None, spatial_grid_3=None)
+## TypeError: '>=' not supported between instances of 'NoneType' and 'datetime.datetime'
+# calcYear = Year(Input_Table=out_feature_class5)[0]
+# print(calcYear)
+# arcpy.management.CopyFeatures(in_features=in_feature_class, out_feature_class=out_feature_class7, config_keyword="", spatial_grid_1=None, spatial_grid_2=None, spatial_grid_3=None)
 # # %%
 
 # %%
