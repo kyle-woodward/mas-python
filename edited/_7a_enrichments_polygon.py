@@ -488,10 +488,15 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
                                   )[0]
 
     # Process: 2d Calculate Activity (2d Calculate Activity) (PC414CWIMillionAcres)
-    Veg_Summarized_Polygons_Laye3_5_ = Activity(Input_Table=Veg_Summarized_Polygons_Laye4)[0]
-
+    Veg_Summarized_Polygons_Laye3_5_ = Activity(Input_Table=Veg_Summarized_Polygons_Laye4)#[0]
+    
+    # BUG FIXED:
+    # 'Layer' object not subscriptable caused by [0] at end of the submodule function calls in this script, 
+    # so like Residue()[0] in this script is equivalent to asking for Residue()[0][0] 
+    # since in _2g_resiude.py, Residue() function already does: return object[0] 
+    
     # Process: 2g Calculate Residue Fate (2g Calculate Residue Fate) (PC414CWIMillionAcres)
-    Veg_Summarized_Polygons_Laye3_3_ = Residue(Input_Table=Veg_Summarized_Polygons_Laye3_5_)[0]
+    Veg_Summarized_Polygons_Laye3_3_ = Residue(Input_Table=Veg_Summarized_Polygons_Laye3_5_)#[0]
 
     # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
     Veg_Summarized_Polygons_Laye_9_, Count_3_ = arcpy.management.SelectLayerByAttribute(
@@ -502,7 +507,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
                                               )
 
     # Process: 2e Calculate Objective (2e Calculate Objective) (PC414CWIMillionAcres)
-    Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Veg_Summarized_Polygons_Laye_9_)[0]
+    Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Veg_Summarized_Polygons_Laye_9_)#[0]
 
     # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
     Veg_Summarized_Polygons_Laye_10_, Count_7_ = arcpy.management.SelectLayerByAttribute(
@@ -519,10 +524,10 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
                                )[0]
 
     # Process: 2f Calculate Category (2f Calculate Category) (PC414CWIMillionAcres)
-    Updated_Input_Table = Category(Input_Table=Layer_With_Join_Removed_2_)[0]
+    Updated_Input_Table = Category(Input_Table=Layer_With_Join_Removed_2_)#[0]
 
     # Process: 2h Calculate Year (2h Calculate Year) (PC414CWIMillionAcres)
-    Veg_Summarized_Polygons_Laye3_7_ = Year(Input_Table=Updated_Input_Table)[0]
+    Veg_Summarized_Polygons_Laye3_7_ = Year(Input_Table=Updated_Input_Table)#[0]
 
     # Process: Calculate Geometry Attributes (3) (Calculate Geometry Attributes) (management)
     Veg_Summarized_Polygons_Laye_4_ = arcpy.management.CalculateGeometryAttributes(
