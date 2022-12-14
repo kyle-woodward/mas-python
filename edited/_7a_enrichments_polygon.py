@@ -24,11 +24,11 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
     arcpy.ImportToolbox(r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Data Management Tools.tbx")
     
     # define file paths to required input datasets (mostly from b_Reference featuredataset in original GDB)
-    RasterT_fveg1_2_ = os.path.join(workspace,'b_Reference','RasterT_fveg1')
-    RasterT_Reclass_WUI_2_ = os.path.join(workspace,'b_Reference','RasterT_Reclass_WUI')
-    CPAD_Ownership_Update = os.path.join(workspace,'b_Reference','CPAD_Ownership_Update')
-    WFRTF_Regions_Draft = os.path.join(workspace,'b_Reference','WFRTF_Regions_Draft')
-    Fuels_Treatments_Piles_Crosswalk_2_ = os.path.join(workspace,'Fuels_Treatments_Piles_Crosswalk')
+    RasterT_fveg1_2_ = os.path.join(original_gdb,'b_Reference','RasterT_fveg1')
+    RasterT_Reclass_WUI_2_ = os.path.join(original_gdb,'b_Reference','RasterT_Reclass_WUI')
+    CPAD_Ownership_Update = os.path.join(original_gdb,'b_Reference','CPAD_Ownership_Update')
+    WFRTF_Regions_Draft = os.path.join(original_gdb,'b_Reference','WFRTF_Regions_Draft')
+    Fuels_Treatments_Piles_Crosswalk_2_ = os.path.join(original_gdb,'Fuels_Treatments_Piles_Crosswalk')
 
     # Begin tool chain processes
     
