@@ -4,6 +4,7 @@ ImportLog
 Default.tbx
 Index
 .backups
+GpMessages
 
 # data/databases
 *.gdb
