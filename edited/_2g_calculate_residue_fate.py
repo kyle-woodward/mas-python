@@ -46,7 +46,7 @@ def Residue(Input_Table):  # 2g Calculate Residue Fate
         return \"SHORT-LIVED_PRODUCTS\"
     else:
         return None
-   """, field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+   """, field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
     return Veg_Summarized_Polygons_Laye3_3_
 

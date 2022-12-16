@@ -44,7 +44,7 @@ def Category(Input_Table):  # 2f Calculate Category
     elif Act in [\"AMW_AREA_RESTOR\", \"EROSION_CONTROL\", \"HABITAT_REVEG\", \"OAK_WDLND_MGMT\", \"ROAD_OBLITERATION\", \"STREAM_CHNL_IMPRV\", \"WETLAND_RESTOR\"]:
         return \"WATSHD_IMPRV\"
     else:
-        return \"NOT_DEFINED\"""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+        return \"NOT_DEFINED\"""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
 
     return Updated_Input_Table

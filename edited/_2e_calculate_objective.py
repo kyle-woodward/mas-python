@@ -72,7 +72,7 @@ def Objective(Input_Table):  # 2e Calculate Objective
     elif OBJ == \"Not Defined\":
         return \"NOT_DEFINED\"
     else:
-        return \"TBD\"""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+        return \"TBD\"""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
     return Veg_Summarized_Polygons_Laye3_2_
 

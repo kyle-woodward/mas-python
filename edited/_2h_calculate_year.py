@@ -87,7 +87,7 @@ def Year(Input_Table):  # 2h Calculate Year
     elif DATE >= datetime.datetime(2025,10,1) and DATE <= datetime.datetime(2026,9,30):
         return 2026
     else:
-        return None""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+        return None""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate State FY (Calculate Field) (management)
     Veg_Summarized_Polygons_Laye3_7_ = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye3_8_, field="State_FY", expression="ifelse(!ACTIVITY_END!)", expression_type="PYTHON3", code_block="""def ifelse(DATE):
@@ -156,7 +156,7 @@ def Year(Input_Table):  # 2h Calculate Year
     elif DATE >= datetime.datetime(2025,7,1) and DATE <= datetime.datetime(2026,6,30):
         return 2026
     else:
-        return None""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+        return None""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
     return Veg_Summarized_Polygons_Laye3_7_
 

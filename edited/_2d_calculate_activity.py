@@ -130,7 +130,7 @@ def Activity(Input_Table):  # 2d Calculate Activity
     elif ACT == \"Not Defined\":
         return \"NOT_DEFINED\"
     else:
-        return \"TBD\"""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+        return \"TBD\"""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
     return Veg_Summarized_Polygons_Laye3_4_
 
