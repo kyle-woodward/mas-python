@@ -45,6 +45,24 @@ def unique_path(input_fc:str,out_string:str):
     new_path = os.path.join(scratch_workspace,f"{input_id}_{out_string}_{date_id}")
     return new_path
 
+
+def unique_rename(scratch_fc:str,input_fc:str):
+    """
+    Creates unique name and renames a scratch object
+    
+    args:
+    
+    scratch_fc: full file path of scratch fc you want to rename ("Pts_enrichment_RCD"))
+    input_fc: name of the original input fc for the tool (e.g. "enrich_pts_in")
+    """
+    scratch_id = os.path.basename(scratch_fc)
+    input_id = os.path.basename(input_fc) # for now, keep the whole basename including the date string
+    date_id = datetime.utcnow().strftime("%Y-%m-%d").replace('-','') # like 20221216
+    new_name = f"{scratch_id}_{input_id}_{date_id}"
+    renamed = arcpy.management.Rename(scratch_fc, new_name)
+    return renamed
+
+
 def runner(workspace:str,scratch_workspace:str,func):
     with arcpy.EnvManager(
     extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 

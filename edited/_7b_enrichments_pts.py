@@ -9,7 +9,7 @@ from _2e_calculate_objective import Objective
 from _2g_calculate_residue_fate import Residue
 from _2h_calculate_year import Year
 from sys import argv
-from utils import init_gdb, runner
+from utils import init_gdb, unique_rename, runner
 import os
 original_gdb, workspace, scratch_workspace = init_gdb()
 
@@ -24,8 +24,10 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
     WFRTF_Regions_Draft = os.path.join(workspace, "b_Reference", "WFRTF_Regions_Draft")
     RasterT_fveg1 = os.path.join(workspace, "b_Reference", "RasterT_fveg1")
 
-    Pts_enrichment_Veg_3_ = os.path.join(scratch_workspace, "Pts_enrichment_Veg")
+    Pts_enrichment_Veg = os.path.join(scratch_workspace, "Pts_enrichment_Veg")
     Pts_enrichment_copy = os.path.join(scratch_workspace, "Pts_enrichment_copy")
+    Pts_enrichment_Own = os.path.join(scratch_workspace, "Pts_enrichment_Own")
+    Pts_enrichment_RCD = os.path.join(scratch_workspace, "Pts_enrichment_RCD")
 
     # Process: Copy Features (Copy Features) (management)
     arcpy.management.CopyFeatures(in_features=enrich_pts_in, 
@@ -80,7 +82,6 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
                                                                                         invert_where_clause="")
 
     # Process: Spatial Join (Spatial Join) (analysis)
-    Pts_enrichment_Own = os.path.join(scratch_workspace, "Pts_enrichment_Own")
     if Treatments_Merge3_California_5_:
         arcpy.analysis.SpatialJoin(target_features=Pts_enrichment_copy,
                                    join_features=CPAD_Ownership_Update,
@@ -93,7 +94,6 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
                                    distance_field_name="")
 
     # Process: Spatial Join (2) (Spatial Join) (analysis)
-    Pts_enrichment_RCD = os.path.join(scratch_workspace, "Pts_enrichment_RCD")
     if Treatments_Merge3_California_5_:
         arcpy.analysis.SpatialJoin(target_features=Pts_enrichment_Own,
                                    join_features=WFRTF_Regions_Draft,
@@ -106,7 +106,6 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
                                    distance_field_name="")
 
     # Process: Spatial Join (3) (Spatial Join) (analysis)
-    Pts_enrichment_Veg = os.path.join(scratch_workspace, "Pts_enrichment_Veg")
     if Treatments_Merge3_California_5_:
         arcpy.analysis.SpatialJoin(target_features=Pts_enrichment_RCD,
                                    join_features=RasterT_fveg1,
@@ -337,7 +336,7 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
 
     # Process: Add Join (Add Join) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Pts_enrichment_Veg_Layer = arcpy.management.AddJoin(in_layer_or_view=Pts_enrichment_Veg_3_,
+        Pts_enrichment_Veg_Layer = arcpy.management.AddJoin(in_layer_or_view=Pts_enrichment_Veg,
                                                             in_field="Crosswalk",
                                                             join_table=Fuels_Treatments_Piles_Crosswalk_2_,
                                                             join_field="Original_Activity",
@@ -483,6 +482,21 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
         arcpy.analysis.Select(in_features=Pts_enrichment_Veg_Layer2, 
                               out_feature_class=enrich_pts_out,
                               where_clause="County IS NOT NULL")
+
+
+# NameError: name 'Pts_enrichment_Veg' is not defined
+# scratch_id = os.path.basename(Pts_enrichment_Veg)
+# input_id = os.path.basename(enrich_pts_in) # for now, keep the whole basename including the date string
+# date_id = datetime.utcnow().strftime("%Y-%m-%d").replace('-','') # like 20221216
+# new_name = f"{scratch_id}_{input_id}_{date_id}"
+# renamed = arcpy.management.Rename(Pts_enrichment_Veg, new_name)
+
+# NameError: name 'enrich_pts_in' is not defined
+# unique_rename(scratch_fc = os.path.join(scratch_workspace, "Pts_enrichment_Veg"), input_fc = enrich_pts_in)
+# unique_rename(scratch_fc = os.path.join(scratch_workspace, "Pts_enrichment_copy"), input_fc = enrich_pts_in)
+# unique_rename(scratch_fc = os.path.join(scratch_workspace, "Pts_enrichment_Own"), input_fc = enrich_pts_in)
+# unique_rename(scratch_fc = os.path.join(scratch_workspace, "Pts_enrichment_RCD"), input_fc = enrich_pts_in)
+
 
 if __name__ == '__main__':
     # Global Environment settings
