@@ -17,7 +17,8 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
 
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
-
+    arcpy.env.qualifiedFieldNames = False 
+    
     WUI = os.path.join(workspace, "b_Reference", "RasterT_Reclass_WUI")
     Fuels_Treatments_Piles_Crosswalk_2_ = os.path.join(workspace, "Fuels_Treatments_Piles_Crosswalk")
     CPAD_Ownership_Update = os.path.join(workspace, "b_Reference", "CPAD_Ownership_Update")
@@ -143,7 +144,7 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
     else:
         return Own""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
-    # Process: Calculate County (Calculate Field) (management)
+    # Process: Calculate County (Calculate Field) (management)    
     if Treatments_Merge3_California_5_:
         Veg_Summarized_Polygons_Laye_4_ = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye_3_,
                                                                           field="COUNTY",
@@ -483,20 +484,12 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
                               out_feature_class=enrich_pts_out,
                               where_clause="County IS NOT NULL")
 
-
-# NameError: name 'Pts_enrichment_Veg' is not defined
-# scratch_id = os.path.basename(Pts_enrichment_Veg)
-# input_id = os.path.basename(enrich_pts_in) # for now, keep the whole basename including the date string
-# date_id = datetime.utcnow().strftime("%Y-%m-%d").replace('-','') # like 20221216
-# new_name = f"{scratch_id}_{input_id}_{date_id}"
-# renamed = arcpy.management.Rename(Pts_enrichment_Veg, new_name)
-
-# NameError: name 'enrich_pts_in' is not defined
-# unique_rename(scratch_fc = os.path.join(scratch_workspace, "Pts_enrichment_Veg"), input_fc = enrich_pts_in)
-# unique_rename(scratch_fc = os.path.join(scratch_workspace, "Pts_enrichment_copy"), input_fc = enrich_pts_in)
-# unique_rename(scratch_fc = os.path.join(scratch_workspace, "Pts_enrichment_Own"), input_fc = enrich_pts_in)
-# unique_rename(scratch_fc = os.path.join(scratch_workspace, "Pts_enrichment_RCD"), input_fc = enrich_pts_in)
-
+    # Rename scratch files to unique filepaths to avoid future overwrite output errors  
+    print("Renaming scratch files for uniqueness...")
+    for fc in [Pts_enrichment_Veg,Pts_enrichment_copy,Pts_enrichment_Own,Pts_enrichment_RCD]:
+        unq = unique_rename(scratch_fc = fc, input_fc = enrich_pts_in)
+        print(f"Renaming {fc} to {unq}")
+    
 
 if __name__ == '__main__':
     # Global Environment settings
