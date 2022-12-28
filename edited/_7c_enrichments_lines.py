@@ -14,43 +14,56 @@ def cEnrichmentsLines(line_fc):  # 7c Enrichments Lines
 
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
+    # this was set to True by default which made fully qualified field names in the Joined output (e.g. 'line_to_pt_enriched_FIELDNAME') that didn't match field names in the expressions
+    arcpy.env.qualifiedFieldNames = False 
+
 
     WFR_TF_Template = os.path.join(workspace, "b_Reference", "WFR_TF_Template")
 
-    # Process: Feature To Point (Feature To Point) (management)
+    # define intermediary scratch file paths
     Line_to_Pt = os.path.join(scratch_workspace, "Line_to_Pt")
-    arcpy.management.FeatureToPoint(in_features=line_fc, out_feature_class=Line_to_Pt, point_location="INSIDE")
+    line_to_pt_enriched = os.path.join(scratch_workspace, "line_to_pt_enriched")
+    Line_Layer_Temp_CopyFeatures = os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures")
+    Line_Enriched_Temp_CopyFeatures = os.path.join(scratch_workspace,'Line_Enriched_Temp_CopyFeatures')
+    
+    # BEGIN TOOL CHAIN
+    
+    # Process: Feature To Point (Feature To Point) (management)
+    # Kyle:skip to speed up debugging
+    print('Executing FeatureToPoint...')
+    arcpy.management.FeatureToPoint(in_features=line_fc, out_feature_class=Line_to_Pt, point_location="INSIDE") 
 
     # Process: 7b Enrichments pts (7b Enrichments pts)
-    line_to_pt_enriched = os.path.join(scratch_workspace, "line_to_pt_enriched")
-
-## --------------7b can't be ran on 'SCC_Data_20221101_Lines'... see screenshot of traceback 
-    bEnrichmentsPoints(enrich_pts_out=line_to_pt_enriched, enrich_pts_in=Line_to_Pt)
-
+    # Kyle: skip to speed up debugging
+    print('Executing bEnrichmentsPoints...')
+    bEnrichmentsPoints(enrich_pts_out=line_to_pt_enriched, enrich_pts_in=Line_to_Pt) 
+    
+    print('Performing Field Modifications...')
     # Process: Add Join (Add Join) (management)
     CalTrans_act_ln_standardized = arcpy.management.AddJoin(in_layer_or_view= line_fc,
                                                             in_field="PROJECTID_USER",
                                                             join_table=line_to_pt_enriched,
                                                             join_field="PROJECTID_USER",
                                                             join_type="KEEP_ALL",
-                                                            index_join_fields="INDEX_JOIN_FIELDS")[0]
-
+                                                            index_join_fields="INDEX_JOIN_FIELDS")[0] # changed to NO
+    
+    # field_names = [f.name for f in arcpy.ListFields(CalTrans_act_ln_standardized)]
+    # print('field names after AddJoin\n',field_names,'\n')
+                             
     # Process: Copy Features (2) (Copy Features) (management)
-    Line_Layer_Temp_CopyFeatures1 = os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1")
     arcpy.management.CopyFeatures(in_features=CalTrans_act_ln_standardized, 
-                                  out_feature_class=Line_Layer_Temp_CopyFeatures1, 
+                                  out_feature_class=Line_Layer_Temp_CopyFeatures, 
                                   config_keyword="", 
                                   spatial_grid_1=None, 
                                   spatial_grid_2=None, 
                                   spatial_grid_3=None)
+    # field_names = [f.name for f in arcpy.ListFields(Line_Layer_Temp_CopyFeatures)]
+    # print('field names after CopyFeatures, no maintain fully qualified field names\n',field_names,'\n')
 
-
-## ---------------This threw the error "ERROR 000539: Invalid field PRIMARY_OWNERSHIP_GROUP_1" when ran on 
-# ----------------'CalTrans_act_ln_standardized_20220712' & 'CM_CNRAExtract_TrtLn_standardized_20221110'
     # Process: Calculate Owner (Calculate Field) (management)
-    Updated_Input_Table_2_ = arcpy.management.CalculateField(in_table=Line_Layer_Temp_CopyFeatures1, 
+    Updated_Input_Table_2_ = arcpy.management.CalculateField(in_table=Line_Layer_Temp_CopyFeatures, 
                                                              field="PRIMARY_OWNERSHIP_GROUP", 
-                                                             expression="!PRIMARY_OWNERSHIP_GROUP_1!", 
+                                                             expression="!PRIMARY_OWNERSHIP_GROUP_1!",
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
@@ -322,102 +335,116 @@ def cEnrichmentsLines(line_fc):  # 7c Enrichments Lines
     else:
         return None""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
+    # field_names = [f.name for f in arcpy.ListFields(Veg_Summarized_Polygons_Laye3_7_)]
+    # print('field names after all CalculateField operations\n',field_names,'\n')
+    
     # Process: Delete Field (Delete Field) (management)
-    Line_Layer_Temp_CopyFeatures1_3_ = arcpy.management.DeleteField(in_table=Veg_Summarized_Polygons_Laye3_7_, 
-                                                                    drop_field=["PROJECTID_USER", 
-                                                                                "AGENCY", 
-                                                                                "ORG_ADMIN_p", 
-                                                                                "PROJECT_CONTACT", 
-                                                                                "PROJECT_EMAIL", 
-                                                                                "ADMINISTERING_ORG", 
-                                                                                "PROJECT_NAME", 
-                                                                                "PROJECT_STATUS", 
-                                                                                "PROJECT_START", 
-                                                                                "PROJECT_END", 
-                                                                                "PRIMARY_FUNDING_SOURCE", 
-                                                                                "PRIMARY_FUNDING_ORG", 
-                                                                                "IMPLEMENTING_ORG", 
-                                                                                "LATITUDE", 
-                                                                                "LONGITUDE", 
-                                                                                "BatchID_p", 
-                                                                                "Val_Status_p", 
-                                                                                "Val_Message_p", 
-                                                                                "Val_RunDate_p", 
-                                                                                "Review_Status_p", 
-                                                                                "Review_Message_p", 
-                                                                                "Review_RunDate_p", 
-                                                                                "Dataload_Status_p", 
-                                                                                "Dataload_Msg_p", 
-                                                                                "TRMTID_USER", 
-                                                                                "PROJECTID", 
-                                                                                "PROJECTNAME_", 
-                                                                                "ORG_ADMIN_t", 
-                                                                                "PRIMARY_OWNERSHIP_GROUP", 
-                                                                                "PRIMARY_OBJECTIVE", 
-                                                                                "SECONDARY_OBJECTIVE", 
-                                                                                "TERTIARY_OBJECTIVE", 
-                                                                                "TREATMENT_STATUS", 
-                                                                                "COUNTY", 
-                                                                                "IN_WUI", 
-                                                                                "REGION", 
-                                                                                "TREATMENT_AREA", 
-                                                                                "TREATMENT_START", 
-                                                                                "TREATMENT_END", 
-                                                                                "RETREATMENT_DATE_EST", 
-                                                                                "TREATMENT_NAME", 
-                                                                                "BatchID", 
-                                                                                "Val_Status_t", 
-                                                                                "Val_Message_t", 
-                                                                                "Val_RunDate_t", 
-                                                                                "Review_Status_t", 
-                                                                                "Review_Message_t", 
-                                                                                "Review_RunDate_t", 
-                                                                                "Dataload_Status_t", 
-                                                                                "Dataload_Msg_t",
-                                                                                "ACTIVID_USER", 
-                                                                                "TREATMENTID_", 
-                                                                                "ORG_ADMIN_a", 
-                                                                                "ACTIVITY_DESCRIPTION", 
-                                                                                "ACTIVITY_CAT", 
-                                                                                "BROAD_VEGETATION_TYPE", 
-                                                                                "BVT_USERD", 
-                                                                                "ACTIVITY_STATUS", 
-                                                                                "ACTIVITY_QUANTITY", 
-                                                                                "ACTIVITY_UOM", 
-                                                                                "ACTIVITY_START", 
-                                                                                "ACTIVITY_END", 
-                                                                                "ADMIN_ORG_NAME", 
-                                                                                "IMPLEM_ORG_NAME", 
-                                                                                "PRIMARY_FUND_SRC_NAME", 
-                                                                                "PRIMARY_FUND_ORG_NAME", 
-                                                                                "SECONDARY_FUND_SRC_NAME", 
-                                                                                "SECONDARY_FUND_ORG_NAME", 
-                                                                                "TERTIARY_FUND_SRC_NAME", 
-                                                                                "TERTIARY_FUND_ORG_NAME", 
-                                                                                "ACTIVITY_PRCT", 
-                                                                                "RESIDUE_FATE", 
-                                                                                "RESIDUE_FATE_QUANTITY", 
-                                                                                "RESIDUE_FATE_UNITS", 
-                                                                                "ACTIVITY_NAME", 
-                                                                                "VAL_STATUS_a", 
-                                                                                "VAL_MSG_a", 
-                                                                                "VAL_RUNDATE_a", 
-                                                                                "REVIEW_STATUS_a", 
-                                                                                "REVIEW_MSG_a", 
-                                                                                "REVIEW_RUNDATE_a", 
-                                                                                "DATALOAD_STATUS_a", 
-                                                                                "DATALOAD_MSG_a", 
-                                                                                "Source", 
-                                                                                "Year", 
-                                                                                "Year_txt", 
-                                                                                "Act_Code", 
-                                                                                "Crosswalk", 
-                                                                                "Federal_FY", 
-                                                                                "State_FY"], 
-                                                                                method="KEEP_FIELDS")[0]
+    Line_Layer_Temp_CopyFeatures1_3_ = arcpy.management.DeleteField(
+                                    in_table=Veg_Summarized_Polygons_Laye3_7_, 
+                                    drop_field=["PROJECTID_USER", 
+                                                "AGENCY", 
+                                                "ORG_ADMIN_p", 
+                                                "PROJECT_CONTACT", 
+                                                "PROJECT_EMAIL", 
+                                                "ADMINISTERING_ORG", 
+                                                "PROJECT_NAME", 
+                                                "PROJECT_STATUS", 
+                                                "PROJECT_START", 
+                                                "PROJECT_END", 
+                                                "PRIMARY_FUNDING_SOURCE", 
+                                                "PRIMARY_FUNDING_ORG", 
+                                                "IMPLEMENTING_ORG", 
+                                                "LATITUDE", 
+                                                "LONGITUDE", 
+                                                "BatchID_p", 
+                                                "Val_Status_p", 
+                                                "Val_Message_p", 
+                                                "Val_RunDate_p", 
+                                                "Review_Status_p", 
+                                                "Review_Message_p", 
+                                                "Review_RunDate_p", 
+                                                "Dataload_Status_p", 
+                                                "Dataload_Msg_p", 
+                                                "TRMTID_USER", 
+                                                "PROJECTID", 
+                                                "PROJECTNAME_", 
+                                                "ORG_ADMIN_t", 
+                                                "PRIMARY_OWNERSHIP_GROUP", 
+                                                "PRIMARY_OBJECTIVE", 
+                                                "SECONDARY_OBJECTIVE", 
+                                                "TERTIARY_OBJECTIVE", 
+                                                "TREATMENT_STATUS", 
+                                                "COUNTY", 
+                                                "IN_WUI", 
+                                                "REGION", 
+                                                "TREATMENT_AREA", 
+                                                "TREATMENT_START", 
+                                                "TREATMENT_END", 
+                                                "RETREATMENT_DATE_EST", 
+                                                "TREATMENT_NAME", 
+                                                "BatchID", 
+                                                "Val_Status_t", 
+                                                "Val_Message_t", 
+                                                "Val_RunDate_t", 
+                                                "Review_Status_t", 
+                                                "Review_Message_t", 
+                                                "Review_RunDate_t", 
+                                                "Dataload_Status_t", 
+                                                "Dataload_Msg_t", 
+                                                "ACTIVID_USER", 
+                                                "TREATMENTID_", 
+                                                "ORG_ADMIN_a", 
+                                                "ACTIVITY_DESCRIPTION", 
+                                                "ACTIVITY_CAT", 
+                                                "BROAD_VEGETATION_TYPE", 
+                                                "BVT_USERD", 
+                                                "ACTIVITY_STATUS", 
+                                                "ACTIVITY_QUANTITY", 
+                                                "ACTIVITY_UOM", 
+                                                "ACTIVITY_START", 
+                                                "ACTIVITY_END", 
+                                                "ADMIN_ORG_NAME", 
+                                                "IMPLEM_ORG_NAME", 
+                                                "PRIMARY_FUND_SRC_NAME", 
+                                                "PRIMARY_FUND_ORG_NAME", 
+                                                "SECONDARY_FUND_SRC_NAME", 
+                                                "SECONDARY_FUND_ORG_NAME", 
+                                                "TERTIARY_FUND_SRC_NAME", 
+                                                "TERTIARY_FUND_ORG_NAME", 
+                                                "ACTIVITY_PRCT", 
+                                                "RESIDUE_FATE", 
+                                                "RESIDUE_FATE_QUANTITY", 
+                                                "RESIDUE_FATE_UNITS", 
+                                                "ACTIVITY_NAME", 
+                                                "VAL_STATUS_a", 
+                                                "VAL_MSG_a", 
+                                                "VAL_RUNDATE_a", 
+                                                "REVIEW_STATUS_a", 
+                                                "REVIEW_MSG_a", 
+                                                "REVIEW_RUNDATE_a", 
+                                                "DATALOAD_STATUS_a", 
+                                                "DATALOAD_MSG_a", 
+                                                "Source", 
+                                                "Year", 
+                                                "Year_txt", 
+                                                "Act_Code", 
+                                                "Crosswalk", 
+                                                "Federal_FY", 
+                                                "State_FY"], 
+                                    method="KEEP_FIELDS")[0]
 
+    # field_names = [f.name for f in arcpy.ListFields(Line_Layer_Temp_CopyFeatures1_3_)]
+    # print('field names after DeleteField\n',field_names,'\n')
+    
+    # template_field_names = [f.name for f in arcpy.ListFields(WFR_TF_Template)]
+    # print('field names of WFR_TF_Template\n',template_field_names,'\n')
+    
+    # not_in_field_names = [f for f in template_field_names if f not in field_names]
+    # print('template field names not in temp FC schema\n',not_in_field_names,'\n')
+    
+    print('Creating New FC off of Template, Appending final output to it...')
     # Process: Create Feature Class (Create Feature Class) (management)
-    Line_Enriched_Temp_CopyFeatures_3_ = arcpy.management.CreateFeatureclass(out_path=scratch_gdb, 
+    Line_Enriched_Temp_CopyFeatures = arcpy.management.CreateFeatureclass(out_path=scratch_workspace, 
                                                                              out_name="Line_Enriched_Temp_CopyFeatures", 
                                                                              geometry_type="POLYLINE", 
                                                                              template=[WFR_TF_Template], 
@@ -429,14 +456,38 @@ def cEnrichmentsLines(line_fc):  # 7c Enrichments Lines
                                                                              spatial_grid_2=0, 
                                                                              spatial_grid_3=0, 
                                                                              out_alias="")[0]
-
+    
+    
+    # Appending final temp FC to a new blank dataset created off of WFR_TF_Template catches error 
+    # "~\scratch.gdb\Line_Layer_Temp_CopyFeatures does not match the schema of target ~\scratch.gdb\Line_Enriched_Temp_CopyFeatures"
+    # looks like 'Shape_Area' field from WFR_TR_Template is not in the final output FC of this tool, makes sense cause wouldn't need Shape_Area for a PolyLine FC
+    # Deleting Shape_Area field isn't possible because it is one of those grey-ed out auto generated fields.. 
+    # So we changed schema_type from "TEST" to "NO_TEST" so that if a field does not have a match it is not carried over during the Append
+    
+    
     # Process: Append (Append) (management)
-    # Line_Enriched_Temp_CopyFeatures = arcpy.management.Append(inputs=[Line_Layer_Temp_CopyFeatures1_3_], 
-    #                                                           target=Line_Enriched_Temp_CopyFeatures_3_, 
-    #                                                           schema_type="NO_TEST", 
-    #                                                           field_mapping="PROJECTID_USER \"PROJECT ID USER\" true true false 40 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PROJECTID_USER,0,40;AGENCY \"AGENCY/DEPARTMENT\" true true false 55 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),AGENCY,0,55;ORG_ADMIN_p \"ORG DATA STEWARD\" true true false 55 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ORG_ADMIN_p,0,55;PROJECT_CONTACT \"PROJECT CONTACT\" true true false 40 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PROJECT_CONTACT,0,40;PROJECT_EMAIL \"PROJECT EMAIL\" true true false 40 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PROJECT_EMAIL,0,40;ADMINISTERING_ORG \"ADMINISTERING ORG\" true true false 55 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ADMINISTERING_ORG,0,55;PROJECT_NAME \"PROJECT NAME\" true true false 125 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PROJECT_NAME,0,125;PROJECT_STATUS \"PROJECT STATUS\" true true false 25 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PROJECT_STATUS,0,25;PROJECT_START \"PROJECT START\" true true false 8 Date 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PROJECT_START,-1,-1;PROJECT_END \"PROJECT END\" true true false 8 Date 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PROJECT_END,-1,-1;PRIMARY_FUNDING_SOURCE \"PRIMARY_FUNDING_SOURCE\" true true false 130 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PRIMARY_FUNDING_SOURCE,0,130;PRIMARY_FUNDING_ORG \"PRIMARY_FUNDING_ORG\" true true false 130 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PRIMARY_FUNDING_ORG,0,130;IMPLEMENTING_ORG \"IMPLEMENTING_ORG\" true true false 55 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),IMPLEMENTING_ORG,0,55;LATITUDE \"LATITUDE CENTROID\" true true false 8 Double 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),LATITUDE,-1,-1;LONGITUDE \"LONGITUDE CENTROID\" true true false 8 Double 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),LONGITUDE,-1,-1;BatchID_p \"Batch ID\" true true false 40 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),BatchID_p,0,40;Val_Status_p \"Validation Status\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Val_Status_p,0,15;Val_Message_p \"Validation Message\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Val_Message_p,0,15;Val_RunDate_p \"Validation Run Date\" true true false 8 Date 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Val_RunDate_p,-1,-1;Review_Status_p \"Review Status\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Review_Status_p,0,15;Review_Message_p \"Review Message\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Review_Message_p,0,15;Review_RunDate_p \"Review Run Date\" true true false 8 Date 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Review_RunDate_p,-1,-1;Dataload_Status_p \"Dataload Status\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Dataload_Status_p,0,15;Dataload_Msg_p \"Dataload Message\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Dataload_Msg_p,0,15;TRMTID_USER \"TREATMENT ID USER\" true true false 40 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),TRMTID_USER,0,40;PROJECTID \"PROJECT ID\" true true false 50 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PROJECTID,0,50;PROJECTNAME_ \"PROJECT NAME\" true true false 125 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PROJECTNAME_,0,125;ORG_ADMIN_t \"ORG DATA STEWARD\" true true false 255 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ORG_ADMIN_t,0,255;PRIMARY_OWNERSHIP_GROUP \"PRIMARY OWNERSHIP GROUP\" true true false 25 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PRIMARY_OWNERSHIP_GROUP,0,0;PRIMARY_OBJECTIVE \"PRIMARY OBJECTIVE\" true true false 65 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PRIMARY_OBJECTIVE,0,0;SECONDARY_OBJECTIVE \"SECONDARY OBJECTIVE\" true true false 65 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),SECONDARY_OBJECTIVE,0,65;TERTIARY_OBJECTIVE \"TERTIARY OBJECTIVE\" true true false 65 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),TERTIARY_OBJECTIVE,0,65;TREATMENT_STATUS \"TREATMENT STATUS\" true true false 25 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),TREATMENT_STATUS,0,25;COUNTY \"COUNTY\" true true false 25 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),COUNTY,0,25;IN_WUI \"IN WUI\" true true false 30 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),IN_WUI,0,0;REGION \"TASK FORCE REGION\" true true false 25 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),REGION,0,0;TREATMENT_AREA \"TREATMENT AREA (GIS ACRES)\" true true false 8 Double 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),TREATMENT_AREA,-1,-1;TREATMENT_START \"TREATMENT START\" true true false 8 Date 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),TREATMENT_START,-1,-1;TREATMENT_END \"TREATMENT END\" true true false 8 Date 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),TREATMENT_END,-1,-1;RETREATMENT_DATE_EST \"RETREATMENT DATE ESTIMATE\" true true false 8 Date 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),RETREATMENT_DATE_EST,-1,-1;TREATMENT_NAME \"TREATMENT NAME\" true true false 125 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),TREATMENT_NAME,0,125;BatchID \"BATCH ID (TREATMENT)\" true true false 40 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),BatchID,0,40;Val_Status_t \"Validation Status\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Val_Status_t,0,15;Val_Message_t \"Validation Message\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Val_Message_t,0,15;Val_RunDate_t \"Validation Run Date\" true true false 8 Date 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Val_RunDate_t,-1,-1;Review_Status_t \"Review Status\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Review_Status_t,0,15;Review_Message_t \"Review Message\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Review_Message_t,0,15;Review_RunDate_t \"Review Run Date\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Line_Layer_Temp_CopyFeatures1,Review_RunDate_t,-1,-1;Dataload_Status_t \"Dataload Status\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Dataload_Status_t,0,15;Dataload_Msg_t \"Dataload Message\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Dataload_Msg_t,0,15;ACTIVID_USER \"ACTIVITYID USER\" true true false 50 Text 0 0,First,#,os.path.join(scratch_workspace. "Line_Layer_Temp_CopyFeatures1"),ACTIVID_USER,0,50;TREATMENTID_ \"TREATMENTID\" true true false 50 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),TREATMENTID_,0,50;ORG_ADMIN_a \"ORG DATA STEWARD\" true true false 150 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ORG_ADMIN_a,0,150;ACTIVITY_DESCRIPTION \"ACTIVITY DESCRIPTION\" true true false 70 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ACTIVITY_DESCRIPTION,0,0;ACTIVITY_CAT \"ACTIVITY CATEGORY\" true true false 40 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ACTIVITY_CAT,0,0;BROAD_VEGETATION_TYPE \"BROAD VEGETATION TYPE\" true true false 50 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),BROAD_VEGETATION_TYPE,0,0;BVT_USERD \"IS BVT USER DEFINED\" true true false 3 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),BVT_USERD,0,3;ACTIVITY_STATUS \"ACTIVITY STATUS\" true true false 25 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ACTIVITY_STATUS,0,25;ACTIVITY_QUANTITY \"ACTIVITY QUANTITY\" true true false 8 Double 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ACTIVITY_QUANTITY,-1,-1;ACTIVITY_UOM \"ACTIVITY UNITS\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ACTIVITY_UOM,0,15;ACTIVITY_START \"ACTIVITY START\" true true false 8 Date 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ACTIVITY_START,-1,-1;ACTIVITY_END \"ACTIVITY END\" true true false 8 Date 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ACTIVITY_END,-1,-1;ADMIN_ORG_NAME \"ADMINISTRATION ORGANIZATION NAME\" true true false 150 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ADMIN_ORG_NAME,0,150;IMPLEM_ORG_NAME \"IMPLEMENTATION ORGANIZATION NAME\" true true false 150 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),IMPLEM_ORG_NAME,0,150;PRIMARY_FUND_SRC_NAME \"PRIMARY FUND SOURCE NAME\" true true false 100 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PRIMARY_FUND_SRC_NAME,0,100;PRIMARY_FUND_ORG_NAME \"PRIMARY FUND ORGANIZATION NAME\" true true false 100 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),PRIMARY_FUND_ORG_NAME,0,100;SECONDARY_FUND_SRC_NAME \"SECONDARY FUND SOURCE NAME\" true true false 100 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),SECONDARY_FUND_SRC_NAME,0,100;SECONDARY_FUND_ORG_NAME \"SECONDARY FUND ORGANIZATION NAME\" true true false 100 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),SECONDARY_FUND_ORG_NAME,0,100;TERTIARY_FUND_SRC_NAME \"TERTIARY FUND SOURCE NAME\" true true false 100 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),TERTIARY_FUND_SRC_NAME,0,100;TERTIARY_FUND_ORG_NAME \"TERTIARY FUND ORGANIZATION NAME\" true true false 100 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),TERTIARY_FUND_ORG_NAME,0,100;ACTIVITY_PRCT \"ACTIVITY PERCENT\" true true false 8 Double 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ACTIVITY_PRCT,-1,-1;RESIDUE_FATE \"RESIDUE FATE\" true true false 35 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),RESIDUE_FATE,0,0;RESIDUE_FATE_QUANTITY \"RESIDUE FATE QUANTITY\" true true false 8 Double 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),RESIDUE_FATE_QUANTITY,-1,-1;RESIDUE_FATE_UNITS \"RESIDUE FATE UNITS\" true true false 5 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),RESIDUE_FATE_UNITS,0,5;ACTIVITY_NAME \"ACTIVITY NAME\" true true false 150 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),ACTIVITY_NAME,0,150;VAL_STATUS_a \"VALIDATION STATUS\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),VAL_STATUS_a,0,15;VAL_MSG_a \"VALIDATION MESSAGE\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),VAL_MSG_a,0,15;VAL_RUNDATE_a \"VALIDATION RUN DATE\" true true false 8 Date 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),VAL_RUNDATE_a,-1,-1;REVIEW_STATUS_a \"REVIEW STATUS\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),REVIEW_STATUS_a,0,15;REVIEW_MSG_a \"REVIEW MESSAGE\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),REVIEW_MSG_a,0,15;REVIEW_RUNDATE_a \"REVIEW RUN DATE\" true true false 8 Date 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),REVIEW_RUNDATE_a,-1,-1;DATALOAD_STATUS_a \"DATALOAD STATUS\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),DATALOAD_STATUS_a,0,15;DATALOAD_MSG_a \"DATALOAD MESSAGE\" true true false 15 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),DATALOAD_MSG_a,0,15;Source \"Source\" true true false 65 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Source,0,65;Year \"Calendar Year\" true true false 4 Long 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Year,0,0;Year_txt \"Year as Text\" true true false 255 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Year_txt,0,0;Act_Code \"USFS Activity Code\" true true false 4 Long 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Act_Code,-1,-1;Crosswalk \"Crosswalk Activities\" true true false 150 Text 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),Crosswalk,0,150;Federal_FY \"Federal FY\" true true false 4 Long 0 0,First,#,os.path.join(scratch-workspace, "Line_Layer_Temp_CopyFeatures1"),Federal_FY,0,0;State_FY \"State FY\" true true false 4 Long 0 0,First,#,os.path.join(scratch_workspace, "Line_Layer_Temp_CopyFeatures1"),State_FY,0,0", subtype="", expression="")[0]
+    Line_Enriched_Temp_CopyFeatures_append = arcpy.management.Append(inputs=[Line_Layer_Temp_CopyFeatures1_3_], 
+                                                              target=Line_Enriched_Temp_CopyFeatures, 
+                                                              schema_type="NO_TEST", # only field mismatch is Shape_Area which we don't care about
+                                                             )
+    
+    # Rename scratch files to unique filepaths to avoid future overwrite output errors  
+    print("Renaming scratch files for uniqueness...")
+    
+    # Rename scratch FCs made in this script
+    for fc in [Line_to_Pt,line_to_pt_enriched,Line_Layer_Temp_CopyFeatures,Line_Enriched_Temp_CopyFeatures]:
+        unq = unique_rename(scratch_fc = fc, input_fc = line_fc) 
+        print(f"Renaming {fc} to {unq}")
+    
+    # Rename scratch Pt Fcs made by _7b module at beginning of this script
+    with arcpy.EnvManager(workspace=scratch_workspace):
+        line_to_pt_fcs = arcpy.ListFeatureClasses(wild_card='Line_to_Pt_*',feature_type='Point')
+        # print(line_to_pt_fcs)
+        for fc in line_to_pt_fcs:
+            unq = unique_rename(scratch_fc=fc,input_fc=line_fc)
+            print(f"Renaming {fc} to {unq}")
 
-    return Line_Enriched_Temp_CopyFeatures_3_
+    return Line_Enriched_Temp_CopyFeatures_append # does this capture the object that has since been renamed or only the file path as defined by the variable ln469? # Line_Enriched_Temp_CopyFeatures
 
 if __name__ == '__main__':
     # Global Environment settings
