@@ -488,7 +488,7 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
     print("Renaming scratch files for uniqueness...")
     for fc in [Pts_enrichment_Veg,Pts_enrichment_copy,Pts_enrichment_Own,Pts_enrichment_RCD]:
         unq = unique_rename(scratch_fc = fc, input_fc = enrich_pts_in)
-        print(f"Renaming {fc} to {unq}")
+        print(f"Renaming {os.path.basename(fc)} to {os.path.basename(unq)}")
     
 
 if __name__ == '__main__':

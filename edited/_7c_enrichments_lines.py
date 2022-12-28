@@ -485,7 +485,7 @@ def cEnrichmentsLines(line_fc):  # 7c Enrichments Lines
         # print(line_to_pt_fcs)
         for fc in line_to_pt_fcs:
             unq = unique_rename(scratch_fc=fc,input_fc=line_fc)
-            print(f"Renaming {fc} to {unq}")
+            print(f"Renaming {os.path.basename(fc)} to {os.path.basename(unq)}")
 
     return Line_Enriched_Temp_CopyFeatures_append # does this capture the object that has since been renamed or only the file path as defined by the variable ln469? # Line_Enriched_Temp_CopyFeatures
 
