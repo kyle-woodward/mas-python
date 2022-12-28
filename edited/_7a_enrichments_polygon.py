@@ -600,7 +600,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
                     WHR13NAME_Summary_SummarizeAttributes,
                     WHR13NAME_Summary_temp_name]:
             unq = unique_rename(scratch_fc = fc, input_fc = enrich_in)
-            print(f"Renaming {os.path.basename(fc)} to {os.path.basename(unq)}")
+            print(f"Renaming {fc} to {unq}")
 
 if __name__ == '__main__':
     # Global Environment settings
