@@ -30,25 +30,26 @@ def init_gdb():
     return original_gdb, workspace, scratch_workspace
 
 
-def unique_path(input_fc:str,out_string:str):
-    """
-    Constructs a unique file path for a scratch object that is to be created
+# def unique_path(input_fc:str,out_string:str):
+#     """
+#     Constructs a unique file path for a scratch object that is to be created
     
-    args:
+#     args:
     
-    input_fc: full file path to input fc your process is to be run on
-    out_string: unique string to use in the basename of the scratch file (e.g. "Pts_enrichment_Veg")
-    """
-    _,_,scratch_workspace = init_gdb()
-    input_id = os.path.basename(input_fc) # for now, keep the whole basename including the date string
-    date_id = datetime.utcnow().strftime("%Y-%m-%d").replace('-','') # like 20221216
-    new_path = os.path.join(scratch_workspace,f"{input_id}_{out_string}_{date_id}")
-    return new_path
+#     input_fc: full file path to input fc your process is to be run on
+#     out_string: unique string to use in the basename of the scratch file (e.g. "Pts_enrichment_Veg")
+#     """
+#     _,_,scratch_workspace = init_gdb()
+#     input_id = os.path.basename(input_fc) # for now, keep the whole basename including the date string
+#     date_id = datetime.utcnow().strftime("%Y-%m-%d").replace('-','') # like 20221216
+#     new_path = os.path.join(scratch_workspace,f"{input_id}_{out_string}_{date_id}")
+#     return new_path
 
 
 def unique_rename(scratch_fc:str,input_fc:str):
     """
     Creates unique name and renames a scratch object
+    Renamed structure: {input_id}_{scratch_id}_{datestring}
     
     args:
     
@@ -58,7 +59,8 @@ def unique_rename(scratch_fc:str,input_fc:str):
     scratch_id = os.path.basename(scratch_fc)
     input_id = os.path.basename(input_fc) # for now, keep the whole basename including the date string
     date_id = datetime.utcnow().strftime("%Y-%m-%d").replace('-','') # like 20221216
-    new_name = f"{scratch_id}_{input_id}_{date_id}"
+    # new_name = f"{scratch_id}_{input_id}_{date_id}"
+    new_name = f"{input_id}_{scratch_id}_{date_id}"
     renamed = arcpy.management.Rename(scratch_fc, new_name)
     return renamed
 
