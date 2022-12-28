@@ -395,7 +395,7 @@ def pACCGStakeholderDraft(accg_stkhldr_prjt_2021_Project="accg_stkhldr_prjt_2021
                                                                  validation_method="ESRI")[0]
 
     # Process: Pairwise Clip (Pairwise Clip) (analysis)
-    ACCG_Project_clip = fr"{arcpy.env.scratchGDB}\ACCG_Project_clip"
+    ACCG_Project_clip = os.path.join(scratch_workspace, "ACCG_Project_clip")
     arcpy.analysis.PairwiseClip(in_features=Repaired_Input_Features_2_, 
                                 clip_features=California_2_, 
                                 out_feature_class=ACCG_Project_clip, 
@@ -683,6 +683,11 @@ def pACCGStakeholderDraft(accg_stkhldr_prjt_2021_Project="accg_stkhldr_prjt_2021
                                   spatial_grid_1=None, 
                                   spatial_grid_2=None, 
                                   spatial_grid_3=None)
+
+    # Rename scratch FCs made in this script
+    for fc in [ACCG_Project_TSI_dissolve, ACCG_Project_clip, ACCG_Project_Select, ACCG_Project_table2, ACCG_Project_table]:
+        unq = unique_rename(scratch_fc = fc, input_fc = accg_stkhldr_prjt_2021_Project) 
+        print(f"Renaming {fc} to {unq}")
 
     return usfs_timber_harvest_table_standardized_20220715
 
