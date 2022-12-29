@@ -62,7 +62,7 @@ def unique_rename(scratch_fc:str,input_fc:str):
     # new_name = f"{scratch_id}_{input_id}_{date_id}"
     new_name = f"{input_id}_{scratch_id}_{date_id}"
     renamed = arcpy.management.Rename(scratch_fc, new_name)
-    return renamed
+    return new_name
 
 
 def runner(workspace:str,scratch_workspace:str,func):
