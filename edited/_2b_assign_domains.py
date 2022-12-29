@@ -17,7 +17,7 @@ def AssignDomains(in_table):  # 2b Assign Domains
     
     # Process: Assign Domain To AGENCY Field (Assign Domain To Field) (management)
     D_ORGANIZATION = arcpy.management.AssignDomainToField(in_table=in_table, field_name="AGENCY", domain_name="D_ORGANIZATION", subtype_code=[])[0]
-    print(f"D_ORGANIZATION variable stored as {D_ORGANIZATION}")
+    # print(f"D_ORGANIZATION variable stored as {D_ORGANIZATION}")
     
     # Process: Assign Domain To ORG_ADMIN_p Field (Assign Domain To Field) (management)
     ORG_ADMIN_p = arcpy.management.AssignDomainToField(in_table=D_ORGANIZATION, field_name="ORG_ADMIN_p", domain_name="D_ORGANIZATION", subtype_code=[])[0]
