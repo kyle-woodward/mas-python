@@ -9,7 +9,7 @@ from utils import init_gdb, runner
 
 original_gdb, workspace, scratch_workspace = init_gdb()
 
-def pACCGStakeholderDraft(accg_stkhldr_prjt_2021_Project):  # 6p_ACCG_Stakeholder-Draft
+def pACCGStakeholderDraft(input_fc):  # 6p_ACCG_Stakeholder-Draft
 
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
@@ -22,7 +22,7 @@ def pACCGStakeholderDraft(accg_stkhldr_prjt_2021_Project):  # 6p_ACCG_Stakeholde
     California_2_ = os.path.join(workspace, "b_Reference", "California")
 
     # Process: Table To Table (Table To Table) (conversion)
-    ACCG_Project_table = arcpy.conversion.TableToTable(in_rows=accg_stkhldr_prjt_2021_Project,
+    ACCG_Project_table = arcpy.conversion.TableToTable(in_rows=input_fc,
                                                        out_path=scratch_workspace, 
                                                        out_name="ACCG_Project_table", 
                                                        where_clause="SHAPE_Length = 0 Or SHAPE_Area = 0", 
@@ -31,6 +31,8 @@ def pACCGStakeholderDraft(accg_stkhldr_prjt_2021_Project):  # 6p_ACCG_Stakeholde
 
     # Process: Table Select (Table Select) (analysis)
     ACCG_Project_table2 = os.path.join(scratch_workspace, "ACCG_Project_table2")
+
+#### ExecuteError: ERROR 160144: An expected Field was not found or could not be retrieved properly.Failed to execute (TableSelect).
     arcpy.analysis.TableSelect(in_table=ACCG_Project_table, 
                                out_table=ACCG_Project_table2, 
                                where_clause="PROCLAIMED_FOREST_CODE = '0417' Or PROCLAIMED_FOREST_CODE = '0501' Or PROCLAIMED_FOREST_CODE = '0502' Or PROCLAIMED_FOREST_CODE = '0503' Or PROCLAIMED_FOREST_CODE = '0504' Or PROCLAIMED_FOREST_CODE = '0505' Or PROCLAIMED_FOREST_CODE = '0506' Or PROCLAIMED_FOREST_CODE = '0507' Or PROCLAIMED_FOREST_CODE = '0508' Or PROCLAIMED_FOREST_CODE = '0509' Or PROCLAIMED_FOREST_CODE = '0510' Or PROCLAIMED_FOREST_CODE = '0511' Or PROCLAIMED_FOREST_CODE = '0512' Or PROCLAIMED_FOREST_CODE = '0513' Or PROCLAIMED_FOREST_CODE = '0514' Or PROCLAIMED_FOREST_CODE = '0515' Or PROCLAIMED_FOREST_CODE = '0516' Or PROCLAIMED_FOREST_CODE = '0517' Or PROCLAIMED_FOREST_CODE = '0519' Or PROCLAIMED_FOREST_CODE = '0602' Or PROCLAIMED_FOREST_CODE = '0610'")
@@ -386,7 +388,7 @@ def pACCGStakeholderDraft(accg_stkhldr_prjt_2021_Project):  # 6p_ACCG_Stakeholde
     # Process: Select (Select) (analysis)
     ACCG_Project_Select = os.path.join(scratch_workspace, "ACCG_Project_Select")
     with arcpy.EnvManager(outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]"""):
-                    arcpy.analysis.Select(in_features=accg_stkhldr_prjt_2021_Project, 
+                    arcpy.analysis.Select(in_features=input_fc, 
                           out_feature_class=ACCG_Project_Select, 
                           where_clause="DATE_COMPLETED > timestamp '1995-01-01 00:00:00' Or DATE_COMPLETED IS NULL")
 
@@ -687,7 +689,7 @@ def pACCGStakeholderDraft(accg_stkhldr_prjt_2021_Project):  # 6p_ACCG_Stakeholde
 
     # Rename scratch FCs made in this script
     for fc in [ACCG_Project_TSI_dissolve, ACCG_Project_clip, ACCG_Project_Select, ACCG_Project_table2, ACCG_Project_table]:
-        unq = unique_rename(scratch_fc = fc, input_fc = accg_stkhldr_prjt_2021_Project) 
+        unq = unique_rename(scratch_fc = fc, input_fc = input_fc) 
         print(f"Renaming {fc} to {unq}")
 
     return usfs_timber_harvest_table_standardized_20220715

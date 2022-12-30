@@ -6,6 +6,6 @@ from utils import init_gdb, runner
 import os
 original_gdb, workspace, scratch_workspace = init_gdb()
 accg_fc = os.path.join(workspace, "accg_stkhldr_prjt_2021") 
-pACCGStakeholderDraft(accg_stkhldr_prjt_2021_Project = accg_fc)
+pACCGStakeholderDraft(input_fc = accg_fc)
 # # %%g
 # %%
