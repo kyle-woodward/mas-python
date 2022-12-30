@@ -27,20 +27,27 @@ def AlterExisting(schema,featureclass):
 
     for name,type,alias,length in zip(fieldnames,types,aliases,lengths):
         if FieldExists(featureclass,name):
-            print(f"{name} Exists: altering it to _{name}")
+            print(f"field {name} Exists: altering it to {name}_")
             altered = arcpy.management.AlterField(in_table=featureclass, 
                                                   field=name, 
-                                                  new_field_name="_"+name, 
-                                                  new_field_alias="Original"+alias, 
-                                                #   field_type=type, 
-                                                #   field_length=length 
+                                                  new_field_name=name+"_",
+                                                  new_field_alias="", 
+                                                  field_type=type, 
+                                                  field_length=length, 
+                                                  field_is_nullable="NULLABLE", 
+                                                  clear_field_alias="CLEAR_ALIAS"
                                                   )
     # return altered # referenced before assignment error when if clause conditions never met, altered is never defined...    
     return featureclass
 
 
-def AddFields2(Input_Table):  # 1b Add Fields
-    """Adds Fields to Feature Class; if a field already exists in the FC, the original field is renamed "_FIELDNAME" to preserve it before the new field is added """
+def AddFields2(Input_Table,alter_fields=False):  # 1b Add Fields
+    """
+    Adds a defined schema of fields to a feature class; 
+    
+    Input_Table: input table or feature class
+    alter_fields: if an original field in the dataset matches one of the new fields, alter it to 'FIELDNAME_'.
+    """
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
 
@@ -139,7 +146,8 @@ def AddFields2(Input_Table):  # 1b Add Fields
             ["State_FY", "LONG", "State FY", "", "", ""]]
     
     # alter existing fields found in schema
-    altered = AlterExisting(schema,Input_Table)
+    if alter_fields:
+        altered = AlterExisting(schema,Input_Table)
     
     # Process: Add Projects Fields (multiple) (Add Fields (multiple)) (management)
     add_fields = arcpy.management.AddFields(in_table=Input_Table, field_description=schema)[0]
