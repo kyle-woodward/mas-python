@@ -13,6 +13,7 @@ date_id = datetime.utcnow().strftime("%Y-%m-%d").replace('-','') # like 20221216
 
 output_enriched = os.path.join(workspace,'d_Enriched',f'usfs_edw_facts_common_attributes_enriched_{date_id}')
 output_standardized = os.path.join(workspace,'c_Standardized',f'usfs_edw_facts_common_attributes_standardized_{date_id}')
+# downloaded from here https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_ActivityFactsCommonAttributes_01/MapServer/0
 input_fc = os.path.join(original_gdb,'a_Originals','Actv_CommonAtt_ExportFeature')
 
 Model7(output_enriched,output_standardized,input_fc)
