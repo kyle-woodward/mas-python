@@ -346,11 +346,11 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
 
     # Process: 2d Calculate Activity (2d Calculate Activity) (PC414CWIMillionAcres)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Veg_Summarized_Polygons_Laye3_4_ = Activity(Input_Table=Pts_enrichment_Veg_Layer)[0]
+        Veg_Summarized_Polygons_Laye3_4_ = Activity(Input_Table=Pts_enrichment_Veg_Layer)#[0]
 
     # Process: 2g Calculate Residue Fate (2g Calculate Residue Fate) (PC414CWIMillionAcres)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Veg_Summarized_Polygons_Laye3_3_ = Residue(Input_Table=Veg_Summarized_Polygons_Laye3_4_)[0]
+        Veg_Summarized_Polygons_Laye3_3_ = Residue(Input_Table=Veg_Summarized_Polygons_Laye3_4_)#[0]
 
     # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
@@ -361,7 +361,7 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
 
     # Process: 2e Calculate Objective (2e Calculate Objective) (PC414CWIMillionAcres)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Pts_enrichment_Veg_Layer_3_)[0]
+        Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Pts_enrichment_Veg_Layer_3_)#[0]
 
     # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
@@ -377,11 +377,11 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
 
     # Process: 2f Calculate Category (2f Calculate Category) (PC414CWIMillionAcres)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Updated_Input_Table = Category(Input_Table=Pts_enrichment_Veg_Layer_2_)[0]
+        Updated_Input_Table = Category(Input_Table=Pts_enrichment_Veg_Layer_2_)#[0]
 
     # Process: 2h Calculate Year (2h Calculate Year) (PC414CWIMillionAcres)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Veg_Summarized_Polygons_Laye3_7_ = Year(Input_Table=Updated_Input_Table)[0]
+        Veg_Summarized_Polygons_Laye3_7_ = Year(Input_Table=Updated_Input_Table)#[0]
 
     # Process: Delete Field (3) (Delete Field) (management)
     ## Had to remove "ORG_ADMIN" from drop list for CalVTP dataset
@@ -486,7 +486,10 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
 
     # Rename scratch files to unique filepaths to avoid future overwrite output errors  
     print("Renaming scratch files for uniqueness...")
-    for fc in [Pts_enrichment_Veg,Pts_enrichment_copy,Pts_enrichment_Own,Pts_enrichment_RCD]:
+    for fc in [Pts_enrichment_Veg,
+               Pts_enrichment_copy,
+               Pts_enrichment_Own,
+               Pts_enrichment_RCD]:
         unq = unique_rename(scratch_fc = fc, input_fc = enrich_pts_in)
         print(f"Renaming {fc} to {unq}")
     

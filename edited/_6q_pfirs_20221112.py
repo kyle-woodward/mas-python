@@ -40,8 +40,8 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
                                                                    field="AGENCY", 
                                                                    new_field_name="AGENCY_", 
                                                                    new_field_alias="", 
-                                                                   field_type="TEXT", 
-                                                                   field_length=55, 
+                                                                   field_type="TEXT",
+                                                                   #field_length=55, 
                                                                    field_is_nullable="NULLABLE", 
                                                                    clear_field_alias="DO_NOT_CLEAR")[0]
 
@@ -51,12 +51,12 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
                                                                       new_field_name="COUNTY_", 
                                                                       new_field_alias="", 
                                                                       field_type="TEXT", 
-                                                                      field_length=25, 
+                                                                      #field_length=25, 
                                                                       field_is_nullable="NULLABLE", 
                                                                       clear_field_alias="DO_NOT_CLEAR")[0]
 
         # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-        WFRTF_Template_4_ = AddFields2(Input_Table=PFIRS_2018_2022_CopyFeatures_2_)[0]
+        WFRTF_Template_4_ = AddFields2(Input_Table=PFIRS_2018_2022_CopyFeatures_2_)
 
         # Process: Calculate Project ID (Calculate Field) (management)
         Activity_SilvTSI_20220627_Se2_2_ = arcpy.management.CalculateField(in_table=WFRTF_Template_4_, 
@@ -366,8 +366,7 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
                                                                                   "Dataload_Status_t", 
                                                                                   "Dataload_Msg_t", 
                                                                                   "ACTIVID_USER", 
-                                                                                  "TREATMENTID_", 
-                                                                                  "ORG_ADMIN_a", 
+                                                                                  "TREATMENTID_",
                                                                                   "ACTIVITY_DESCRIPTION", 
                                                                                   "ACTIVITY_CAT", 
                                                                                   "BROAD_VEGETATION_TYPE", 
@@ -406,14 +405,17 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
                                                                                   "Federal_FY", 
                                                                                   "State_FY"], 
                                                                       method="KEEP_FIELDS")[0]
+ 
 
         # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
-        usfs_silviculture_reforestation_enriched_20220629_2_ = AssignDomains(WFR_TF_Template=PFIRS_standardized_2_)[0]
+        usfs_silviculture_reforestation_enriched_20220629_2_ = AssignDomains(in_table=PFIRS_standardized_2_)#[0]
+        arcpy.CopyFeatures_management(usfs_silviculture_reforestation_enriched_20220629_2_, os.path.join(scratch_workspace, "hope_this_works"))
+        Test123 = os.path.join(scratch_workspace, "hope_this_works")
 
         # Process: 7b Enrichments pts (7b Enrichments pts) (PC414CWIMillionAcres)
         Pts_enrichment_Veg2 = os.path.join(scratch_workspace, "Pts_enrichment_Veg2")
         bEnrichmentsPoints(enrich_pts_out=Pts_enrichment_Veg2, 
-                           enrich_pts_in=usfs_silviculture_reforestation_enriched_20220629_2_)
+                           enrich_pts_in=Test123)
 
         # Process: Copy Features (Copy Features) (management)
         arcpy.management.CopyFeatures(in_features=Pts_enrichment_Veg2, 
@@ -424,7 +426,7 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
                                       spatial_grid_3=None)
 
         # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
-        usfs_silviculture_reforestation_enriched_20220629_3_ = AssignDomains(WFR_TF_Template=output_enriched)[0]
+        usfs_silviculture_reforestation_enriched_20220629_3_ = AssignDomains(in_table=output_enriched)#[0]
 
 if __name__ == '__main__':
     # Global Environment settings
