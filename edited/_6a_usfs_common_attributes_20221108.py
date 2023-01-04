@@ -16,6 +16,7 @@ def Model7(output_enriched,output_standardized,input_fc):
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
     
+
     # define intermediary objects in scratch
     Output_Feature_Class = os.path.join(scratch_workspace,'Actv_CommonAttribute_PL_Laye_CopyFeatures')
     usfs_haz_fuels_treatments_reduction2_dissolve = os.path.join(scratch_workspace,'usfs_haz_fuels_treatments_reduction2_dissolve')
