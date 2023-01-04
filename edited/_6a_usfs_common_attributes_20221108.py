@@ -22,13 +22,11 @@ def Model7(output_enriched,output_standardized,input_fc):
     Actv_CommonAttribute_PL_Laye_CopyFeatures2 = os.path.join(scratch_workspace,'Actv_CommonAttribute_PL_Laye_CopyFeatures2')
     Veg_Summarized_Polygons2_3_ = os.path.join(scratch_workspace,'Veg_Summarized_Polygons2')
     
+
     # Model Environment settings
     with arcpy.EnvManager(outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]"""):
 
         # Process: Select Layer By Attribute California (Select Layer By Attribute) (management)
-        # TODO: pull the input_fc from the web service using Dan's downloader tool
-        # https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_ActivityFactsCommonAttributes_01/MapServer/0
-        # for now we already have an older copy of the input_fc dataset
         Actv_CommonAttribute_PL_Laye2, Count_4_ = arcpy.management.SelectLayerByAttribute(
             in_layer_or_view=input_fc, 
             selection_type="NEW_SELECTION", 
@@ -328,7 +326,7 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
         Updated_Input_Table_30_ = arcpy.management.CalculateField(
             in_table=Activity_SilvTSI_20220627_Se2_2_, 
             field="AGENCY", 
-            expression="\"USFS\"", 
+            expression="\"USDA\"", 
             expression_type="PYTHON3", 
             code_block="", 
             field_type="TEXT", 

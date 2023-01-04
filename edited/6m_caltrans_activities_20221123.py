@@ -56,7 +56,7 @@ def CalTrans(CalTrans_act_ln_standardized_20220712b="C:\\Users\\sageg\\Documents
     Updated_Input_Table_8_ = arcpy.management.CalculateField(in_table=WFRTF_Template_4_, field="PROJECTID_USER", expression="!HighwayID!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Agency (Calculate Field) (management)
-    Updated_Input_Table_3_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_8_, field="AGENCY", expression="\"CalTrans\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    Updated_Input_Table_3_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_8_, field="AGENCY", expression="\"CALSTA\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Admin Org (4) (Calculate Field) (management)
     Updated_Input_Table_5_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_3_, field="ORG_ADMIN_p", expression="!District!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
@@ -68,10 +68,10 @@ def CalTrans(CalTrans_act_ln_standardized_20220712b="C:\\Users\\sageg\\Documents
     Updated_Input_Table = arcpy.management.CalculateField(in_table=Updated_Input_Table_7_, field="PROJECT_EMAIL", expression="\"andrew.lozano@dot.ca.gov\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Admin Org (Calculate Field) (management)
-    CalTrans_pts_Copy_5_ = arcpy.management.CalculateField(in_table=Updated_Input_Table, field="ADMINISTERING_ORG", expression="\"CalTrans\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    CalTrans_pts_Copy_5_ = arcpy.management.CalculateField(in_table=Updated_Input_Table, field="ADMINISTERING_ORG", expression="\"CALTRANS\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Primary Funding Source (Calculate Field) (management)
-    Updated_Input_Table_6_ = arcpy.management.CalculateField(in_table=CalTrans_pts_Copy_5_, field="PRIMARY_FUNDING_SOURCE", expression="\"CalTrans\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    Updated_Input_Table_6_ = arcpy.management.CalculateField(in_table=CalTrans_pts_Copy_5_, field="PRIMARY_FUNDING_SOURCE", expression="\"OTHER_STATE_FUNDS\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Primary Funding Org (Calculate Field) (management)
     Updated_Input_Table_10_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_6_, field="PRIMARY_FUNDING_ORG", expression="\"GENERAL_FUND\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
@@ -118,7 +118,7 @@ def CalTrans(CalTrans_act_ln_standardized_20220712b="C:\\Users\\sageg\\Documents
     Updated_Input_Table_22_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_15_, field="ACTIVITY_END", expression="\"6/30/2022\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Source (Calculate Field) (management)
-    Updated_Input_Table_16_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_22_, field="Source", expression="\"CalTrans\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    Updated_Input_Table_16_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_22_, field="Source", expression="\"CALTRANS\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Crosswalk (Calculate Field) (management)
     Updated_Input_Table_17_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_16_, field="Crosswalk", expression="!Activity_Description_!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
@@ -186,7 +186,7 @@ def CalTrans(CalTrans_act_ln_standardized_20220712b="C:\\Users\\sageg\\Documents
     Updated_Input_Table_28_ = arcpy.management.CalculateField(in_table=WFRTF_Template_2_, field="PROJECTID_USER", expression="!HighwayID!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Agency (2) (Calculate Field) (management)
-    Updated_Input_Table_29_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_28_, field="AGENCY", expression="\"CalTrans\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    Updated_Input_Table_29_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_28_, field="AGENCY", expression="\"CALSTA\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Admin Org (5) (Calculate Field) (management)
     Updated_Input_Table_30_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_29_, field="ORG_ADMIN_p", expression="!District!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
@@ -198,13 +198,13 @@ def CalTrans(CalTrans_act_ln_standardized_20220712b="C:\\Users\\sageg\\Documents
     Updated_Input_Table_32_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_31_, field="PROJECT_EMAIL", expression="\"andrew.lozano@dot.ca.gov\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Admin Org (2) (Calculate Field) (management)
-    CalTrans_pts_Copy_12_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_32_, field="ADMINISTERING_ORG", expression="\"CalTrans\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    CalTrans_pts_Copy_12_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_32_, field="ADMINISTERING_ORG", expression="\"CALTRANS\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Primary Funding Source (2) (Calculate Field) (management)
-    Updated_Input_Table_33_ = arcpy.management.CalculateField(in_table=CalTrans_pts_Copy_12_, field="PRIMARY_FUNDING_SOURCE", expression="\"GENERAL_FUND\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    Updated_Input_Table_33_ = arcpy.management.CalculateField(in_table=CalTrans_pts_Copy_12_, field="PRIMARY_FUNDING_SOURCE", expression="\"OTHER_STATE_FUNDS\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Primary Funding Org (2) (Calculate Field) (management)
-    Updated_Input_Table_34_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_33_, field="PRIMARY_FUNDING_ORG", expression="\"CalTrans\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    Updated_Input_Table_34_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_33_, field="PRIMARY_FUNDING_ORG", expression="\"CALTRANS\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Treatment ID (2) (Calculate Field) (management)
     Updated_Input_Table_46_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_34_, field="TRMTID_USER", expression="!IMMS_ID!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
@@ -248,7 +248,7 @@ def CalTrans(CalTrans_act_ln_standardized_20220712b="C:\\Users\\sageg\\Documents
     Updated_Input_Table_41_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_40_, field="ACTIVITY_END", expression="\"6/30/2022\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Source (2) (Calculate Field) (management)
-    Updated_Input_Table_42_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_41_, field="Source", expression="\"CalTrans\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    Updated_Input_Table_42_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_41_, field="Source", expression="\"CALTRANS\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Crosswalk (2) (Calculate Field) (management)
     Updated_Input_Table_43_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_42_, field="Crosswalk", expression="!Activity_Description_!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]

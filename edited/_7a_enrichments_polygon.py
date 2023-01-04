@@ -490,10 +490,16 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
                                     index_join_fields="INDEX_JOIN_FIELDS"
                                     )[0]
 
+        # Process: Calculate Activity Description (Calculate Field) (management)
+        Updated_Input_Table_3_ = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye4, field="Veg_Summarized_Polygons.ACTIVITY_DESCRIPTION", expression="!Fuels_Treatments_Piles_Crosswalk.Activity!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+        
         # Process: 2d Calculate Activity (2d Calculate Activity) (PC414CWIMillionAcres)
         print('Calculating Activity...')
         Veg_Summarized_Polygons_Laye3_5_ = Activity(Input_Table=Veg_Summarized_Polygons_Laye4)#[0]
         
+        # Process: Calculate Residue Fate (Calculate Field) (management)
+        usfs_edw_facts_common_attrib1 = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye3_5_, field="Veg_Summarized_Polygons.RESIDUE_FATE", expression="!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+
         print('Calculating Residue...')
         # Process: 2g Calculate Residue Fate (2g Calculate Residue Fate) (PC414CWIMillionAcres)
         Veg_Summarized_Polygons_Laye3_3_ = Residue(Input_Table=Veg_Summarized_Polygons_Laye3_5_)#[0]
@@ -505,6 +511,9 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
                                                 where_clause="PRIMARY_OBJECTIVE IS NULL", 
                                                 invert_where_clause=""
                                                 )
+        # Process: Calculate Objective (Calculate Field) (management)
+        Updated_Input_Table_5_ = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye_9_, field="Veg_Summarized_Polygons.PRIMARY_OBJECTIVE", expression="!Fuels_Treatments_Piles_Crosswalk.Objective!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                
         print('Calculating Objective...')
         # Process: 2e Calculate Objective (2e Calculate Objective) (PC414CWIMillionAcres)
         Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Veg_Summarized_Polygons_Laye_9_)#[0]
