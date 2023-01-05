@@ -51,6 +51,7 @@ def Model71(nfpors_fuels_treatments_pts_standardized_20221110="C:\\Users\\sageg\
         arcpy.management.Dissolve(in_features=nfpors_select2_clip, out_feature_class=nfpors_select2_dissolve, dissolve_field=["agency", "trt_id", "trt_nm", "type_name", "act_acc_ac", "trt_statnm", "DateComp", "DateMod", "unit_id"], statistics_fields=[], multi_part="MULTI_PART", unsplit_lines="DISSOLVE_LINES", concatenation_separator="")
 
         # Process: Define Projection (Define Projection) (management)
+        ## Note: This may need to be enabled depending on how the source is pulled
         nfpors_select1_2_ = arcpy.management.DefineProjection(in_dataset=nfpors_select1, coor_system="PROJCS[\"WGS_1984_Web_Mercator_Auxiliary_Sphere\",GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Mercator_Auxiliary_Sphere\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",0.0],PARAMETER[\"Standard_Parallel_1\",0.0],PARAMETER[\"Auxiliary_Sphere_Type\",0.0],UNIT[\"Meter\",1.0]]")[0]
 
         # Process: Alter agency Field (Alter Field) (management)
@@ -74,11 +75,8 @@ def Model71(nfpors_fuels_treatments_pts_standardized_20221110="C:\\Users\\sageg\
         # Process: Calculate Geometry Attributes (2) (Calculate Geometry Attributes) (management)
         nfpors_select2_clip_dissolve_5_ = arcpy.management.CalculateGeometryAttributes(in_features=Updated_Input_Table_4_, geometry_property=[["LATITUDE", "INSIDE_Y"], ["LONGITUDE", "INSIDE_X"]], length_unit="", area_unit="", coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", coordinate_format="DD")[0]
 
-        # Process: Calculate Treatment ID (2) (Calculate Field) (management)
-        usfs_haz_fuels_treatments_reduction2_6_ = arcpy.management.CalculateField(in_table=nfpors_select2_clip_dissolve_5_, field="TRMTID_USER", expression="str(!trt_id!)", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
-
         # Process: Calculate Treatment Name (Calculate Field) (management)
-        Updated_Input_Table_6_ = arcpy.management.CalculateField(in_table=usfs_haz_fuels_treatments_reduction2_6_, field="TREATMENT_NAME", expression="!trt_nm!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+        Updated_Input_Table_6_ = arcpy.management.CalculateField(in_table=nfpors_select2clip_dissolve_5_, field="TREATMENT_NAME", expression="!trt_nm!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
         # Process: Calculate Geometry Attributes (3) (Calculate Geometry Attributes) (management)
         nfpors_select2_dissolve_2_ = arcpy.management.CalculateGeometryAttributes(in_features=Updated_Input_Table_6_, geometry_property=[["TREATMENT_AREA", "AREA"]], length_unit="", area_unit="ACRES", coordinate_system="PROJCS[\"NAD_1983_California_Teale_Albers\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",-4000000.0],PARAMETER[\"Central_Meridian\",-120.0],PARAMETER[\"Standard_Parallel_1\",34.0],PARAMETER[\"Standard_Parallel_2\",40.5],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]", coordinate_format="SAME_AS_INPUT")[0]
@@ -137,6 +135,9 @@ def Model71(nfpors_fuels_treatments_pts_standardized_20221110="C:\\Users\\sageg\
         nfpors_fuels_treatments_enriched_20220906 = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\d_Enriched\\nfpors_fuels_treatments_enriched_20220906"
         arcpy.management.CopyFeatures(in_features=Veg_Summarized_Polygons2, out_feature_class=nfpors_fuels_treatments_enriched_20220906, config_keyword="", spatial_grid_1=None, spatial_grid_2=None, spatial_grid_3=None)
 
+        # Process: Calculate Treatment ID (2) (Calculate Field) (management)
+        usfs_haz_fuels_treatments_reduction2_6_ = arcpy.management.CalculateField(in_table=nfpors_fuels_treatments_enriched_20220906, field="TRMTID_USER", expression="!PROJECTID_USER![:13]+'-'+(!PRIMARY_OWNERSHIP_GROUP![:4])+'-'+!COUNTY![:4]+'-'+(!IN_WUI![:3])", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+        
         # Process: 2b Assign Domains (4) (2b Assign Domains) (PC414CWIMillionAcres)
         nfpors_fuels_treatments_enriched_20220906_2_ = AssignDomains(WFR_TF_Template=nfpors_fuels_treatments_enriched_20220906)[0]
 
@@ -183,11 +184,8 @@ def Model71(nfpors_fuels_treatments_pts_standardized_20221110="C:\\Users\\sageg\
         # Process: Calculate Geometry Attributes (4) (Calculate Geometry Attributes) (management)
         nfpors_select2p_clip_7_ = arcpy.management.CalculateGeometryAttributes(in_features=Updated_Input_Table_17_, geometry_property=[["LATITUDE", "POINT_Y"], ["LONGITUDE", "POINT_X"]], length_unit="", area_unit="", coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", coordinate_format="DD")[0]
 
-        # Process: Calculate Treatment ID (3) (Calculate Field) (management)
-        usfs_haz_fuels_treatments_reduction2_5_ = arcpy.management.CalculateField(in_table=nfpors_select2p_clip_7_, field="TRMTID_USER", expression="str(!OBJECTID!)", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
-
         # Process: Calculate WUI (2) (Calculate Field) (management)
-        Updated_Input_Table_2_ = arcpy.management.CalculateField(in_table=usfs_haz_fuels_treatments_reduction2_5_, field="IN_WUI", expression="ifelse(!iswui!)", expression_type="PYTHON3", code_block="""def ifelse(WUI):
+        Updated_Input_Table_2_ = arcpy.management.CalculateField(in_table=nfpors_select2p_clip_7_, field="IN_WUI", expression="ifelse(!iswui!)", expression_type="PYTHON3", code_block="""def ifelse(WUI):
     if WUI == \"Y\":
         return \"WUI_USER_DEFINED\"
     elif WUI == \"N\":
@@ -255,6 +253,9 @@ def Model71(nfpors_fuels_treatments_pts_standardized_20221110="C:\\Users\\sageg\
 
         # Process: Copy Features (Copy Features) (management)
         arcpy.management.CopyFeatures(in_features=Pts_enrichment_Veg2, out_feature_class=nfpors_fuels_treatments_pts_enriched_20221110, config_keyword="", spatial_grid_1=None, spatial_grid_2=None, spatial_grid_3=None)
+
+                # Process: Calculate Treatment ID (3) (Calculate Field) (management)
+        usfs_haz_fuels_treatments_reduction2_5_ = arcpy.management.CalculateField(in_table=nfpors_fuels_treatments_pts_enriched_20221110, field="TRMTID_USER", expression="!PROJECTID_USER![:13]+'-'+(!IN_WUI![:3])+'-'+(!PRIMARY_OWNERSHIP_GROUP![:1])", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
         # Process: 2b Assign Domains (3) (2b Assign Domains) (PC414CWIMillionAcres)
         WFR_TF_Template_2_ = AssignDomains(WFR_TF_Template=nfpors_fuels_treatments_pts_enriched_20221110)[0]

@@ -77,7 +77,7 @@ def CalTrans(CalTrans_act_ln_standardized_20220712b="C:\\Users\\sageg\\Documents
     Updated_Input_Table_10_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_6_, field="PRIMARY_FUNDING_ORG", expression="\"GENERAL_FUND\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Treatment ID (Calculate Field) (management)
-    Updated_Input_Table_45_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_10_, field="TRMTID_USER", expression="!IMMS_Unit_ID!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    Updated_Input_Table_45_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_10_, field="TRMTID_USER", expression="!IMMS_ID!+'-'+!COUNTY![:5]+'-'+!REGION![:3]+'-'+!IN_WUI![:3]", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate WUI (Calculate Field) (management)
     Updated_Input_Table_11_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_45_, field="IN_WUI", expression="ifelse(!WUI!)", expression_type="PYTHON3", code_block="""def ifelse(WUI):
@@ -207,7 +207,7 @@ def CalTrans(CalTrans_act_ln_standardized_20220712b="C:\\Users\\sageg\\Documents
     Updated_Input_Table_34_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_33_, field="PRIMARY_FUNDING_ORG", expression="\"CALTRANS\"", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Treatment ID (2) (Calculate Field) (management)
-    Updated_Input_Table_46_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_34_, field="TRMTID_USER", expression="!IMMS_ID!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    Updated_Input_Table_46_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_34_, field="TRMTID_USER", expression="!IMMS_ID!+'-'+!COUNTY![:5]+'-'+!REGION![:3]+'-'+!IN_WUI![:3]", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate WUI (2) (Calculate Field) (management)
     Updated_Input_Table_36_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_46_, field="IN_WUI", expression="ifelse(!WUI!)", expression_type="PYTHON3", code_block="""def ifelse(WUI):
