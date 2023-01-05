@@ -13,7 +13,7 @@ def TablesToDomains():  # 2a Tables to Domains
     arcpy.env.overwriteOutput = False
     
     # set path to domain table .xlsx
-    domain_table = os.path.join(os.path.dirname(os.path.dirname(__file__)),"Domain Tables 20221129.xlsx")
+    domain_table = os.path.join(os.path.dirname(os.path.dirname(__file__)),"Domain Tables 20221226.xlsx")
     # specific paths to sheets within domain table
     D_VERFIEDMSG_ = os.path.join(domain_table,"D_VERFIEDMSG$")
     D_USERDEFINED_ = os.path.join(domain_table,"D_USERDEFINED$")
@@ -30,6 +30,7 @@ def TablesToDomains():  # 2a Tables to Domains
     D_PR_OWN_GR_ = os.path.join(domain_table,"D_PR_OWN_GR$")
     D_FNDSRC_ = os.path.join(domain_table,"D_FNDSRC$")
     D_ORGANIZATION_ = os.path.join(domain_table,"D_ORGANIZATION$")
+    D_AGENCY_ = os.path.join(domain_table,"D_AGENCY$")
     D_DATASTATUS_ = os.path.join(domain_table,"D_DATASTATUS$")
     D_DATAMSG_ = os.path.join(domain_table,"D_DATAMSG$")
 
@@ -76,7 +77,10 @@ def TablesToDomains():  # 2a Tables to Domains
     PC414_CWI_Million_Acres_gdb_15_ = arcpy.management.TableToDomain(in_table=D_FNDSRC_, code_field="CODE__v2_", description_field="Descr", in_workspace=workspace, domain_name="D_FNDSRC", domain_description="Funding Source", update_option="REPLACE")[0]
 
     # Process: Table To Organization Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_16_ = arcpy.management.TableToDomain(in_table=D_ORGANIZATION_, code_field="CODE__v2_", description_field="Descr", in_workspace=workspace, domain_name="D_ORGANIZATION", domain_description="Organization or Agency", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_16_ = arcpy.management.TableToDomain(in_table=D_AGENCY_, code_field="CODE__v3_", description_field="Descr", in_workspace=workspace, domain_name="D_AGENCY", domain_description="Agency", update_option="REPLACE")[0]
+
+    # Process: Table To Organization Domain (Table To Domain) (management)
+    PC414_CWI_Million_Acres_gdb_16_ = arcpy.management.TableToDomain(in_table=D_ORGANIZATION_, code_field="CODE__v3_", description_field="Descr", in_workspace=workspace, domain_name="D_ORGANIZATION", domain_description="Organization", update_option="REPLACE")[0]
 
     # Process: Table To Date Status Domain (Table To Domain) (management)
     PC414_CWI_Million_Acres_gdb_17_ = arcpy.management.TableToDomain(in_table=D_DATASTATUS_, code_field="CODE__v2_", description_field="Descr", in_workspace=workspace, domain_name="D_DATASTATUS", domain_description="Data Status", update_option="REPLACE")[0]
