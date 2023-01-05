@@ -367,6 +367,7 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
                                                                                   "Dataload_Msg_t", 
                                                                                   "ACTIVID_USER", 
                                                                                   "TREATMENTID_",
+                                                                                  #"ORG_ADMIN_a",
                                                                                   "ACTIVITY_DESCRIPTION", 
                                                                                   "ACTIVITY_CAT", 
                                                                                   "BROAD_VEGETATION_TYPE", 

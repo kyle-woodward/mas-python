@@ -599,17 +599,17 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
             where_clause="County IS NOT NULL"
             )
         
-        # Rename scratch files to unique filepaths to avoid future overwrite output errors  
-        print("Renaming scratch files for uniqueness...")
-        for fc in [Veg_Summarized_Centroids,
-                    Veg_Summarized_Join1_Own,
-                    Veg_Summarized_Join2_RCD,
-                    Veg_Summarized_Polygons,
-                    WHR13NAME_Summary,
-                    WHR13NAME_Summary_SummarizeAttributes,
-                    WHR13NAME_Summary_temp_name]:
-            unq = unique_rename(scratch_fc = fc, input_fc = enrich_in)
-            print(f"Renaming {fc} to {unq}")
+        # # Rename scratch files to unique filepaths to avoid future overwrite output errors  
+        # print("Renaming scratch files for uniqueness...")
+        # for fc in [Veg_Summarized_Centroids,
+        #             Veg_Summarized_Join1_Own,
+        #             Veg_Summarized_Join2_RCD,
+        #             Veg_Summarized_Polygons,
+        #             WHR13NAME_Summary,
+        #             WHR13NAME_Summary_SummarizeAttributes,
+        #             WHR13NAME_Summary_temp_name]:
+        #     unq = unique_rename(scratch_fc = fc, input_fc = enrich_in)
+        #     print(f"Renaming {fc} to {unq}")
 
 if __name__ == '__main__':
     # Global Environment settings

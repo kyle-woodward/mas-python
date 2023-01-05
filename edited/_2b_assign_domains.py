@@ -98,10 +98,11 @@ def AssignDomains(in_table):  # 2b Assign Domains
     Dataload_Msg_t = arcpy.management.AssignDomainToField(in_table=Dataload_Status_t, field_name="Dataload_Msg_t", domain_name="D_DATAMSG", subtype_code=[])[0]
 
     # Process: Assign Domain To ORG_ADMIN_a Field (Assign Domain To Field) (management)
-    ORG_ADMIN_a = arcpy.management.AssignDomainToField(in_table=Dataload_Msg_t, field_name="ORG_ADMIN_a", domain_name="D_ORGANIZATION", subtype_code=[])[0]
+    #ORG_ADMIN_a = arcpy.management.AssignDomainToField(in_table=Dataload_Msg_t, field_name="ORG_ADMIN_a", domain_name="D_ORGANIZATION", subtype_code=[])[0]
 
     # Process: Assign Domain To ACTIVITY_DESCRIPTION Field (Assign Domain To Field) (management)
-    ACTIVITY_DESCRIPTION = arcpy.management.AssignDomainToField(in_table=ORG_ADMIN_a, field_name="ACTIVITY_DESCRIPTION", domain_name="D_ACTVDSCRP", subtype_code=[])[0]
+    #ACTIVITY_DESCRIPTION = arcpy.management.AssignDomainToField(in_table=ORG_ADMIN_a, field_name="ACTIVITY_DESCRIPTION", domain_name="D_ACTVDSCRP", subtype_code=[])[0]
+    ACTIVITY_DESCRIPTION = arcpy.management.AssignDomainToField(in_table=Dataload_Msg_t, field_name="ACTIVITY_DESCRIPTION", domain_name="D_ACTVDSCRP", subtype_code=[])[0]
 
     # Process: Assign Domain To ACTIVITY_CAT Field (Assign Domain To Field) (management)
     ACTIVITY_CAT = arcpy.management.AssignDomainToField(in_table=ACTIVITY_DESCRIPTION, field_name="ACTIVITY_CAT", domain_name="D_ACTVCAT", subtype_code=[])[0]

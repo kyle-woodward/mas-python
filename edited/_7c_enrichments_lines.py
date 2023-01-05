@@ -393,7 +393,7 @@ def cEnrichmentsLines(line_fc):  # 7c Enrichments Lines
                                                 "Dataload_Msg_t", 
                                                 "ACTIVID_USER", 
                                                 "TREATMENTID_", 
-                                                "ORG_ADMIN_a", 
+                                                #"ORG_ADMIN_a", 
                                                 "ACTIVITY_DESCRIPTION", 
                                                 "ACTIVITY_CAT", 
                                                 "BROAD_VEGETATION_TYPE", 
@@ -471,21 +471,21 @@ def cEnrichmentsLines(line_fc):  # 7c Enrichments Lines
                                                               schema_type="NO_TEST", # only field mismatch is Shape_Area which we don't care about
                                                              )
     
-    # Rename scratch files to unique filepaths to avoid future overwrite output errors  
-    print("Renaming scratch files for uniqueness...")
+    # # Rename scratch files to unique filepaths to avoid future overwrite output errors  
+    # print("Renaming scratch files for uniqueness...")
     
-    # Rename scratch FCs made in this script
-    for fc in [Line_to_Pt,line_to_pt_enriched,Line_Layer_Temp_CopyFeatures,Line_Enriched_Temp_CopyFeatures]:
-        unq = unique_rename(scratch_fc = fc, input_fc = line_fc) 
-        print(f"Renaming {fc} to {unq}")
+    # # Rename scratch FCs made in this script
+    # for fc in [Line_to_Pt,line_to_pt_enriched,Line_Layer_Temp_CopyFeatures,Line_Enriched_Temp_CopyFeatures]:
+    #     unq = unique_rename(scratch_fc = fc, input_fc = line_fc) 
+    #     print(f"Renaming {fc} to {unq}")
     
-    # Rename scratch Pt Fcs made by _7b module at beginning of this script
-    with arcpy.EnvManager(workspace=scratch_workspace):
-        line_to_pt_fcs = arcpy.ListFeatureClasses(wild_card='Line_to_Pt_*',feature_type='Point')
-        # print(line_to_pt_fcs)
-        for fc in line_to_pt_fcs:
-            unq = unique_rename(scratch_fc=fc,input_fc=line_fc)
-            print(f"Renaming {fc} to {unq}")
+    # # Rename scratch Pt Fcs made by _7b module at beginning of this script
+    # with arcpy.EnvManager(workspace=scratch_workspace):
+    #     line_to_pt_fcs = arcpy.ListFeatureClasses(wild_card='Line_to_Pt_*',feature_type='Point')
+    #     # print(line_to_pt_fcs)
+    #     for fc in line_to_pt_fcs:
+    #         unq = unique_rename(scratch_fc=fc,input_fc=line_fc)
+    #         print(f"Renaming {fc} to {unq}")
 
     return Line_Enriched_Temp_CopyFeatures_append # does this capture the object that has since been renamed or only the file path as defined by the variable ln469? # Line_Enriched_Temp_CopyFeatures
 
