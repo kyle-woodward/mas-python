@@ -65,6 +65,31 @@ def unique_rename(scratch_fc:str,input_fc:str):
     return new_name
 
 
+def delete_scratch_files(gdb):
+    """
+    Deletes all layers in the scratch GDB
+    
+    args:
+
+    gdb: full file path to GDB from which you want to delete all files
+    
+    """
+    arcpy.env.workspace = gdb
+    fc_list = arcpy.ListFeatureClasses()
+    tables = arcpy.ListTables()
+    ds_list = arcpy.ListDatasets()
+    #feature classes
+    for fc in fc_list:
+        arcpy.Delete_management(fc)
+    #tables
+    for table in tables:
+        arcpy.Delete_management(table)
+    #data sets
+    for ds in ds_list:
+        arcpy.Delete_management(ds)
+
+
+
 def runner(workspace:str,scratch_workspace:str,func):
     with arcpy.EnvManager(
     extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 
