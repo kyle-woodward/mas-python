@@ -1,7 +1,7 @@
 from utils import init_gdb, unique_rename
 import os
 original_gdb, workspace, scratch_workspace = init_gdb()
-from _6r_nps_20221123 import rFlatFuelsTreatmentDraft
+from _6r_nps import rFlatFuelsTreatmentDraft
 import datetime
 
 date_id = datetime.datetime.utcnow().strftime("%Y-%m-%d").replace('-','') # like 20221216
