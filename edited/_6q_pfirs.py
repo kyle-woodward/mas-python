@@ -61,7 +61,7 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
         # Process: Calculate Project ID (Calculate Field) (management)
         Activity_SilvTSI_20220627_Se2_2_ = arcpy.management.CalculateField(in_table=WFRTF_Template_4_, 
                                                                            field="PROJECTID_USER", 
-                                                                           expression="!OBJECTID!", 
+                                                                           expression="'PFIRS'+'-'+str(!OBJECTID!)", 
                                                                            expression_type="PYTHON3", 
                                                                            code_block="", 
                                                                            field_type="TEXT", 
@@ -151,7 +151,7 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
         # Process: Calculate Treatment ID (Calculate Field) (management)
         Activity_SilvTSI_20220627_Se2_3_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_32_, 
                                                                            field="TRMTID_USER", 
-                                                                           expression="!OBJECTID!", 
+                                                                           expression="'PFIRS'+'-'+str(!OBJECTID!)", 
                                                                            expression_type="PYTHON3", 
                                                                            code_block="", 
                                                                            field_type="TEXT", 
@@ -367,7 +367,6 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
                                                                                   "Dataload_Msg_t", 
                                                                                   "ACTIVID_USER", 
                                                                                   "TREATMENTID_",
-                                                                                  #"ORG_ADMIN_a",
                                                                                   "ACTIVITY_DESCRIPTION", 
                                                                                   "ACTIVITY_CAT", 
                                                                                   "BROAD_VEGETATION_TYPE", 

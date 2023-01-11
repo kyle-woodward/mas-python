@@ -16,8 +16,8 @@ def AssignDomains(in_table):  # 2b Assign Domains
     # just chaining output of previous as input FC to next function... this is a good candidate for a refactor using SQL
     
     # Process: Assign Domain To AGENCY Field (Assign Domain To Field) (management)
-    D_ORGANIZATION = arcpy.management.AssignDomainToField(in_table=in_table, field_name="AGENCY", domain_name="D_ORGANIZATION", subtype_code=[])[0]
-    # print(f"D_ORGANIZATION variable stored as {D_ORGANIZATION}")
+    D_ORGANIZATION = arcpy.management.AssignDomainToField(in_table=in_table, field_name="AGENCY", domain_name="D_AGENCY", subtype_code=[])[0]
+    # print(f"D_ORGANIZATION variable stored as {D_AGENCY}")
     
     # Process: Assign Domain To ORG_ADMIN_p Field (Assign Domain To Field) (management)
     ORG_ADMIN_p = arcpy.management.AssignDomainToField(in_table=D_ORGANIZATION, field_name="ORG_ADMIN_p", domain_name="D_ORGANIZATION", subtype_code=[])[0]
@@ -98,10 +98,10 @@ def AssignDomains(in_table):  # 2b Assign Domains
     Dataload_Msg_t = arcpy.management.AssignDomainToField(in_table=Dataload_Status_t, field_name="Dataload_Msg_t", domain_name="D_DATAMSG", subtype_code=[])[0]
 
     # Process: Assign Domain To ORG_ADMIN_a Field (Assign Domain To Field) (management)
+    ## This assignment throws an error.  There may be a mismatch with field length but this needs troubleshooting.
     #ORG_ADMIN_a = arcpy.management.AssignDomainToField(in_table=Dataload_Msg_t, field_name="ORG_ADMIN_a", domain_name="D_ORGANIZATION", subtype_code=[])[0]
 
     # Process: Assign Domain To ACTIVITY_DESCRIPTION Field (Assign Domain To Field) (management)
-    #ACTIVITY_DESCRIPTION = arcpy.management.AssignDomainToField(in_table=ORG_ADMIN_a, field_name="ACTIVITY_DESCRIPTION", domain_name="D_ACTVDSCRP", subtype_code=[])[0]
     ACTIVITY_DESCRIPTION = arcpy.management.AssignDomainToField(in_table=Dataload_Msg_t, field_name="ACTIVITY_DESCRIPTION", domain_name="D_ACTVDSCRP", subtype_code=[])[0]
 
     # Process: Assign Domain To ACTIVITY_CAT Field (Assign Domain To Field) (management)

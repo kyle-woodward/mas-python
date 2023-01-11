@@ -197,20 +197,9 @@ def rFlatFuelsTreatmentDraft(output_standardized,output_enriched):
         enforce_domains="NO_ENFORCE_DOMAINS"
         )[0]
 
-    # Process: Calculate Treatment ID (Calculate Field) (management)
-    Updated_Input_Table_4_ = arcpy.management.CalculateField(
-        in_table=Updated_Input_Table_32_, 
-        field="TRMTID_USER", 
-        expression="!TreatmentID!", 
-        expression_type="PYTHON3", 
-        code_block="", 
-        field_type="TEXT", 
-        enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
-
     # Process: Calculate Project Name (2) (Calculate Field) (management)
     Updated_Input_Table_14_ = arcpy.management.CalculateField(
-        in_table=Updated_Input_Table_4_, 
+        in_table=Updated_Input_Table_32_, 
         field="PROJECTNAME_", 
         expression="!TreatmentName!", 
         expression_type="PYTHON3", 
@@ -432,6 +421,17 @@ def rFlatFuelsTreatmentDraft(output_standardized,output_enriched):
         spatial_grid_1=None, 
         spatial_grid_2=None, 
         spatial_grid_3=None)
+
+    # Process: Calculate Treatment ID (Calculate Field) (management)
+    Updated_Input_Table_4_ = arcpy.management.CalculateField(
+        in_table=output_enriched, 
+        field="TRMTID_USER", 
+        expression="!PROJECTID_USER![:7]+'-'+(!COUNTY![:3])+'-'+(!PRIMARY_OWNERSHIP_GROUP![:4])+'-'+!IN_WUI![:3]+'-'+!PRIMARY_OBJECTIVE![:8]", 
+        expression_type="PYTHON3", 
+        code_block="", 
+        field_type="TEXT", 
+        enforce_domains="NO_ENFORCE_DOMAINS"
+        )[0]
 
     # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
     WFR_TF_Template_2_ = AssignDomains(in_table=output_enriched)#[0]
