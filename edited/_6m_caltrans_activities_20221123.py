@@ -184,7 +184,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     # Process: Calculate Treatment ID (Calculate Field) (management)
     Updated_Input_Table_45_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_10_, 
                                                               field="TRMTID_USER", 
-                                                              expression="!IMMS_Unit_ID!", 
+                                                              expression="!IMMS_Unit_ID!", #+'-'+!COUNTY!+'-'+!REGION!+'-'+!IN_WUI!", 
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
@@ -423,8 +423,17 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               field_type="TEXT", 
                                                               enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
+        # Process: Calculate Treatment ID (Calculate Field) (management)
+    Updated_Input_Table_X_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_23_, 
+                                                              field="TREATMENT_ID_USER", 
+                                                              expression="!TRMTID_USER!+'-'+!COUNTY!+'-'+!REGION!+'-'+!IN_WUI!", 
+                                                              expression_type="PYTHON3", 
+                                                              code_block="", 
+                                                              field_type="TEXT", 
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+
     # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
-    CalTrans_Activity_Points = AssignDomains(in_table=Updated_Input_Table_23_)#[0]
+    CalTrans_Activity_Points = AssignDomains(in_table=Updated_Input_Table_X_)#[0]
 
     # Process: Copy Features (2) (Copy Features) (management)
     CalTrans_pts_Copy_8_ = os.path.join(scratch_workspace, "CalTrans_pts_Copy")
@@ -598,7 +607,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     # Process: Calculate Treatment ID (2) (Calculate Field) (management)
     Updated_Input_Table_46_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_34_, 
                                                               field="TRMTID_USER", 
-                                                              expression="!IMMS_ID!", 
+                                                              expression="!IMMS_ID!", #+'-'+!COUNTY!+'-'+!REGION!"+'-'+!IN_WUI!", 
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
@@ -840,6 +849,18 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               code_block="", 
                                                               field_type="TEXT", 
                                                               enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    
+    ## *** IMMS_Unit_ID and IMMS_ID no longer exist after running a 7 tool on the data, so changed to 'TREATMENT_ID_USER' since that was filled with IMMS 
+    ## *** prior to the 7 tool being ran. Get non-specific error (no line traceback) that nontypes and string types cannot be concatenated when 
+    ## *** running the script with this block of code intact. The output table "Updated_Input_Table_Y_" should be fed into AssignDomains below once functioning.
+    # # Process: Calculate Treatment ID (2) (Calculate Field) (management)
+    # Updated_Input_Table_Y_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_44_, 
+    #                                                           field="TREATMENT_ID_USER", 
+    #                                                           expression="!TREATMENT_ID_USER!+'-'+!COUNTY!+'-'+!REGION!+'-'+!IN_WUI!", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="", 
+    #                                                           field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: 2b Assign Domains (4) (2b Assign Domains) (PC414CWIMillionAcres)
     CalTrans_Activity_Points_2_ = AssignDomains(in_table=Updated_Input_Table_44_)#[0]
