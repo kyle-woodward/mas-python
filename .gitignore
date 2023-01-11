@@ -141,5 +141,5 @@ dmypy.json
 .pyre/
 
 # Visual Studio files
-.vs/
-edited/.vs/
+edited/.vs/**
+**/.vs/**
