@@ -495,11 +495,11 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
                               out_feature_class=enrich_pts_out,
                               where_clause="County IS NOT NULL")
 
-    # # Rename scratch files to unique filepaths to avoid future overwrite output errors  
-    # print("Renaming scratch files for uniqueness...")
-    # for fc in [Pts_enrichment_Veg,Pts_enrichment_copy,Pts_enrichment_Own,Pts_enrichment_RCD]:
-    #     unq = unique_rename(scratch_fc = fc, input_fc = enrich_pts_in)
-    #     print(f"Renaming {fc} to {unq}")
+    # Rename scratch files to unique filepaths to avoid future overwrite output errors  
+    print("Renaming scratch files for uniqueness...")
+    for fc in [Pts_enrichment_Veg,Pts_enrichment_copy,Pts_enrichment_Own,Pts_enrichment_RCD]:
+        unq = unique_rename(scratch_fc = fc, input_fc = enrich_pts_in)
+        print(f"Renaming {fc} to {unq}")
     
 
 if __name__ == '__main__':
