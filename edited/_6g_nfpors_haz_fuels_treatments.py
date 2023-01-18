@@ -9,31 +9,47 @@ from _7b_enrichments_pts import bEnrichmentsPoints
 from _2c_units_domain import Units
 from _7a_enrichments_polygon import aEnrichmentsPolygon1
 from sys import argv
-from utils import init_gdb, unique_rename
-import os
+from utils import init_gdb, delete_scratch_files
+import os,time
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 # def Model71(nfpors_fuels_treatments_pts_standardized_20221110="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\c_Standardized\\nfpors_fuels_treatments_pts_standardized_20221110", nfpors_current_fy_20221110="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\a_Originals\\nfpors_current_fy_20221110", nfpors_fuels_treatments_pts_enriched_20221110="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\d_Enriched\\nfpors_fuels_treatments_pts_enriched_20221110"):  # 6g nfpors_haz_fuels_treatments
-def Model71(nfpors_current_fy, output_standardized, output_enriched):
+def Model71(input_original_polys,
+input_original_pts_BIA, 
+input_original_pts_FWS, 
+output_original_polys, 
+output_polys_standardized, 
+output_polys_enriched, 
+output_pts_standardized, 
+output_pts_enriched
+):
+    start = time.time()
+    print(f'Start Time {time.ctime()}')
+    
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
-
+    
+    #Define paths to required inputs
+    California = os.path.join(workspace,'b_Reference','California')
+    # TODO: Find download source for this dataset, determine how to automate the download 
+    # nfpors_fuels_treatments_20220906 = os.path.join(workspace,'a_Originals','nfpors_fuels_treatments_20220906')
+    # these two datasets were downloaded from the following web service using Dan's download service tool
+    # https://usgs.nfpors.gov/ArcGIS/rest/services/nfpors_WM/MapServer
+    # NFPORS_Current_FY_Treatments_BIA = os.path.join(workspace,'a_Originals','NFPORSCurrentFYTreatmentsBIA')
+    # NFPORS_Current_FY_Treatments_FWS = os.path.join(workspace,'a_Originals','NFPORSCurrentFYTreatmentsFWS')
+    
     arcpy.ImportToolbox(r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Data Management Tools.tbx")
+    
     # Model Environment settings
     with arcpy.EnvManager(outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]"""):
-        California = os.path.join(workspace,'b_Reference','California')
-
-        # TODO: Find download source for this dataset, determine how to automate the download 
-        nfpors_fuels_treatments_20220906 = os.path.join(workspace,'a_Originals','nfpors_fuels_treatments_20220906')
-        # these two datasets were downloaded from the following web service using Dan's download service tool
-        # https://usgs.nfpors.gov/ArcGIS/rest/services/nfpors_WM/MapServer
-        NFPORS_Current_FY_Treatments_BIA = os.path.join(workspace,'a_Originals','NFPORSCurrentFYTreatmentsBIA')
-        NFPORS_Current_FY_Treatments_FWS = os.path.join(workspace,'a_Originals','NFPORSCurrentFYTreatmentsFWS')
-
+        
+        ### BEGIN POLYGON WORKFLOW
+        
+        print('Performing Polygons Standardization')    
         # Process: Select (2) (Select) (analysis)
         nfpors_select1 = os.path.join(scratch_workspace,'nfpors_select1')
         arcpy.analysis.Select(
-            in_features=nfpors_fuels_treatments_20220906, 
+            in_features=input_original_polys, # nfpors_fuels_treatments_20220906
             out_feature_class=nfpors_select1, 
             where_clause="agency = 'BIA' Or agency = 'FWS' Or agency = 'NPS'"
             )
@@ -336,8 +352,9 @@ def Model71(nfpors_current_fy, output_standardized, output_enriched):
                 method="KEEP_FIELDS"
                 )[0]
 
+        print(f'Saving Output Polys Standardized: {output_polys_standardized}')
         # Process: Copy Features (2) (Copy Features) (management)
-        nfpors_fuels_treatments_standardized = output_standardized
+        nfpors_fuels_treatments_standardized = output_polys_standardized
         arcpy.management.CopyFeatures(
             in_features=nfpors_select2_Select_2_, 
             out_feature_class=nfpors_fuels_treatments_standardized, 
@@ -350,27 +367,31 @@ def Model71(nfpors_current_fy, output_standardized, output_enriched):
         # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
         usfs_silviculture_reforestation_enriched_20220629_2_ = AssignDomains(in_table=nfpors_fuels_treatments_standardized)#[0]
 
+        print(f'Performing Polygon Enrichments')
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
         Veg_Summarized_Polygons2 = os.path.join(scratch_workspace,'Veg_Summarized_Polygons2')
         # File "C:\mas-python\edited\_7a_enrichments_polygon.py", line 555, in aEnrichmentsPolygon1
         # Veg_Summarized_Polygons_Laye_11_ = arcpy.management.DeleteField(
         # ERROR 000728: Field PROJECTID does not exist within table
+        
         # is PROJECTID field supposed to exist in the table?... is the dataset wrong or the code wrong?
-        aEnrichmentsPolygon1(enrich_out=Veg_Summarized_Polygons2, enrich_in=usfs_silviculture_reforestation_enriched_20220629_2_)
+        # see above line 323 for fix
+        aEnrichmentsPolygon1(enrich_out=output_polys_enriched, enrich_in=usfs_silviculture_reforestation_enriched_20220629_2_)
 
+        print(f'Saving Output Polys Enriched: {output_polys_enriched}')
         # Process: Copy Features (4) (Copy Features) (management)
-        nfpors_fuels_treatments_enriched = output_enriched
-        arcpy.management.CopyFeatures(
-            in_features=Veg_Summarized_Polygons2, 
-            out_feature_class=nfpors_fuels_treatments_enriched, 
-            config_keyword="", 
-            spatial_grid_1=None, 
-            spatial_grid_2=None, 
-            spatial_grid_3=None
-            )
+        # nfpors_fuels_treatments_enriched = output_polys_enriched
+        # arcpy.management.CopyFeatures(
+        #     in_features=Veg_Summarized_Polygons2, 
+        #     out_feature_class=nfpors_fuels_treatments_enriched, 
+        #     config_keyword="", 
+        #     spatial_grid_1=None, 
+        #     spatial_grid_2=None, 
+        #     spatial_grid_3=None
+        #     )
         # Process: Calculate Treatment ID (2) (Calculate Field) (management)
         usfs_haz_fuels_treatments_reduction2_6_ = arcpy.management.CalculateField(
-            in_table=nfpors_fuels_treatments_enriched, 
+            in_table=output_polys_enriched, 
             field="TRMTID_USER", 
             expression="!PROJECTID_USER![:13]+'-'+(!PRIMARY_OWNERSHIP_GROUP![:4])+'-'+!COUNTY![:4]+'-'+(!IN_WUI![:3])", 
             expression_type="PYTHON3", 
@@ -380,7 +401,7 @@ def Model71(nfpors_current_fy, output_standardized, output_enriched):
             )[0]
         
         # Process: 2b Assign Domains (4) (2b Assign Domains) (PC414CWIMillionAcres)
-        nfpors_fuels_treatments_enriched_20220906_2_ = AssignDomains(in_table=nfpors_fuels_treatments_enriched)#[0]
+        nfpors_fuels_treatments_enriched_20220906_2_ = AssignDomains(in_table=output_polys_enriched)#[0]
 
         # Process: Calculate Geometry Attributes (Calculate Geometry Attributes) (management)
         nfpors_select2_dissolve_5_ = arcpy.management.CalculateGeometryAttributes(
@@ -392,12 +413,15 @@ def Model71(nfpors_current_fy, output_standardized, output_enriched):
             coordinate_format="SAME_AS_INPUT"
             )[0]
 
+        ### BEGIN POINTS WORKFLOW
+        
+        print('Performing Points Standardization')
         # Process: Select (7) (Select) (analysis)
         # ERROR 000732: Input Features: Dataset Treatments-Source\NFPORS Current FY Treatments - BIA does not exist or is not supported. # Failed to execute (Select).
         # See TODO at beginning of Model71() def
         NFPORSCurrentFYTreatm_Select2 = os.path.join(scratch_workspace,'NFPORSCurrentFY_BIA_CAselect')
         arcpy.analysis.Select(
-            in_features=NFPORS_Current_FY_Treatments_BIA, 
+            in_features=input_original_pts_BIA, # NFPORS_Current_FY_Treatments_BIA
             out_feature_class=NFPORSCurrentFYTreatm_Select2, 
             where_clause="statename = 'California'"
             )
@@ -405,15 +429,15 @@ def Model71(nfpors_current_fy, output_standardized, output_enriched):
         # Process: Select (6) (Select) (analysis)
         # See TODO at beginning of Model71() def
         arcpy.analysis.Select(
-            in_features=NFPORS_Current_FY_Treatments_FWS, 
-            out_feature_class=nfpors_current_fy, 
+            in_features=input_original_pts_FWS, # NFPORS_Current_FY_Treatments_FWS
+            out_feature_class=output_original_polys, 
             where_clause="statename = 'California'"
             )
 
         # Process: Append (Append) (management)
         Updated_Target_Dataset = arcpy.management.Append(
             inputs=[NFPORSCurrentFYTreatm_Select2], 
-            target=nfpors_current_fy, 
+            target=output_original_polys, 
             schema_type="TEST", 
             field_mapping="", 
             subtype="", 
@@ -439,7 +463,7 @@ def Model71(nfpors_current_fy, output_standardized, output_enriched):
             new_field_name="project_id", 
             new_field_alias="", 
             field_type="TEXT", 
-            field_length=50, 
+            # field_length=50, 
             field_is_nullable="NULLABLE", 
             clear_field_alias="CLEAR_ALIAS"
             )[0]
@@ -451,7 +475,7 @@ def Model71(nfpors_current_fy, output_standardized, output_enriched):
             new_field_name="latitude_", 
             new_field_alias="", 
             field_type="DOUBLE", 
-            field_length=8, 
+            # field_length=8, 
             field_is_nullable="NULLABLE", 
             clear_field_alias="CLEAR_ALIAS"
             )[0]
@@ -463,7 +487,7 @@ def Model71(nfpors_current_fy, output_standardized, output_enriched):
             new_field_name="longitude_", 
             new_field_alias="", 
             field_type="DOUBLE", 
-            field_length=8, 
+            # field_length=8, 
             field_is_nullable="NULLABLE", 
             clear_field_alias="CLEAR_ALIAS"
             )[0]
@@ -670,10 +694,11 @@ def Model71(nfpors_current_fy, output_standardized, output_enriched):
             enforce_domains="ENFORCE_DOMAINS"
             )[0]
 
+        print(f'Saving Output Points Standardized: {output_pts_standardized}')
         # Process: Copy Features (3) (Copy Features) (management)
         arcpy.management.CopyFeatures(
             in_features=Updated_Input_Table_26_, 
-            out_feature_class=output_standardized, 
+            out_feature_class=output_pts_standardized, 
             config_keyword="", 
             spatial_grid_1=None, 
             spatial_grid_2=None, 
@@ -682,7 +707,7 @@ def Model71(nfpors_current_fy, output_standardized, output_enriched):
 
         # Process: Delete Field (2) (Delete Field) (management)
         nfpors_select2p_clip_8_ = arcpy.management.DeleteField(
-            in_table=output_standardized, 
+            in_table=output_original_polys, 
             drop_field=["PROJECTID_USER", "AGENCY", "ORG_ADMIN_p", 
                         "PROJECT_CONTACT", "PROJECT_EMAIL", "ADMINISTERING_ORG", 
                         "PROJECT_NAME", "PROJECT_STATUS", "PROJECT_START", 
@@ -720,23 +745,25 @@ def Model71(nfpors_current_fy, output_standardized, output_enriched):
         # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
         usfs_silviculture_reforestation_enriched_20220629_4_ = AssignDomains(in_table=nfpors_select2p_clip_8_)#[0]
 
+        print('Performing Points Enrichments')
         # Process: 7b Enrichments pts (7b Enrichments pts) (PC414CWIMillionAcres)
         Pts_enrichment_Veg2 = os.path.join(scratch_workspace,'Pts_enrichment_Veg2')
-        bEnrichmentsPoints(enrich_pts_out=Pts_enrichment_Veg2, enrich_pts_in=usfs_silviculture_reforestation_enriched_20220629_4_)
+        bEnrichmentsPoints(enrich_pts_out=output_pts_enriched, enrich_pts_in=usfs_silviculture_reforestation_enriched_20220629_4_)
 
+        print(f'Saving Output Points Enriched: {output_pts_enriched}')
         # Process: Copy Features (Copy Features) (management)
-        arcpy.management.CopyFeatures(
-            in_features=Pts_enrichment_Veg2, 
-            out_feature_class=output_enriched, 
-            config_keyword="", 
-            spatial_grid_1=None, 
-            spatial_grid_2=None, 
-            spatial_grid_3=None
-            )
+        # arcpy.management.CopyFeatures(
+        #     in_features=Pts_enrichment_Veg2, 
+        #     out_feature_class=output_pts_enriched, 
+        #     config_keyword="", 
+        #     spatial_grid_1=None, 
+        #     spatial_grid_2=None, 
+        #     spatial_grid_3=None
+        #     )
 
         # Process: Calculate Treatment ID (3) (Calculate Field) (management)
         usfs_haz_fuels_treatments_reduction2_5_ = arcpy.management.CalculateField(
-            in_table=output_enriched, 
+            in_table=output_pts_enriched, 
             field="TRMTID_USER", 
             expression="!PROJECTID_USER![:13]+'-'+(!IN_WUI![:3])+'-'+(!PRIMARY_OWNERSHIP_GROUP![:1])", 
             expression_type="PYTHON3", 
@@ -746,11 +773,13 @@ def Model71(nfpors_current_fy, output_standardized, output_enriched):
             )[0]
         
         # Process: 2b Assign Domains (3) (2b Assign Domains) (PC414CWIMillionAcres)
-        WFR_TF_Template_2_ = AssignDomains(in_table=output_enriched)#[0]
+        WFR_TF_Template_2_ = AssignDomains(in_table=output_pts_enriched)#[0]
         
+        print('Deleting Scratch Files')
+        delete_scratch_files(gdb = scratch_workspace)
         
-        # TODO: unique rename scratch files
-
+        end = time.time()
+        print(f'Time Elapsed: {(end-start)/60} minutes')
 if __name__ == '__main__':
     # Global Environment settings
      with arcpy.EnvManager(

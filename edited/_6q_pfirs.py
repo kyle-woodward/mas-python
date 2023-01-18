@@ -8,18 +8,19 @@ from _2b_assign_domains import AssignDomains
 from _7b_enrichments_pts import bEnrichmentsPoints
 import os
 from sys import argv
-from utils import init_gdb, runner
-
+from utils import init_gdb, delete_scratch_files
+import time 
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 def Model72(input_fc, output_standardized, output_enriched, treat_poly):  
-
+    start = time.time()
+    print(f'Start Time {time.ctime()}')
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
 
     # Model Environment settings
     with arcpy.EnvManager(outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]"""):
-
+        print('Performing Standardization')
         # Process: Select Layer By Attribute (3) (Select Layer By Attribute) (management)
         PFIRS_2018_2022_Layer, Count_3_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view= input_fc, 
                                                                                   selection_type="NEW_SELECTION", 
@@ -289,6 +290,7 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
     field_type="TEXT", 
     enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
+        print(f'Saving Output Standardized: {output_standardized}')
         # Process: Copy Features (3) (Copy Features) (management)
         arcpy.management.CopyFeatures(in_features=Updated_Input_Table_39_, 
                                       out_feature_class=output_standardized, 
@@ -409,25 +411,31 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
 
         # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
         usfs_silviculture_reforestation_enriched_20220629_2_ = AssignDomains(in_table=PFIRS_standardized_2_)#[0]
-        arcpy.CopyFeatures_management(usfs_silviculture_reforestation_enriched_20220629_2_, os.path.join(scratch_workspace, "hope_this_works"))
-        Test123 = os.path.join(scratch_workspace, "hope_this_works")
+        output_standardized_copy = os.path.join(scratch_workspace, "hope_this_works")
+        arcpy.CopyFeatures_management(usfs_silviculture_reforestation_enriched_20220629_2_, output_standardized_copy)
 
+        print('Performing Enrichments')
         # Process: 7b Enrichments pts (7b Enrichments pts) (PC414CWIMillionAcres)
-        Pts_enrichment_Veg2 = os.path.join(scratch_workspace, "Pts_enrichment_Veg2")
-        bEnrichmentsPoints(enrich_pts_out=Pts_enrichment_Veg2, 
-                           enrich_pts_in=Test123)
+        # Pts_enrichment_Veg2 = os.path.join(scratch_workspace, "Pts_enrichment_Veg2") # no point in having final output be a scratch file
+        bEnrichmentsPoints(enrich_pts_out=output_enriched, 
+                           enrich_pts_in=output_standardized_copy)
 
+        print(f'Saving Output Enriched: {output_enriched}')
         # Process: Copy Features (Copy Features) (management)
-        arcpy.management.CopyFeatures(in_features=Pts_enrichment_Veg2, 
-                                      out_feature_class=output_enriched, 
-                                      config_keyword="", 
-                                      spatial_grid_1=None, 
-                                      spatial_grid_2=None, 
-                                      spatial_grid_3=None)
+        # arcpy.management.CopyFeatures(in_features=Pts_enrichment_Veg2, 
+        #                               out_feature_class=output_enriched, 
+        #                               config_keyword="", 
+        #                               spatial_grid_1=None, 
+        #                               spatial_grid_2=None, 
+        #                               spatial_grid_3=None)
 
         # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
         usfs_silviculture_reforestation_enriched_20220629_3_ = AssignDomains(in_table=output_enriched)#[0]
 
+        print('Deleting Scratch Files')
+        delete_scratch_files(gdb = scratch_workspace)
+        end = time.time()
+        print(f'Time Elapsed: {(end-start)/60} minutes')
 if __name__ == '__main__':
     # Global Environment settings
      with arcpy.EnvManager(

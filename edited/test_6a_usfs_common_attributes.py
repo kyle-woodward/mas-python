@@ -1,4 +1,4 @@
-from utils import init_gdb, unique_rename
+from utils import init_gdb
 import os
 import datetime
 from _6a_usfs_common_attributes import Model7
