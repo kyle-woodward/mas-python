@@ -29,23 +29,6 @@ def init_gdb():
 
     return original_gdb, workspace, scratch_workspace
 
-
-# def unique_path(input_fc:str,out_string:str):
-#     """
-#     Constructs a unique file path for a scratch object that is to be created
-    
-#     args:
-    
-#     input_fc: full file path to input fc your process is to be run on
-#     out_string: unique string to use in the basename of the scratch file (e.g. "Pts_enrichment_Veg")
-#     """
-#     _,_,scratch_workspace = init_gdb()
-#     input_id = os.path.basename(input_fc) # for now, keep the whole basename including the date string
-#     date_id = datetime.utcnow().strftime("%Y-%m-%d").replace('-','') # like 20221216
-#     new_path = os.path.join(scratch_workspace,f"{input_id}_{out_string}_{date_id}")
-#     return new_path
-
-
 def unique_rename(scratch_fc:str,input_fc:str):
     """
     Creates unique name and renames a scratch object
@@ -87,8 +70,6 @@ def delete_scratch_files(gdb):
     #data sets
     for ds in ds_list:
         arcpy.Delete_management(ds)
-
-
 
 def runner(workspace:str,scratch_workspace:str,func):
     with arcpy.EnvManager(
