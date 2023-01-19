@@ -32,7 +32,6 @@ def Units(in_table):  # 2c Units Domain
         return \"EA\"
     else:
         return Units""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
-    print(calculatedUOM)
     return calculatedUOM
 
 if __name__ == '__main__':

@@ -9,17 +9,21 @@ from _7b_enrichments_pts import bEnrichmentsPoints
 from _7c_enrichments_lines import cEnrichmentsLines
 import os
 from sys import argv
-from utils import init_gdb, runner
+from utils import init_gdb, delete_scratch_files
+import time
 
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_standardized, output_points_enriched, output_lines_enriched):  # 6m CalTrans_Activities 20221123
-
+    start = time.time()
+    print(f'Start Time {time.ctime()}')
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
 
     arcpy.ImportToolbox(r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Data Management Tools.tbx")
 
+    ### BEGIN POINTS WORKFLOW
+    print('Performing Points Standardization')
     # Process: Feature To Point (Feature To Point) (management)
     Output_Feature_Class = os.path.join(scratch_workspace, "Vegetation_Con_FeatureToPoint")
     arcpy.management.FeatureToPoint(in_features=input_pts, 
@@ -390,6 +394,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                      "State_FY"], 
                                                          method="KEEP_FIELDS")[0]
 
+    print(f'Saving Output Points Standardized: {output_points_standardized}')
     # Process: Copy Features (Copy Features) (management)
     arcpy.management.CopyFeatures(in_features=CalTrans_pts_Copy_16_, 
                                   out_feature_class=output_points_standardized, 
@@ -401,18 +406,20 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
     usfs_silviculture_reforestation_enriched_20220629_2_ = AssignDomains(in_table=output_points_standardized)#[0]
 
+    print('Performing Points Enrichments')
     # Process: 7b Enrichments pts (7b Enrichments pts) (PC414CWIMillionAcres)
     Pts_enrichment_Veg2 = os.path.join(scratch_workspace, "Pts_enrichment_Veg2")
-    bEnrichmentsPoints(enrich_pts_out=Pts_enrichment_Veg2, 
-                       enrich_pts_in=usfs_silviculture_reforestation_enriched_20220629_2_)
+    bEnrichmentsPoints(enrich_pts_out=output_points_enriched, 
+                       enrich_pts_in=usfs_silviculture_reforestation_enriched_20220629_2_,
+                       delete_scratch=True) # need to delete scratch here because we call bEnrichmentsPoints again for Line Enrichments and we'll catch a 'dataset already exists' error
 
     # Process: Copy Features (5) (Copy Features) (management)
-    arcpy.management.CopyFeatures(in_features=Pts_enrichment_Veg2, 
-                                  out_feature_class=output_points_enriched, 
-                                  config_keyword="", 
-                                  spatial_grid_1=None, 
-                                  spatial_grid_2=None, 
-                                  spatial_grid_3=None)
+    # arcpy.management.CopyFeatures(in_features=Pts_enrichment_Veg2, 
+    #                               out_feature_class=output_points_enriched, 
+    #                               config_keyword="", 
+    #                               spatial_grid_1=None, 
+    #                               spatial_grid_2=None, 
+    #                               spatial_grid_3=None)
 
     # Process: Calculate Owner State (Calculate Field) (management)
     Updated_Input_Table_23_ = arcpy.management.CalculateField(in_table=output_points_enriched, 
@@ -435,6 +442,8 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
     CalTrans_Activity_Points = AssignDomains(in_table=Updated_Input_Table_X_)#[0]
 
+    ### BEGIN POLYLINE WORKFLOW
+    print('Performing Line Standardization')
     # Process: Copy Features (2) (Copy Features) (management)
     CalTrans_pts_Copy_8_ = os.path.join(scratch_workspace, "CalTrans_pts_Copy")
     arcpy.management.CopyFeatures(in_features=input_polys, 
@@ -819,6 +828,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                      "State_FY"], 
                                                                   method="KEEP_FIELDS")[0]
 
+    print(f'Saving Output Lines Standardized: {output_lines_standardized}')
     # Process: Copy Features (3) (Copy Features) (management)
     arcpy.management.CopyFeatures(in_features=CalTrans_pts_Copy_14_, 
                                   out_feature_class=output_lines_standardized, 
@@ -830,9 +840,11 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     # Process: 2b Assign Domains (3) (2b Assign Domains) (PC414CWIMillionAcres)
     usfs_silviculture_reforestation_enriched_20220629_3_ = AssignDomains(in_table=output_lines_standardized)#[0]
 
+    print('Performing Lines Enrichments')
     # Process: 7c Enrichments Lines (2) (7c Enrichments Lines) (PC414CWIMillionAcres)
-    Line_Enriched_Temp_CopyFeatures_3_ = cEnrichmentsLines(line_fc=usfs_silviculture_reforestation_enriched_20220629_3_)#[0]
+    Line_Enriched_Temp_CopyFeatures_3_ = cEnrichmentsLines(line_fc=usfs_silviculture_reforestation_enriched_20220629_3_) # don't delete scratch
 
+    print(f'Saving Output Lines Enriched: {output_lines_enriched}')
     # Process: Copy Features (4) (Copy Features) (management)
     arcpy.management.CopyFeatures(in_features=Line_Enriched_Temp_CopyFeatures_3_, 
                                   out_feature_class=output_lines_enriched, 
@@ -865,6 +877,11 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     # Process: 2b Assign Domains (4) (2b Assign Domains) (PC414CWIMillionAcres)
     CalTrans_Activity_Points_2_ = AssignDomains(in_table=Updated_Input_Table_44_)#[0]
 
+    print('Deleting Scratch Files')
+    delete_scratch_files(gdb = scratch_workspace)
+
+    end = time.time()
+    print(f'Time Elapsed: {(end-start)/60} minutes')
 if __name__ == '__main__':
     # Global Environment settings
      with arcpy.EnvManager(

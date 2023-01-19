@@ -7,12 +7,14 @@ from _1b_add_fields import AddFields2
 from _2b_assign_domains import AssignDomains
 from _7a_enrichments_polygon import aEnrichmentsPolygon1
 from sys import argv
-from utils import init_gdb, unique_rename
+from utils import init_gdb, delete_scratch_files
 import os
+import time
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 def Model7(output_enriched,output_standardized,input_fc):
-
+    start = time.time()
+    print(f'Start Time {time.ctime()}')
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
     
@@ -26,7 +28,7 @@ def Model7(output_enriched,output_standardized,input_fc):
 
     # Model Environment settings
     with arcpy.EnvManager(outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]"""):
-
+        print('Performing Standardization...')
         # Process: Select Layer By Attribute California (Select Layer By Attribute) (management)
         Actv_CommonAttribute_PL_Laye2, Count_4_ = arcpy.management.SelectLayerByAttribute(
             in_layer_or_view=input_fc, 
@@ -692,6 +694,7 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
                 method="KEEP_FIELDS"
                 )[0]
 
+        print(f'Saving Output Standardized: {output_standardized}')
         # Process: Select by Years (Select) (analysis)
         arcpy.analysis.Select(
             in_features=usfs_haz_fuels_treatments_re_2_, 
@@ -706,33 +709,32 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
 
         # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon) (PC414CWIMillionAcres)
         aEnrichmentsPolygon1(
-            enrich_out=Veg_Summarized_Polygons2_3_, 
+            enrich_out=output_enriched, 
             enrich_in=usfs_silviculture_reforestation_enriched_20220629_2_
             )
-
+        
+        print(f'Saving Output Enriched: {output_enriched}')
+        # output of enrichemnts function should be the output_enriched file not another scratch file, then we can delete all scratch files
         # Process: Copy Features (Copy Features) (management)
-        arcpy.management.CopyFeatures(
-            in_features=Veg_Summarized_Polygons2_3_, 
-            out_feature_class=output_enriched, 
-            config_keyword="", 
-            spatial_grid_1=None, 
-            spatial_grid_2=None, 
-            spatial_grid_3=None
-            )
+        # arcpy.management.CopyFeatures(
+        #     in_features=Veg_Summarized_Polygons2_3_, 
+        #     out_feature_class=output_enriched, 
+        #     config_keyword="", 
+        #     spatial_grid_1=None, 
+        #     spatial_grid_2=None, 
+        #     spatial_grid_3=None
+        #     )
 
         # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
         usfs_silviculture_reforestation_enriched_20220629_3_ = AssignDomains(
             in_table=output_enriched
             )#[0]
-        # Rename scratch files to unique filepaths to avoid future overwrite output errors  
-        print("Renaming scratch files for uniqueness...")
-        for fc in [Output_Feature_Class,
-                    usfs_haz_fuels_treatments_reduction2_dissolve,
-                    Actv_CommonAttribute_PL_Laye_CopyFeatures2,
-                    Veg_Summarized_Polygons2_3_
-                    ]:
-            unq = unique_rename(scratch_fc = fc, input_fc = input_fc)
-            print(f"Renaming {fc} to {unq}")
+        
+        print('Deleting Scratch Files')
+        delete_scratch_files(gdb = scratch_workspace)
+        
+        end = time.time()
+        print(f'Time Elapsed: {(end-start)/60} minutes')
 if __name__ == '__main__':
     # Global Environment settings
      with arcpy.EnvManager(

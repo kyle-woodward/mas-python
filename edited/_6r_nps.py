@@ -7,17 +7,20 @@ from _1b_add_fields import AddFields2
 from _2b_assign_domains import AssignDomains
 from _7a_enrichments_polygon import aEnrichmentsPolygon1
 from sys import argv
-from utils import init_gdb, unique_rename
+from utils import init_gdb, delete_scratch_files
 import os
+import time
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 # def rFlatFuelsTreatmentDraft(nps_flat_fuels_enriched_20221102="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\d_Enriched\\nps_flat_fuels_enriched_20221102", usfs_haz_fuels_treatments_standardized_20220713_2_="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\c_Standardized\\nps_flat_fuels_standardized_20221102"):  # 6r NPS 20221123
-def rFlatFuelsTreatmentDraft(output_standardized,output_enriched):
+def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
+    start = time.time()
+    print(f'Start Time {time.ctime()}')
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
     # TODO: download from feature service upon run-time
     # in meantime have access to copy of the file from Dropbox 1/3/23
-    nps_flat_fuels_20221102 = os.path.join(workspace,'a_Originals','nps_flat_fuels_20221102')
+    
     California = os.path.join(workspace,'b_Reference','California')
 
     # define intermediary scratch files 
@@ -26,9 +29,10 @@ def rFlatFuelsTreatmentDraft(output_standardized,output_enriched):
     FLAT_FUELSTREATMENT_PAS_disso = os.path.join(scratch_workspace,'FLAT_FUELSTREATMENT_PAS_disso')
     Veg_Summarized_Polygons2 = os.path.join(scratch_workspace,'Veg_Summarized_Polygons2')
 
+    print('Performing Standardization')
     # Process: Select (Select) (analysis)
     arcpy.analysis.Select(
-        in_features=nps_flat_fuels_20221102, 
+        in_features=input_fc, 
         out_feature_class=FLAT_FUELSTREATMENT_PAST_select, 
         where_clause="ActualCompletionDate> timestamp '1995-01-01 00:00:00' Or ActualCompletionDate IS NULL"
         )
@@ -373,7 +377,7 @@ def rFlatFuelsTreatmentDraft(output_standardized,output_enriched):
         out_feature_class=output_standardized, 
         where_clause="Year >= 1995 And Year <= 2025"
         )
-
+    print(f'Saving Output Standardized: {output_standardized}')
     # Process: Delete Field (Delete Field) (management)
     FLAT_FUELSTREATMENT_PAS_disso_2_ = arcpy.management.DeleteField(
         in_table=output_standardized, 
@@ -409,10 +413,12 @@ def rFlatFuelsTreatmentDraft(output_standardized,output_enriched):
                     "Crosswalk", "Federal_FY", "State_FY"], 
             method="KEEP_FIELDS"
             )[0]
-
+    
+    print('Performing Enrichments')
     # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon) (PC414CWIMillionAcres)
     aEnrichmentsPolygon1(enrich_out=Veg_Summarized_Polygons2, enrich_in=FLAT_FUELSTREATMENT_PAS_disso_2_)
 
+    print(f'Saving Output Enriched: {output_enriched}')
     # Process: Copy Features (Copy Features) (management)
     arcpy.management.CopyFeatures(
         in_features=Veg_Summarized_Polygons2, 
@@ -436,16 +442,11 @@ def rFlatFuelsTreatmentDraft(output_standardized,output_enriched):
     # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
     WFR_TF_Template_2_ = AssignDomains(in_table=output_enriched)#[0]
     
-    # Rename scratch files to unique filepaths to avoid future overwrite output errors  
-    print("Renaming scratch files for uniqueness...")
-    for fc in [FLAT_FUELSTREATMENT_PAST_select,
-                FLAT_FUELSTREATMENT_PAS_clip,
-                FLAT_FUELSTREATMENT_PAS_disso,
-                Veg_Summarized_Polygons2
-                ]:
-        unq = unique_rename(scratch_fc = fc, input_fc = nps_flat_fuels_20221102)
-        print(f"Renaming {fc} to {unq}")
-
+    print('Deleting Scratch Files')
+    delete_scratch_files(gdb = scratch_workspace)
+ 
+    end = time.time()
+    print(f'Time Elapsed: {(end-start)/60} minutes')
 if __name__ == '__main__':
     # Global Environment settings
     with arcpy.EnvManager(

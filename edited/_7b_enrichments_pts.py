@@ -9,11 +9,11 @@ from _2e_calculate_objective import Objective
 from _2g_calculate_residue_fate import Residue
 from _2h_calculate_year import Year
 from sys import argv
-from utils import init_gdb, unique_rename, runner
+from utils import init_gdb, delete_scratch_files
 import os
 original_gdb, workspace, scratch_workspace = init_gdb()
 
-def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
+def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 7b Enrichments pts
 
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
@@ -495,13 +495,10 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in):  # 7b Enrichments pts
                               out_feature_class=enrich_pts_out,
                               where_clause="County IS NOT NULL")
 
-    # Rename scratch files to unique filepaths to avoid future overwrite output errors  
-    print("Renaming scratch files for uniqueness...")
-    for fc in [Pts_enrichment_Veg,Pts_enrichment_copy,Pts_enrichment_Own,Pts_enrichment_RCD]:
-        unq = unique_rename(scratch_fc = fc, input_fc = enrich_pts_in)
-        print(f"Renaming {fc} to {unq}")
+    if delete_scratch:
+        print('Deleting Scratch Files')
+        delete_scratch_files(gdb = scratch_workspace)
     
-
 if __name__ == '__main__':
     # Global Environment settings
     with arcpy.EnvManager(

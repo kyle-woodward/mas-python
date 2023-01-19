@@ -9,12 +9,12 @@ from _2e_calculate_objective import Objective
 from _2g_calculate_residue_fate import Residue
 from _2h_calculate_year import Year
 from sys import argv
-from utils import init_gdb, unique_rename
+from utils import init_gdb, delete_scratch_files
 import os
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 # first arg is the output fc path and the other is the input fc you are enriching
-def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
+def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichments Polygon
 
     arcpy.ImportToolbox(r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Analysis Tools.tbx")
     arcpy.ImportToolbox(r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\GeoAnalytics Desktop Tools.tbx")
@@ -50,7 +50,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
         WHR13NAME_Summary_temp_name = os.path.join(scratch_workspace,"WHR13NAME_Summary_temp")
         # Begin tool chain processes
 
-        print('Executing SummarizeWithin...')
+        # print('Executing Polygon Enrichments...')
         # Process: Summarize Within (Summarize Within) (analysis)
         arcpy.analysis.SummarizeWithin(
                                     in_polygons=enrich_in, 
@@ -77,7 +77,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
                                         time_step_reference=""
                                         )
 
-        print('Performing Field Modifications...')
+        # print('Performing Field Modifications...')
         # Process: Add Join (2) (Add Join) (management)
         WHR13NAME_Summary_SummarizeA = arcpy.management.AddJoin(
                                     in_layer_or_view=WHR13NAME_Summary_SummarizeAttributes, 
@@ -494,13 +494,13 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
         Updated_Input_Table_3_ = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye4, field="Veg_Summarized_Polygons.ACTIVITY_DESCRIPTION", expression="!Fuels_Treatments_Piles_Crosswalk.Activity!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
         
         # Process: 2d Calculate Activity (2d Calculate Activity) (PC414CWIMillionAcres)
-        print('Calculating Activity...')
+        # print('Calculating Activity...')
         Veg_Summarized_Polygons_Laye3_5_ = Activity(Input_Table=Veg_Summarized_Polygons_Laye4)#[0]
         
         # Process: Calculate Residue Fate (Calculate Field) (management)
         usfs_edw_facts_common_attrib1 = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye3_5_, field="Veg_Summarized_Polygons.RESIDUE_FATE", expression="!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
-        print('Calculating Residue...')
+        # print('Calculating Residue...')
         # Process: 2g Calculate Residue Fate (2g Calculate Residue Fate) (PC414CWIMillionAcres)
         Veg_Summarized_Polygons_Laye3_3_ = Residue(Input_Table=Veg_Summarized_Polygons_Laye3_5_)#[0]
 
@@ -514,7 +514,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
         # Process: Calculate Objective (Calculate Field) (management)
         Updated_Input_Table_5_ = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye_9_, field="Veg_Summarized_Polygons.PRIMARY_OBJECTIVE", expression="!Fuels_Treatments_Piles_Crosswalk.Objective!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
                 
-        print('Calculating Objective...')
+        # print('Calculating Objective...')
         # Process: 2e Calculate Objective (2e Calculate Objective) (PC414CWIMillionAcres)
         Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Veg_Summarized_Polygons_Laye_9_)#[0]
 
@@ -532,11 +532,11 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
                                 join_name="Fuels_Treatments_Piles_Crosswalk"
                                 )[0]
 
-        print('Calculating Category...')
+        # print('Calculating Category...')
         # Process: 2f Calculate Category (2f Calculate Category) (PC414CWIMillionAcres)
         Updated_Input_Table = Category(Input_Table=Layer_With_Join_Removed_2_)#[0]
 
-        print('Calculating Year...')
+        # print('Calculating Year...')
         # Process: 2h Calculate Year (2h Calculate Year) (PC414CWIMillionAcres)
         Veg_Summarized_Polygons_Laye3_7_ = Year(Input_Table=Updated_Input_Table)#[0]
 
@@ -599,17 +599,9 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in):  # 7a Enrichments Polygon
             where_clause="County IS NOT NULL"
             )
         
-        # # Rename scratch files to unique filepaths to avoid future overwrite output errors  
-        # print("Renaming scratch files for uniqueness...")
-        # for fc in [Veg_Summarized_Centroids,
-        #             Veg_Summarized_Join1_Own,
-        #             Veg_Summarized_Join2_RCD,
-        #             Veg_Summarized_Polygons,
-        #             WHR13NAME_Summary,
-        #             WHR13NAME_Summary_SummarizeAttributes,
-        #             WHR13NAME_Summary_temp_name]:
-        #     unq = unique_rename(scratch_fc = fc, input_fc = enrich_in)
-        #     print(f"Renaming {fc} to {unq}")
+        if delete_scratch:
+            print('Deleting Scratch Files')
+            delete_scratch_files(gdb = scratch_workspace)
 
 if __name__ == '__main__':
     # Global Environment settings
