@@ -1,4 +1,4 @@
-from utils import init_gdb, unique_rename
+from utils import init_gdb
 import os
 original_gdb, workspace, scratch_workspace = init_gdb()
 from _6r_nps import rFlatFuelsTreatmentDraft
