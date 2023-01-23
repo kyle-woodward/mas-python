@@ -20,7 +20,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
     arcpy.env.overwriteOutput = False
     # TODO: download from feature service upon run-time
     # in meantime have access to copy of the file from Dropbox 1/3/23
-    
+    nps_flat_fuels_20021102 = os.path.join(original_gdb, 'a_Originals', 'nps_flat_fuels_20021102')
     California = os.path.join(workspace,'b_Reference','California')
 
     # define intermediary scratch files 
