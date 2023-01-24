@@ -71,6 +71,14 @@ def delete_scratch_files(gdb):
     for ds in ds_list:
         arcpy.Delete_management(ds)
 
+def check_exists(fc_list:list,workspace):
+    """
+    Checks if all datasets exist, returning a list of non-existent datasets if applicable
+    """
+    arcpy.env.workspace = workspace
+    [print(f"Dataset does not exist: {fc}") for fc in fc_list if not arcpy.Exists(fc)]
+    
+
 def runner(workspace:str,scratch_workspace:str,func):
     with arcpy.EnvManager(
     extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 
