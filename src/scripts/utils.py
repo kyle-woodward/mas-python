@@ -79,7 +79,24 @@ def check_exists(fc_list:list,workspace):
     """
     arcpy.env.workspace = workspace
     [print(f"Dataset does not exist: {fc}") for fc in fc_list if not arcpy.Exists(fc)]
+
+
+def og_file_input(prefix:str, filetype:str):
+    """
+    Finds input file in the "a_Originals" folder in the workspace
     
+    args:
+
+    prefix: prefix of desired file
+
+    filetype: type of feature class desired (Point, Line, Polyline, Polygon, etc.)
+    
+    """
+    arcpy.env.workspace = os.path.join(workspace, "a_Originals")
+    for filename in arcpy.ListFeatureClasses(feature_type = filetype):
+        if filename.startswith(prefix):
+            return filename
+
 
 def runner(workspace:str,scratch_workspace:str,func):
     with arcpy.EnvManager(
