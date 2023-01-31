@@ -81,18 +81,20 @@ def check_exists(fc_list:list,workspace):
     [print(f"Dataset does not exist: {fc}") for fc in fc_list if not arcpy.Exists(fc)]
 
 
-def og_file_input(prefix:str, filetype:str):
+def og_file_input(prefix:str, filetype:str, gdb):
     """
     Finds input file in the "a_Originals" folder in the workspace
     
     args:
 
+    gdb: full file path to GDB from which you want to delete all files
+    
     prefix: prefix of desired file
 
     filetype: type of feature class desired (Point, Line, Polyline, Polygon, etc.)
     
     """
-    arcpy.env.workspace = os.path.join(workspace, "a_Originals")
+    arcpy.env.workspace = gdb
     for filename in arcpy.ListFeatureClasses(feature_type = filetype):
         if filename.startswith(prefix):
             return filename
