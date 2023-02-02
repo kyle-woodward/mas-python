@@ -95,10 +95,19 @@ def og_file_input(prefix:str, filetype:str, gdb):
     
     """
     arcpy.env.workspace = gdb
-    for filename in arcpy.ListFeatureClasses(feature_type = filetype):
+    file_list = arcpy.ListFeatureClasses(feature_type = filetype)
+    files_w_prefix = []
+    for filename in file_list:
         if filename.startswith(prefix):
-            return filename
+            files_w_prefix.append(filename) 
+    files_w_prefix.sort(key = lambda x: x.split('_')[-1])
+    try:
+        most_recent = files_w_prefix[-1]
+        return most_recent
+    except IndexError:
+        print ("FileNotFoundError: File with that file path & prefix does not exist") 
 
+    
 
 def runner(workspace:str,scratch_workspace:str,func):
     with arcpy.EnvManager(
