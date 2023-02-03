@@ -100,12 +100,23 @@ def og_file_input(prefix:str, filetype:str, gdb):
     for filename in file_list:
         if filename.startswith(prefix):
             files_w_prefix.append(filename) 
-    files_w_prefix.sort(key = lambda x: x.split('_')[-1])
-    try:
-        most_recent = files_w_prefix[-1]
-        return most_recent
-    except Exception:
-        print("FileNotFoundError: File with that file path & prefix does not exist") 
+    
+    if len(files_w_prefix) == 0:
+        raise RuntimeError("File with that file path & prefix does not exist")
+    
+    # files_w_prefix.sort(key = lambda x: x.split('_')[-1])
+    files_w_prefix.sort()
+    most_recent = files_w_prefix[-1]
+    return most_recent
+    # files_w_prefix.sort(key = lambda x: x.split('_')[-1])
+    # most_recent = files_w_prefix[-1]
+    # return most_recent
+    
+    # try:
+    #     most_recent = files_w_prefix[-1]
+    #     return most_recent
+    # except Exception:
+    #     print("FileNotFoundError: File with that file path & prefix does not exist") 
 
     
 
