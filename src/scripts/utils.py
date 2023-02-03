@@ -104,8 +104,8 @@ def og_file_input(prefix:str, filetype:str, gdb):
     try:
         most_recent = files_w_prefix[-1]
         return most_recent
-    except IndexError:
-        print ("FileNotFoundError: File with that file path & prefix does not exist") 
+    except Exception:
+        print("FileNotFoundError: File with that file path & prefix does not exist") 
 
     
 
