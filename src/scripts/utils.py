@@ -102,23 +102,11 @@ def og_file_input(prefix:str, filetype:str, gdb):
             files_w_prefix.append(filename) 
     
     if len(files_w_prefix) == 0:
-        raise RuntimeError("File with that file path & prefix does not exist")
+        raise FileNotFoundError(f"File does not match criteria. prefix: {prefix}, file type: {filetype}, workspace: {gdb}")
     
-    # files_w_prefix.sort(key = lambda x: x.split('_')[-1])
     files_w_prefix.sort()
     most_recent = files_w_prefix[-1]
     return most_recent
-    # files_w_prefix.sort(key = lambda x: x.split('_')[-1])
-    # most_recent = files_w_prefix[-1]
-    # return most_recent
-    
-    # try:
-    #     most_recent = files_w_prefix[-1]
-    #     return most_recent
-    # except Exception:
-    #     print("FileNotFoundError: File with that file path & prefix does not exist") 
-
-    
 
 def runner(workspace:str,scratch_workspace:str,func):
     with arcpy.EnvManager(
@@ -131,14 +119,3 @@ def runner(workspace:str,scratch_workspace:str,func):
     transferGDBAttributeProperties=True, 
     workspace=workspace):
         func()
-
-#%%
-# Testing
-# original_gdb, workspace, scratch_workspace = init_gdb()
-# enrich_pts_in = os.path.join(workspace,'c_Standardized','BLM_standardized_20220912')
-# scratch_string = 'WHR_Summary'
-# new_path = unique_path(enrich_pts_in,scratch_string)
-# print(new_path)
-# %%
-#init_gdb()
-# %%
