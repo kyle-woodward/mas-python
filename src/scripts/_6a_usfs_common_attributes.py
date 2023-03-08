@@ -271,11 +271,19 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
             invert_where_clause="INVERT"
             )
 
-        # Process: Select Layer By Attribute 2021 (Select Layer By Attribute) (management)
-        Actv_CommonAttribute_PL_Laye2_4_, Count_7_ = arcpy.management.SelectLayerByAttribute(
+        # Process: Select Layer By Attribute Non-Wildfire (Select Layer By Attribute) (management)
+        usfs_haz_fuels_treatments_re2, Count_6a_ = arcpy.management.SelectLayerByAttribute(
             in_layer_or_view=usfs_haz_fuels_treatments_re, 
             selection_type="SUBSET_SELECTION", 
-            where_clause="DATE_COMPLETED > timestamp '2021-01-01 00:00:00' Or DATE_COMPLETED IS NULL", 
+            where_clause="ACTIVITY_CODE = '1119' And FUELS_KEYPOINT_AREA <> '6'", 
+            invert_where_clause="INVERT"
+            )
+
+        # Process: Select Layer By Attribute 2021 (Select Layer By Attribute) (management)
+        Actv_CommonAttribute_PL_Laye2_4_, Count_7_ = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=usfs_haz_fuels_treatments_re2, 
+            selection_type="SUBSET_SELECTION", 
+            where_clause="DATE_COMPLETED > timestamp '1995-01-01 00:00:00' Or DATE_COMPLETED IS NULL", 
             invert_where_clause=""
             )
 
@@ -304,7 +312,7 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
                             "NBR_UNITS_ACCOMPLISHED", "FACTS_ID", "UOM", 
                             "ACTIVITY", "NEPA_PROJECT_NAME", "DATE_AWARDED", 
                             "ACTIVITY_CODE", "NEPA_DOC_NBR", "WORKFORCE_CODE", 
-                            "NBR_UNITS_PLANNED"], 
+                            "NBR_UNITS_PLANNED", "ISWUI"], 
             statistics_fields=[], 
             multi_part="MULTI_PART", 
             unsplit_lines="DISSOLVE_LINES", 
@@ -318,7 +326,7 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
         Activity_SilvTSI_20220627_Se2_2_ = arcpy.management.CalculateField(
             in_table=WFRTF_Template_4_, 
             field="PROJECTID_USER", 
-            expression="!SUID![:13]", 
+            expression="!NEPA_DOC_NBR!", 
             expression_type="PYTHON3", 
             code_block="", 
             field_type="TEXT", 
@@ -417,7 +425,7 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
         Updated_Input_Table_32_ = arcpy.management.CalculateField(
             in_table=Updated_Input_Table_7_, 
             field="IMPLEMENTING_ORG", 
-            expression="!WORKFORCE_CODE!", 
+            expression="\"Pacific Southwest Regional Office\"", 
             expression_type="PYTHON3", 
             code_block="", 
             field_type="TEXT", 
@@ -446,9 +454,20 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
             enforce_domains="NO_ENFORCE_DOMAINS"
             )[0]
 
+        # Process: Calculate Activity User ID (Calculate Field) (management)
+        Updated_Input_Table_8a_ = arcpy.management.CalculateField(
+            in_table=Updated_Input_Table_8_, 
+            field="ACTIVID_USER", 
+            expression="!SUID!", 
+            expression_type="PYTHON3", 
+            code_block="", 
+            field_type="TEXT", 
+            enforce_domains="NO_ENFORCE_DOMAINS"
+            )[0]
+
         # Process: Calculate Veg User Defined (Calculate Field) (management)
         Updated_Input_Table_9_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_8_, 
+            in_table=Updated_Input_Table_8a_, 
             field="BVT_USERD", 
             expression="\"NO\"", 
             expression_type="PYTHON3", 
@@ -457,9 +476,26 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
             enforce_domains="NO_ENFORCE_DOMAINS"
             )[0]
 
+        # Process: Calculate WUI (Calculate Field) (management)
+        Updated_Input_Table_2a_ = arcpy.management.CalculateField(
+            in_table=Updated_Input_Table_9_, 
+            field="IN_WUI", 
+            expression="ifelse(!ISWUI!)", 
+            expression_type="PYTHON3", 
+            code_block="""def ifelse(WUI):
+                            if WUI == \"Y\":
+                                return \"WUI_USER_DEFINED\"
+                            elif DateComp == \"N\":
+                                return \"NON-WUI_USER_DEFINED\"
+                            else:
+                                return None""", 
+            field_type="TEXT", 
+            enforce_domains="NO_ENFORCE_DOMAINS"
+            )[0]
+
         # Process: Calculate Activity End Date (Calculate Field) (management)
         Updated_Input_Table_2_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_9_, 
+            in_table=Updated_Input_Table_2a_, 
             field="ACTIVITY_END", 
             expression="ifelse(!DATE_COMPLETED!, !DATE_AWARDED!)", 
             expression_type="PYTHON3", 
@@ -500,6 +536,7 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
             )
 
         # Process: Calculate Status (Calculate Field) (management)
+        # Based on Today's Date.  Need to add Date formula
         Updated_Input_Table_35_ = arcpy.management.CalculateField(
             in_table=usfs_silviculture_TSI_dissol_2_, 
             field="ACTIVITY_STATUS", 
@@ -594,7 +631,7 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
         Updated_Input_Table_14_ = arcpy.management.CalculateField(
             in_table=Updated_Input_Table_13_, 
             field="ACTIVITY_NAME", 
-            expression="!NEPA_PROJECT_NAME!", 
+            expression="None", 
             expression_type="PYTHON3", 
             code_block="", 
             field_type="TEXT", 
@@ -605,7 +642,7 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
         Updated_Input_Table_36_ = arcpy.management.CalculateField(
             in_table=Updated_Input_Table_14_, 
             field="Source", 
-            expression="\"usfs_edw_facts_common_attributes\"", 
+            expression="\"usfs_treatments\"", 
             expression_type="PYTHON3", 
             code_block="", 
             field_type="TEXT", 
