@@ -80,7 +80,7 @@ def AddFields2(Input_Table,alter_fields=False):  # 1b Add Fields
             
             ["TRMTID_USER", "TEXT", "TREATMENT ID USER", "50", "", ""], 
             ["PROJECTID", "TEXT", "PROJECTID", "50", "", ""], 
-            ["PROJECTNAME_", "TEXT", "PROJECT NAME", "100", "", ""], 
+            ["PROJECTNAME_", "TEXT", "PROJECT NAME", "150", "", ""], 
             ["ORG_ADMIN_t", "TEXT", "ORG DATA STEWARD", "150", "", ""], 
             ["PRIMARY_OWNERSHIP_GROUP", "TEXT", "PRIMARY OWNERSHIP GROUP", "25", "", ""], 
             ["PRIMARY_OBJECTIVE", "TEXT", "PRIMARY OBJECTIVE", "65", "", ""], 
