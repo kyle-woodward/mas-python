@@ -343,25 +343,32 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 
                                                             join_field="Original_Activity",
                                                             join_type="KEEP_ALL",
                                                             index_join_fields="INDEX_JOIN_FIELDS")[0]
-        # Process: Calculate Activity Description (Calculate Field) (management)
+    # Process: Select by Attribute (management)
+    if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_: 
+        Pts_enrichment_Veg_Layer_4_, Count_7_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Pts_enrichment_Veg_Layer, where_clause="ACTIVITY_DESCRIPTION IS NULL")
+
+    # Process: Calculate Activity Description (Calculate Field) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Updated_Input_Table_3_ = arcpy.management.CalculateField(in_table=Pts_enrichment_Veg_Layer, field="Pts_enrichment_Veg.ACTIVITY_DESCRIPTION", expression="!Fuels_Treatments_Piles_Crosswalk.Activity!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
-         
-        # Process: 2d Calculate Activity (2d Calculate Activity) (PC414CWIMillionAcres)
+        Updated_Input_Table_3_ = arcpy.management.CalculateField(in_table=Pts_enrichment_Veg_Layer_4_, field="Pts_enrichment_Veg.ACTIVITY_DESCRIPTION", expression="!Fuels_Treatments_Piles_Crosswalk.Activity!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+
+    # Process: Select Layer By Attribute (4) (Select Layer By Attribute) (management)
+        Updated_Input_Table_4_, Count_8_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Updated_Input_Table_3_, selection_type="CLEAR_SELECTION")
+
+    # Process: 2d Calculate Activity (2d Calculate Activity) (PC414CWIMillionAcres)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Veg_Summarized_Polygons_Laye3_4_ = Activity(Input_Table=Pts_enrichment_Veg_Layer)[0]
+        Veg_Summarized_Polygons_Laye3_3_ = Activity(Input_Table=Updated_Input_Table_4_)[0]
 
     # Process: Calculate Residue Fate (Calculate Field) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        usfs_edw_facts_common_attrib1 = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye3_4_, field="Pts_enrichment_Veg.RESIDUE_FATE", expression="!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+        Veg_Summarized_Polygons_Laye3_4_ = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye3_3_, field="Pts_enrichment_Veg.RESIDUE_FATE", expression="!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
         # Process: 2g Calculate Residue Fate (2g Calculate Residue Fate) (PC414CWIMillionAcres)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Veg_Summarized_Polygons_Laye3_3_ = Residue(Input_Table=Veg_Summarized_Polygons_Laye3_4_)[0]
+        Veg_Summarized_Polygons_Laye3_5_ = Residue(Input_Table=Veg_Summarized_Polygons_Laye3_4_)[0]
 
     # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Pts_enrichment_Veg_Layer_3_, Count_5_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Veg_Summarized_Polygons_Laye3_3_,
+        Pts_enrichment_Veg_Layer_3_, Count_5_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Veg_Summarized_Polygons_Laye3_5_,
                                                                                         selection_type="NEW_SELECTION",
                                                                                         where_clause="Pts_enrichment_Veg.PRIMARY_OBJECTIVE IS NULL",
                                                                                         invert_where_clause="")
@@ -372,7 +379,7 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 
 
         # Process: 2e Calculate Objective (2e Calculate Objective) (PC414CWIMillionAcres)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Pts_enrichment_Veg_Layer_3_)[0]
+        Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Updated_Input_Table_5_)[0]
 
     # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
