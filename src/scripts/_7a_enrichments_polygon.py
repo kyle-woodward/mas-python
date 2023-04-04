@@ -490,19 +490,24 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                     join_type="KEEP_ALL", 
                                     index_join_fields="INDEX_JOIN_FIELDS"
                                     )[0]
+        # Process: Select by Attribute (management)
+        Pts_enrichment_Veg_Layer_4_, Count_7_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Veg_Summarized_Polygons_Laye4, where_clause="ACTIVITY_DESCRIPTION IS NULL")
 
         # Process: Calculate Activity Description (Calculate Field) (management)
         Updated_Input_Table_3_ = arcpy.management.CalculateField(
-                                in_table=Veg_Summarized_Polygons_Laye4, 
+                                in_table=Pts_enrichment_Veg_Layer_4_, 
                                 field="Veg_Summarized_Polygons.ACTIVITY_DESCRIPTION", 
                                 expression="!Fuels_Treatments_Piles_Crosswalk.Activity!", 
                                 expression_type="PYTHON3", code_block="", field_type="TEXT", 
                                 enforce_domains="NO_ENFORCE_DOMAINS"
                                 )[0]
+
+        # Process: Select Layer By Attribute (4) (Select Layer By Attribute) (management)
+        Updated_Input_Table_4_, Count_8_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Updated_Input_Table_3_, selection_type="CLEAR_SELECTION")
         
         # Process: 2d Calculate Activity (2d Calculate Activity) (PC414CWIMillionAcres)
         # print('Calculating Activity...')
-        Veg_Summarized_Polygons_Laye3_5_ = Activity(Input_Table=Veg_Summarized_Polygons_Laye4)#[0]
+        Veg_Summarized_Polygons_Laye3_5_ = Activity(Input_Table=Updated_Input_Table_4_)#[0]
         
         # Process: Calculate Residue Fate (Calculate Field) (management)
         usfs_edw_facts_common_attrib1 = arcpy.management.CalculateField(
