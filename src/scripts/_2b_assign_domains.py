@@ -167,7 +167,10 @@ def AssignDomains(in_table):  # 2b Assign Domains
     # Process: Assign Domain To DATALOAD_MSG_a Field (Assign Domain To Field) (management)
     DATALOAD_MSG_a = arcpy.management.AssignDomainToField(in_table=DATALOAD_STATUS_a, field_name="DATALOAD_MSG_a", domain_name="D_DATAMSG", subtype_code=[])[0]
 
-    return DATALOAD_MSG_a
+    # Process: Assign Domain To TRMT_GEOM Field (Assign Domain To Field) (management)
+    TRMT_GEOM = arcpy.management.AssignDomainToField(in_table=DATALOAD_MSG_a, field_name="TRMT_GEOM", domain_name="D_TRMT_GEOM", subtype_code=[])[0]
+
+    return TRMT_GEOM
 
 if __name__ == '__main__':
     # Global Environment settings

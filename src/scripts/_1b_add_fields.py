@@ -144,7 +144,8 @@ def AddFields2(Input_Table,alter_fields=False):  # 1b Add Fields
             ["Act_Code", "LONG", "USFS Activity Code", "", "", ""], 
             ["Crosswalk", "TEXT", "Crosswalk Activities", "150", "", ""], 
             ["Federal_FY", "LONG", "Federal FY", "", "", ""], 
-            ["State_FY", "LONG", "State FY", "", "", ""]]
+            ["State_FY", "LONG", "State FY", "", "", ""],
+            ["TRMT_GEOM", "TEXT", "TREATMENT GEOMETRY", "10","",""]]
     
     # alter existing fields found in schema
     if alter_fields:
