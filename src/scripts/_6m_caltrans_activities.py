@@ -164,7 +164,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     # Process: Calculate Admin Org (Calculate Field) (management)
     CalTrans_pts_Copy_5_ = arcpy.management.CalculateField(in_table=Updated_Input_Table, 
                                                            field="ADMINISTERING_ORG", 
-                                                           expression="!District!", 
+                                                           expression="\"CALTRANS\"", 
                                                            expression_type="PYTHON3", 
                                                            code_block="", 
                                                            field_type="TEXT", 

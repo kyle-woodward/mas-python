@@ -13,7 +13,7 @@ def TablesToDomains():  # 2a Tables to Domains
     arcpy.env.overwriteOutput = False
     
     # set path to domain table .xlsx
-    domain_table = os.path.join(os.path.dirname(os.path.dirname(__file__)),"Domain Tables 20221226.xlsx")
+    domain_table = os.path.join(os.path.dirname(os.path.dirname(__file__)),"Domain Tables 20230414.xlsx")
     # specific paths to sheets within domain table
     D_VERFIEDMSG_ = os.path.join(domain_table,"D_VERFIEDMSG$")
     D_USERDEFINED_ = os.path.join(domain_table,"D_USERDEFINED$")
