@@ -278,16 +278,16 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 
                                                                           expression="ifelse(!RFFC_tier1!)",
                                                                           expression_type="PYTHON3",
                                                                           code_block="""def ifelse(Reg):
-    if Reg == \"Coastal-Inland\":
-        return \"COASTAL_INLAND\"
-    if Reg == \"North Coast-Inland\":
-        return \"NORTH_COAST_INLAND\"
-    if Reg == \"Sierra-Cascade-Inyo\":
-        return \"SIERRA_CASCADE_INYO\"
-    if Reg == \"Southern California\":
-        return \"SOUTHERN_CA\"
-    else:
-        return Reg""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                        if Reg == \"Central Coast\":
+                                            return \"CENTRAL_COAST\"
+                                        if Reg == \"North Coast\":
+                                            return \"NORTH_COAST\"
+                                        if Reg == \"Sierra Nevada\":
+                                            return \"SIERRA_NEVADA\"
+                                        if Reg == \"Southern California\":
+                                            return \"SOUTHERN_CA\"
+                                        else:
+                                            return Reg""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Veg (Calculate Field) (management)
     if Treatments_Merge3_California_5_:

@@ -461,12 +461,12 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                         expression="ifelse(!Veg_Summarized_Join2_RCD.RFFC_tier1!)", 
                                         expression_type="PYTHON3", 
                                         code_block="""def ifelse(Reg):
-                                        if Reg == \"Coastal-Inland\":
-                                            return \"COASTAL_INLAND\"
-                                        if Reg == \"North Coast-Inland\":
-                                            return \"NORTH_COAST_INLAND\"
-                                        if Reg == \"Sierra-Cascade-Inyo\":
-                                            return \"SIERRA_CASCADE_INYO\"
+                                        if Reg == \"Central Coast\":
+                                            return \"CENTRAL_COAST\"
+                                        if Reg == \"North Coast\":
+                                            return \"NORTH_COAST\"
+                                        if Reg == \"Sierra Nevada\":
+                                            return \"SIERRA_NEVADA\"
                                         if Reg == \"Southern California\":
                                             return \"SOUTHERN_CA\"
                                         else:

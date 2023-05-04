@@ -20,8 +20,9 @@ def init_gdb():
     versioned_gdb = settings.get('gdb').get('versions')[0]
 
     # make original gdb workspace and scratchWorkspace dynamic, not-hardcoded paths
-    original_gdb = os.path.join(three_up,"PC414 CWI Million Acres.gdb")
-    workspace = os.path.join(three_up,versioned_gdb)
+    # original_gdb = os.path.join(three_up,"PC414 CWI Million Acres.gdb")
+    workspace = os.path.join(three_up,"PC414 CWI Million Acres.gdb")
+    # workspace = os.path.join(three_up,versioned_gdb)
     scratch_workspace = os.path.join(three_up,"scratch.gdb")
 
     for w in [workspace,scratch_workspace]:
@@ -29,7 +30,7 @@ def init_gdb():
             # print(f'Creating new FileGDB: {w}')
             arcpy.management.CreateFileGDB(os.path.dirname(w), os.path.basename(w))
 
-    return original_gdb, workspace, scratch_workspace
+    return workspace, scratch_workspace
 
 def unique_rename(scratch_fc:str,input_fc:str):
     """
