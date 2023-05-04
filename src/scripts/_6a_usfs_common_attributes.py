@@ -12,7 +12,7 @@ import os
 import time
 original_gdb, workspace, scratch_workspace = init_gdb()
 
-def Model7(output_enriched,output_standardized,input_fc):
+def Model7(output_enriched, output_standardized, input_fc):
     start = time.time()
     print(f'Start Time {time.ctime()}')
     # To allow overwriting outputs change overwriteOutput option to True.
