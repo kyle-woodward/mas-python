@@ -286,7 +286,8 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                 "Act_Code", 
                                                 "Crosswalk", 
                                                 "Federal_FY", 
-                                                "State_FY"], 
+                                                "State_FY", 
+                                                "TRMT_GEOM"], 
                                     method="KEEP_FIELDS")[0]
 
     # field_names = [f.name for f in arcpy.ListFields(Line_Layer_Temp_CopyFeatures1_3_)]

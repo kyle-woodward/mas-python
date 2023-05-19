@@ -532,7 +532,7 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 
                                         "ACTIVITY_NAME", "VAL_STATUS_a", "VAL_MSG_a", "VAL_RUNDATE_a", 
                                         "REVIEW_STATUS_a", "REVIEW_MSG_a", "REVIEW_RUNDATE_a", "DATALOAD_STATUS_a", 
                                         "DATALOAD_MSG_a", "Source", "Year", "Year_txt", "Act_Code", "Crosswalk", 
-                                        "Federal_FY", "State_FY"], 
+                                        "Federal_FY", "State_FY", "TRMT_GEOM"], 
                                 xy_tolerance="", 
                                 z_tolerance=0
                                 )[0]        
