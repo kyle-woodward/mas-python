@@ -118,6 +118,7 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 
                                    search_radius="",
                                    distance_field_name="")
 
+
     # Process: Calculate Owner (Calculate Field) (management)
     if Treatments_Merge3_California_5_:
         Veg_Summarized_Polygons_Laye_3_ = arcpy.management.CalculateField(in_table=Pts_enrichment_Veg, 
@@ -497,7 +498,7 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 
 
     if delete_scratch:
         print('Deleting Scratch Files')
-        delete_scratch_files(gdb = scratch_workspace)
+        delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
     
 if __name__ == '__main__':
     # Global Environment settings

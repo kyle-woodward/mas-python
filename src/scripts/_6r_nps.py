@@ -444,7 +444,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
     WFR_TF_Template_2_ = AssignDomains(in_table=output_enriched)#[0]
     
     print('Deleting Scratch Files')
-    delete_scratch_files(gdb = scratch_workspace)
+    delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
  
     end = time.time()
     print(f'Time Elapsed: {(end-start)/60} minutes')

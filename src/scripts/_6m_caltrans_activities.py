@@ -878,7 +878,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     CalTrans_Activity_Points_2_ = AssignDomains(in_table=Updated_Input_Table_44_)#[0]
 
     print('Deleting Scratch Files')
-    delete_scratch_files(gdb = scratch_workspace)
+    delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
 
     end = time.time()
     print(f'Time Elapsed: {(end-start)/60} minutes')

@@ -601,7 +601,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
         
         if delete_scratch:
             print('Deleting Scratch Files')
-            delete_scratch_files(gdb = scratch_workspace)
+            delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
 
 if __name__ == '__main__':
     # Global Environment settings
