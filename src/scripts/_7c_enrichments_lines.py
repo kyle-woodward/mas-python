@@ -330,7 +330,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
     
     if delete_scratch:
         print('Deleting Scratch Files')
-        delete_scratch_files(gdb = scratch_workspace)
+        delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
 
     return Line_Enriched_Temp_CopyFeatures_append # does this capture the object that has since been renamed or only the file path as defined by the variable ln469? # Line_Enriched_Temp_CopyFeatures
 

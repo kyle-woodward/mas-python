@@ -693,7 +693,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             )#[0]
         
         print('Deleting Scratch Files')
-        delete_scratch_files(gdb = scratch_workspace)
+        delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
         
         end = time.time()
         print(f'Time Elapsed: {(end-start)/60} minutes')
