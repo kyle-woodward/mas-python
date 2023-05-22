@@ -689,7 +689,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                   spatial_grid_3=None)
 
     print('Deleting Scratch Files')
-    delete_scratch_files(gdb = scratch_workspace)
+    delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
     
     end = time.time()
     print(f'Time Elapsed: {(end-start)/60} minutes')

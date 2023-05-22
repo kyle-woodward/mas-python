@@ -433,7 +433,7 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
         usfs_silviculture_reforestation_enriched_20220629_3_ = AssignDomains(in_table=output_enriched)#[0]
 
         print('Deleting Scratch Files')
-        delete_scratch_files(gdb = scratch_workspace)
+        delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
         end = time.time()
         print(f'Time Elapsed: {(end-start)/60} minutes')
 if __name__ == '__main__':

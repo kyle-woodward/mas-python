@@ -731,7 +731,7 @@ ACTIVITY_CODE = '9400'""", invert_where_clause="")
             )#[0]
         
         print('Deleting Scratch Files')
-        delete_scratch_files(gdb = scratch_workspace)
+        delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
         
         end = time.time()
         print(f'Time Elapsed: {(end-start)/60} minutes')

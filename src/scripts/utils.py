@@ -50,28 +50,41 @@ def unique_rename(scratch_fc:str,input_fc:str):
     return new_name
 
 
-def delete_scratch_files(gdb):
+def delete_scratch_files(gdb, delete_fc, delete_table, delete_ds):
     """
     Deletes all layers in the scratch GDB
     
     args:
 
     gdb: full file path to GDB from which you want to delete all files
+    delete_table: yes or no (or really anything else)
+    delete_fc: yes or no (or really anything else)
+    delete_ds: yes or no (or really anything else)
     
     """
     arcpy.env.workspace = gdb
     fc_list = arcpy.ListFeatureClasses()
     tables = arcpy.ListTables()
     ds_list = arcpy.ListDatasets()
+    [print(f"Deleting files from {gdb}")]
     #feature classes
-    for fc in fc_list:
-        arcpy.Delete_management(fc)
+    if delete_fc == 'yes':
+        for fc in fc_list:
+            arcpy.Delete_management(fc)
+    else:
+        print('did not delete fc')
     #tables
-    for table in tables:
-        arcpy.Delete_management(table)
+    if delete_table == 'yes':
+        for table in tables:
+            arcpy.Delete_management(table)
+    else:
+        print('did not delete tables')
     #data sets
-    for ds in ds_list:
-        arcpy.Delete_management(ds)
+    if delete_ds == 'yes':
+        for ds in ds_list:
+            arcpy.Delete_management(ds)
+    else:
+        print('did not delete ds')
 
 def check_exists(fc_list:list,workspace):
     """
