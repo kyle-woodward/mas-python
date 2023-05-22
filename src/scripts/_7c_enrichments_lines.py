@@ -60,8 +60,26 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
     # field_names = [f.name for f in arcpy.ListFields(Line_Layer_Temp_CopyFeatures)]
     # print('field names after CopyFeatures, no maintain fully qualified field names\n',field_names,'\n')
 
+    # Process: Latitude (Calculate Field) (management)
+    Updated_Input_Table_1_ = arcpy.management.CalculateField(in_table=Line_Layer_Temp_CopyFeatures, 
+                                                             field="LATITUDE", 
+                                                             expression="!LATITUDE_1!",
+                                                             expression_type="PYTHON3", 
+                                                             code_block="", 
+                                                             field_type="TEXT", 
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+
+    # Process: Calculate Longitude (Calculate Field) (management)
+    Updated_Input_Table_2_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_1_, 
+                                                             field="LONGITUDE", 
+                                                             expression="!LONGITUDE_1!",
+                                                             expression_type="PYTHON3", 
+                                                             code_block="", 
+                                                             field_type="TEXT", 
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+
     # Process: Calculate Owner (Calculate Field) (management)
-    Updated_Input_Table_2_ = arcpy.management.CalculateField(in_table=Line_Layer_Temp_CopyFeatures, 
+    Updated_Input_Table_2A_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_2_, 
                                                              field="PRIMARY_OWNERSHIP_GROUP", 
                                                              expression="!PRIMARY_OWNERSHIP_GROUP_1!",
                                                              expression_type="PYTHON3", 
@@ -70,7 +88,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Primary Objective (Calculate Field) (management)
-    CDFW_lines_stand_SpatialJoin2_2_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_2_, 
+    CDFW_lines_stand_SpatialJoin2_2_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_2A_, 
                                                                        field="PRIMARY_OBJECTIVE", 
                                                                        expression="!PRIMARY_OBJECTIVE_1!", 
                                                                        expression_type="PYTHON3", 
@@ -126,41 +144,9 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
     # Process: Calculate Category (Calculate Field) (management)
     Updated_Input_Table_6_ = arcpy.management.CalculateField(in_table=CDFW_lines_stand_SpatialJoin2_3_, 
                                                              field="ACTIVITY_CAT", 
-                                                             expression="ifelse(!ACTIVITY_DESCRIPTION!, !BROAD_VEGETATION_TYPE!, !PRIMARY_OBJECTIVE!)", 
+                                                             expression="!ACTIVITY_CAT_1!", 
                                                              expression_type="PYTHON3", 
-                                                             code_block="""def ifelse(Act, Veg, Obj):
-    if Act in [\"CHIPPING\", \"DOZER_LINE\", \"HANDLINE\", \"LANDING_TRT\", \"LOP_AND_SCAT\", \"MAST_CHAIN_CRUSH\", \"MOWING\", \"PILE_BURN\", \"PILING\", \"PRECOM_THIN_MAN\", 
-                \"PRECOM_THIN_MECH\", \"PRUNING\", \"TREE_RELEASE_WEED\", \"TREE_FELL\", \"YARDING\"]:
-        return \"MECH_HFR\"
-    elif Act in [\"CLEARCUT\", \"COMM_THIN\", \"CONVERSION\", \"GRP_SELECTION_HARVEST\", \"REHAB_UNDRSTK_AREA\", \"SEED_TREE_PREP_STEP\", \"SEED_TREE_REM_STEP\", \"SEED_TREE_SEED_STEP\", 
-                \"SHELTERWD_PREP_STEP\", \"SHELTERWD_REM_STEP\", \"SHELTERWD_SEED_STEP\", \"SINGLE_TREE_SELECTION\", \"TRANSITION_HARVEST\", \"VARIABLE_RETEN_HARVEST\"]:
-        return \"TIMB_HARV\"
-    elif Act == \"SANI_SALVG_HARVEST\":
-        return \"SANI_SALVG\"
-    elif Act == \"PEST_CNTRL\" and Veg == \"FOREST\":
-        return \"SANI_SALVG\"
-    elif Act == \"PEST_CNTRL\" and Veg != \"FOREST\":
-        return \"WATSHD_IMPRV\"
-    elif Act == \"HERBICIDE_APP\" and Obj in [\"FOREST_PEST_CNTRL\", \"FOREST_STEWARDSHIP\", \"OTHER_FOREST_MGMT\", \"REFORESTATION\", \"SITE_PREP\"]:
-        return \"TREE_PLNTING\"
-    elif Act == \"HERBICIDE_APP\" and Obj in [\"BURNED_AREA_RESTOR\", \"CARBON_STORAGE\", \"ECO_RESTOR\", \"HABITAT_RESTOR\", \"INV_SPECIES_CNTRL\", \"LAND_PROTECTION\", 
-                \"MTN_MEADOW_RESTOR\", \"RIPARIAN_RESTOR\", \"WATSHD_RESTOR\", \"WETLAND_RESTOR\"]:
-        return \"WATSHD_IMPRV\"
-    elif Act == \"HERBICIDE_APP\" and Obj in [\"BIOMASS_UTIL\", \"CULTURAL_BURN\", \"FIRE_PREVENTION\", \"FUEL_BREAK\", \"NON-TIMB_PRODUCTS\", \"OTHER_FUELS_REDUCTION\", 
-                \"PRESCRB_FIRE\", \"RECREATION\", \"ROADWAY_CLEARANCE\", \"TIMBER_HARVEST\", \"UTIL_RIGHT_OF_WAY\"]:
-        return \"MECH_HFR\"
-    elif Act in [\"SITE_PREP\", \"TREE_PLNTING\", \"TREE_SEEDING\"]:
-        return \"TREE_PLNTING\"
-    elif Act in [\"BROADCAST_BURN\", \"WM_RESRC_BENEFIT\"]:
-        return \"BENEFICIAL_FIRE\"
-    elif Act == \"PRESCRB_HERBIVORY\":
-        return \"GRAZING\"
-    elif Act in [\"EASEMENT\", \"LAND_ACQ\"]:
-        return \"LAND_PROTEC\"
-    elif Act in [\"AMW_AREA_RESTOR\", \"HABITAT_REVEG\", \"OAK_WDLND_MGMT\", \"ROAD_OBLITERATION\", \"STREAM_CHNL_IMPRV\", \"WETLAND_RESTOR\"]:
-        return \"WATSHD_IMPRV\"
-    else:
-        return \"NOT_DEFINED\"""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Residue (Calculate Field) (management)
     Updated_Input_Table_7_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_6_, 
@@ -174,8 +160,8 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
     # Process: Calculate Calendar Year (Calculate Field) (management)
     Updated_Input_Table_8_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_7_, 
                                                              field="Year", 
-                                                             expression="Year($feature.ACTIVITY_END)", 
-                                                             expression_type="ARCADE", 
+                                                             expression="!Year_1!", 
+                                                             expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
@@ -192,148 +178,18 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
     # Process: Calculate Fed FY (Calculate Field) (management)
     Veg_Summarized_Polygons_Laye3_8_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_9_, 
                                                                        field="Federal_FY", 
-                                                                       expression="ifelse(!ACTIVITY_END!)", 
+                                                                       expression="!Federal_FY_1!", 
                                                                        expression_type="PYTHON3", 
-                                                                       code_block="""def ifelse(DATE):
-    if DATE >= datetime.datetime(1994,10,1) and DATE <= datetime.datetime(1995,9,30):
-        return 1995
-    elif DATE >= datetime.datetime(1995,10,1) and DATE <= datetime.datetime(1996,9,30):
-        return 1996
-    elif DATE >= datetime.datetime(1996,10,1) and DATE <= datetime.datetime(1997,9,30):
-        return 1997
-    elif DATE >= datetime.datetime(1997,10,1) and DATE <= datetime.datetime(1998,9,30):
-        return 1998
-    elif DATE >= datetime.datetime(1998,10,1) and DATE <= datetime.datetime(1999,9,30):
-        return 1999
-    elif DATE >= datetime.datetime(1999,10,1) and DATE <= datetime.datetime(2000,9,30):
-        return 2000
-    elif DATE >= datetime.datetime(2000,10,1) and DATE <= datetime.datetime(2001,9,30):
-        return 2001
-    elif DATE >= datetime.datetime(2001,10,1) and DATE <= datetime.datetime(2002,9,30):
-        return 2002
-    elif DATE >= datetime.datetime(2002,10,1) and DATE <= datetime.datetime(2003,9,30):
-        return 2003
-    elif DATE >= datetime.datetime(2003,10,1) and DATE <= datetime.datetime(2004,9,30):
-        return 2004
-    elif DATE >= datetime.datetime(2004,10,1) and DATE <= datetime.datetime(2005,9,30):
-        return 2005
-    elif DATE >= datetime.datetime(2005,10,1) and DATE <= datetime.datetime(2006,9,30):
-        return 2006
-    elif DATE >= datetime.datetime(2006,10,1) and DATE <= datetime.datetime(2007,9,30):
-        return 2007
-    elif DATE >= datetime.datetime(2007,10,1) and DATE <= datetime.datetime(2008,9,30):
-        return 2008
-    elif DATE >= datetime.datetime(2008,10,1) and DATE <= datetime.datetime(2009,9,30):
-        return 2009
-    elif DATE >= datetime.datetime(2009,10,1) and DATE <= datetime.datetime(2010,9,30):
-        return 2010
-    elif DATE >= datetime.datetime(2010,10,1) and DATE <= datetime.datetime(2011,9,30):
-        return 2011
-    elif DATE >= datetime.datetime(2011,10,1) and DATE <= datetime.datetime(2012,9,30):
-        return 2012
-    elif DATE >= datetime.datetime(2012,10,1) and DATE <= datetime.datetime(2013,9,30):
-        return 2013
-    elif DATE >= datetime.datetime(2013,10,1) and DATE <= datetime.datetime(2014,9,30):
-        return 2014
-    elif DATE >= datetime.datetime(2014,10,1) and DATE <= datetime.datetime(2015,9,30):
-        return 2015
-    elif DATE >= datetime.datetime(2015,10,1) and DATE <= datetime.datetime(2016,9,30):
-        return 2016
-    elif DATE >= datetime.datetime(2016,10,1) and DATE <= datetime.datetime(2017,9,30):
-        return 2017
-    elif DATE >= datetime.datetime(2017,10,1) and DATE <= datetime.datetime(2018,9,30):
-        return 2018
-    elif DATE >= datetime.datetime(2018,10,1) and DATE <= datetime.datetime(2019,9,30):
-        return 2019
-    elif DATE >= datetime.datetime(2019,10,1) and DATE <= datetime.datetime(2020,9,30):
-        return 2020
-    elif DATE >= datetime.datetime(2020,10,1) and DATE <= datetime.datetime(2021,9,30):
-        return 2021
-    elif DATE >= datetime.datetime(2021,10,1) and DATE <= datetime.datetime(2022,9,30):
-        return 2022
-    elif DATE >= datetime.datetime(2022,10,1) and DATE <= datetime.datetime(2023,9,30):
-        return 2023
-    elif DATE >= datetime.datetime(2023,10,1) and DATE <= datetime.datetime(2024,9,30):
-        return 2024
-    elif DATE >= datetime.datetime(2024,10,1) and DATE <= datetime.datetime(2025,9,30):
-        return 2025
-    elif DATE >= datetime.datetime(2025,10,1) and DATE <= datetime.datetime(2026,9,30):
-        return 2026
-    else:
-        return None""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                                       code_block="", field_type="TEXT", 
+                                                                       enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate State FY (Calculate Field) (management)
     Veg_Summarized_Polygons_Laye3_7_ = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye3_8_, 
                                                                        field="State_FY", 
-                                                                       expression="ifelse(!ACTIVITY_END!)", 
+                                                                       expression="!State_FY_1!", 
                                                                        expression_type="PYTHON3", 
-                                                                       code_block="""def ifelse(DATE):
-    if DATE >= datetime.datetime(1994,7,1) and DATE <= datetime.datetime(1995,6,30):
-        return 1995
-    elif DATE >= datetime.datetime(1995,7,1) and DATE <= datetime.datetime(1996,6,30):
-        return 1996
-    elif DATE >= datetime.datetime(1996,7,1) and DATE <= datetime.datetime(1997,6,30):
-        return 1997
-    elif DATE >= datetime.datetime(1997,7,1) and DATE <= datetime.datetime(1998,6,30):
-        return 1998
-    elif DATE >= datetime.datetime(1998,7,1) and DATE <= datetime.datetime(1999,6,30):
-        return 1999
-    elif DATE >= datetime.datetime(1999,7,1) and DATE <= datetime.datetime(2000,6,30):
-        return 2000
-    elif DATE >= datetime.datetime(2000,7,1) and DATE <= datetime.datetime(2001,6,30):
-        return 2001
-    elif DATE >= datetime.datetime(2001,7,1) and DATE <= datetime.datetime(2002,6,30):
-        return 2002
-    elif DATE >= datetime.datetime(2002,7,1) and DATE <= datetime.datetime(2003,6,30):
-        return 2003
-    elif DATE >= datetime.datetime(2003,7,1) and DATE <= datetime.datetime(2004,6,30):
-        return 2004
-    elif DATE >= datetime.datetime(2004,7,1) and DATE <= datetime.datetime(2005,6,30):
-        return 2005
-    elif DATE >= datetime.datetime(2005,7,1) and DATE <= datetime.datetime(2006,6,30):
-        return 2006
-    elif DATE >= datetime.datetime(2006,7,1) and DATE <= datetime.datetime(2007,6,30):
-        return 2007
-    elif DATE >= datetime.datetime(2007,7,1) and DATE <= datetime.datetime(2008,6,30):
-        return 2008
-    elif DATE >= datetime.datetime(2008,7,1) and DATE <= datetime.datetime(2009,6,30):
-        return 2009
-    elif DATE >= datetime.datetime(2009,7,1) and DATE <= datetime.datetime(2010,6,30):
-        return 2010
-    elif DATE >= datetime.datetime(2010,7,1) and DATE <= datetime.datetime(2011,6,30):
-        return 2011
-    elif DATE >= datetime.datetime(2011,7,1) and DATE <= datetime.datetime(2012,6,30):
-        return 2012
-    elif DATE >= datetime.datetime(2012,7,1) and DATE <= datetime.datetime(2013,6,30):
-        return 2013
-    elif DATE >= datetime.datetime(2013,7,1) and DATE <= datetime.datetime(2014,6,30):
-        return 2014
-    elif DATE >= datetime.datetime(2014,7,1) and DATE <= datetime.datetime(2015,6,30):
-        return 2015
-    elif DATE >= datetime.datetime(2015,7,1) and DATE <= datetime.datetime(2016,6,30):
-        return 2016
-    elif DATE >= datetime.datetime(2016,7,1) and DATE <= datetime.datetime(2017,6,30):
-        return 2017
-    elif DATE >= datetime.datetime(2017,7,1) and DATE <= datetime.datetime(2018,6,30):
-        return 2018
-    elif DATE >= datetime.datetime(2018,7,1) and DATE <= datetime.datetime(2019,6,30):
-        return 2019
-    elif DATE >= datetime.datetime(2019,7,1) and DATE <= datetime.datetime(2020,6,30):
-        return 2020
-    elif DATE >= datetime.datetime(2020,7,1) and DATE <= datetime.datetime(2021,6,30):
-        return 2021
-    elif DATE >= datetime.datetime(2021,7,1) and DATE <= datetime.datetime(2022,6,30):
-        return 2022
-    elif DATE >= datetime.datetime(2022,7,1) and DATE <= datetime.datetime(2023,6,30):
-        return 2023
-    elif DATE >= datetime.datetime(2023,7,1) and DATE <= datetime.datetime(2024,6,30):
-        return 2024
-    elif DATE >= datetime.datetime(2024,7,1) and DATE <= datetime.datetime(2025,6,30):
-        return 2025
-    elif DATE >= datetime.datetime(2025,7,1) and DATE <= datetime.datetime(2026,6,30):
-        return 2026
-    else:
-        return None""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                                       code_block="", field_type="TEXT", 
+                                                                       enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # field_names = [f.name for f in arcpy.ListFields(Veg_Summarized_Polygons_Laye3_7_)]
     # print('field names after all CalculateField operations\n',field_names,'\n')
@@ -430,7 +286,8 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                 "Act_Code", 
                                                 "Crosswalk", 
                                                 "Federal_FY", 
-                                                "State_FY"], 
+                                                "State_FY", 
+                                                "TRMT_GEOM"], 
                                     method="KEEP_FIELDS")[0]
 
     # field_names = [f.name for f in arcpy.ListFields(Line_Layer_Temp_CopyFeatures1_3_)]

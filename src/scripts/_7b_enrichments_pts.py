@@ -279,16 +279,16 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 
                                                                           expression="ifelse(!RFFC_tier1!)",
                                                                           expression_type="PYTHON3",
                                                                           code_block="""def ifelse(Reg):
-    if Reg == \"Coastal-Inland\":
-        return \"COASTAL_INLAND\"
-    if Reg == \"North Coast-Inland\":
-        return \"NORTH_COAST_INLAND\"
-    if Reg == \"Sierra-Cascade-Inyo\":
-        return \"SIERRA_CASCADE_INYO\"
-    if Reg == \"Southern California\":
-        return \"SOUTHERN_CA\"
-    else:
-        return Reg""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                        if Reg == \"Central Coast\":
+                                            return \"CENTRAL_COAST\"
+                                        if Reg == \"North Coast\":
+                                            return \"NORTH_COAST\"
+                                        if Reg == \"Sierra Nevada\":
+                                            return \"SIERRA_NEVADA\"
+                                        if Reg == \"Southern California\":
+                                            return \"SOUTHERN_CA\"
+                                        else:
+                                            return Reg""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Veg (Calculate Field) (management)
     if Treatments_Merge3_California_5_:
@@ -344,25 +344,32 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 
                                                             join_field="Original_Activity",
                                                             join_type="KEEP_ALL",
                                                             index_join_fields="INDEX_JOIN_FIELDS")[0]
-        # Process: Calculate Activity Description (Calculate Field) (management)
+    # Process: Select by Attribute (management)
+    if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_: 
+        Pts_enrichment_Veg_Layer_4_, Count_7_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Pts_enrichment_Veg_Layer, where_clause="ACTIVITY_DESCRIPTION IS NULL")
+
+    # Process: Calculate Activity Description (Calculate Field) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Updated_Input_Table_3_ = arcpy.management.CalculateField(in_table=Pts_enrichment_Veg_Layer, field="Pts_enrichment_Veg.ACTIVITY_DESCRIPTION", expression="!Fuels_Treatments_Piles_Crosswalk.Activity!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
-         
-        # Process: 2d Calculate Activity (2d Calculate Activity) (PC414CWIMillionAcres)
+        Updated_Input_Table_3_ = arcpy.management.CalculateField(in_table=Pts_enrichment_Veg_Layer_4_, field="Pts_enrichment_Veg.ACTIVITY_DESCRIPTION", expression="!Fuels_Treatments_Piles_Crosswalk.Activity!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+
+    # Process: Select Layer By Attribute (4) (Select Layer By Attribute) (management)
+        Updated_Input_Table_4_, Count_8_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Updated_Input_Table_3_, selection_type="CLEAR_SELECTION")
+
+    # Process: 2d Calculate Activity (2d Calculate Activity) (PC414CWIMillionAcres)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Veg_Summarized_Polygons_Laye3_4_ = Activity(Input_Table=Pts_enrichment_Veg_Layer)[0]
+        Veg_Summarized_Polygons_Laye3_3_ = Activity(Input_Table=Updated_Input_Table_4_)[0]
 
     # Process: Calculate Residue Fate (Calculate Field) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        usfs_edw_facts_common_attrib1 = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye3_4_, field="Pts_enrichment_Veg.RESIDUE_FATE", expression="!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+        Veg_Summarized_Polygons_Laye3_4_ = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye3_3_, field="Pts_enrichment_Veg.RESIDUE_FATE", expression="!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
         # Process: 2g Calculate Residue Fate (2g Calculate Residue Fate) (PC414CWIMillionAcres)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Veg_Summarized_Polygons_Laye3_3_ = Residue(Input_Table=Veg_Summarized_Polygons_Laye3_4_)[0]
+        Veg_Summarized_Polygons_Laye3_5_ = Residue(Input_Table=Veg_Summarized_Polygons_Laye3_4_)[0]
 
     # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Pts_enrichment_Veg_Layer_3_, Count_5_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Veg_Summarized_Polygons_Laye3_3_,
+        Pts_enrichment_Veg_Layer_3_, Count_5_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Veg_Summarized_Polygons_Laye3_5_,
                                                                                         selection_type="NEW_SELECTION",
                                                                                         where_clause="Pts_enrichment_Veg.PRIMARY_OBJECTIVE IS NULL",
                                                                                         invert_where_clause="")
@@ -373,7 +380,7 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 
 
         # Process: 2e Calculate Objective (2e Calculate Objective) (PC414CWIMillionAcres)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Pts_enrichment_Veg_Layer_3_)[0]
+        Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Updated_Input_Table_5_)[0]
 
     # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
@@ -490,9 +497,50 @@ def bEnrichmentsPoints(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 
                                                                              "State_FY"],
                                                                              method="KEEP_FIELDS")[0]
 
+    # Process: Calculate Geometry Attributes (Calculate Geometry Attributes) (management)
+    Pts_enrichment_Veg_Layer3 = arcpy.management.CalculateGeometryAttributes(in_features=Pts_enrichment_Veg_Layer2, 
+                                geometry_property=[["LATITUDE", "Point y-coordinate"], ["LONGITUDE", "Point x-coordinate"]], 
+                                length_unit="", area_unit="", 
+                                coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
+                                coordinate_format="DD"
+                                )[0]
+
+    # Process: Delete Identical (Delete Identical) (management)
+    Pts_enrichment_Veg_Layer4 = arcpy.management.DeleteIdentical(
+                                in_dataset=Pts_enrichment_Veg_Layer3, 
+                                fields=["PROJECTID_USER", "AGENCY", "ORG_ADMIN_p", 
+                                        "PROJECT_CONTACT", "PROJECT_EMAIL", "ADMINISTERING_ORG", 
+                                        "PROJECT_NAME", "PROJECT_STATUS", "PROJECT_START", 
+                                        "PROJECT_END", "PRIMARY_FUNDING_SOURCE", "PRIMARY_FUNDING_ORG", 
+                                        "IMPLEMENTING_ORG", "LATITUDE", "LONGITUDE", 
+                                        "BatchID_p", "Val_Status_p", "Val_Message_p", 
+                                        "Val_RunDate_p", "Review_Status_p", "Review_Message_p", 
+                                        "Review_RunDate_p", "Dataload_Status_p", "Dataload_Msg_p", 
+                                        "TRMTID_USER", "PROJECTID", "PROJECTNAME_", 
+                                        "ORG_ADMIN_t", "PRIMARY_OWNERSHIP_GROUP", "PRIMARY_OBJECTIVE", 
+                                        "SECONDARY_OBJECTIVE", "TERTIARY_OBJECTIVE", "TREATMENT_STATUS", 
+                                        "COUNTY", "IN_WUI", "REGION", "TREATMENT_AREA", "TREATMENT_START", 
+                                        "TREATMENT_END", "RETREATMENT_DATE_EST", "TREATMENT_NAME", "BatchID", 
+                                        "Val_Status_t", "Val_Message_t", "Val_RunDate_t", "Review_Status_t", 
+                                        "Review_Message_t", "Review_RunDate_t", "Dataload_Status_t", "Dataload_Msg_t", 
+                                        "ACTIVID_USER", "TREATMENTID_", "ORG_ADMIN_a", "ACTIVITY_DESCRIPTION", 
+                                        "ACTIVITY_CAT", "BROAD_VEGETATION_TYPE", "BVT_USERD", "ACTIVITY_STATUS", 
+                                        "ACTIVITY_QUANTITY", "ACTIVITY_UOM", "ACTIVITY_START", "ACTIVITY_END", 
+                                        "ADMIN_ORG_NAME", "IMPLEM_ORG_NAME", "PRIMARY_FUND_SRC_NAME", 
+                                        "PRIMARY_FUND_ORG_NAME", "SECONDARY_FUND_SRC_NAME", "SECONDARY_FUND_ORG_NAME", 
+                                        "TERTIARY_FUND_SRC_NAME", "TERTIARY_FUND_ORG_NAME", "ACTIVITY_PRCT", 
+                                        "RESIDUE_FATE", "RESIDUE_FATE_QUANTITY", "RESIDUE_FATE_UNITS", 
+                                        "ACTIVITY_NAME", "VAL_STATUS_a", "VAL_MSG_a", "VAL_RUNDATE_a", 
+                                        "REVIEW_STATUS_a", "REVIEW_MSG_a", "REVIEW_RUNDATE_a", "DATALOAD_STATUS_a", 
+                                        "DATALOAD_MSG_a", "Source", "Year", "Year_txt", "Act_Code", "Crosswalk", 
+                                        "Federal_FY", "State_FY", "TRMT_GEOM"], 
+                                xy_tolerance="", 
+                                z_tolerance=0
+                                )[0]        
+
     # Process: Select (Select) (analysis)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        arcpy.analysis.Select(in_features=Pts_enrichment_Veg_Layer2, 
+        arcpy.analysis.Select(in_features=Pts_enrichment_Veg_Layer4, 
                               out_feature_class=enrich_pts_out,
                               where_clause="County IS NOT NULL")
 

@@ -78,31 +78,31 @@ output_pts_enriched
             )[0]
 
         # Process: Pairwise Clip (Pairwise Clip) (analysis)
-        nfpors_select2_clip = os.path.join(scratch_workspace,'nfpors_select2_clip')
-        with arcpy.EnvManager(extent="DEFAULT"):
-            arcpy.analysis.PairwiseClip(
-                in_features=nfpors_select2_2_, 
-                clip_features=California, 
-                out_feature_class=nfpors_select2_clip, 
-                cluster_tolerance=""
-                )
+        # nfpors_select2_clip = os.path.join(scratch_workspace,'nfpors_select2_clip')
+        # with arcpy.EnvManager(extent="DEFAULT"):
+        #     arcpy.analysis.PairwiseClip(
+        #         in_features=nfpors_select2_2_, 
+        #         clip_features=California, 
+        #         out_feature_class=nfpors_select2_clip, 
+        #         cluster_tolerance=""
+        #         )
 
         # Process: Dissolve (3) (Dissolve) (management)
         # arcgisscripting.ExecuteError: ERROR 160327: A column was specified that does not exist. Failed to execute (Dissolve).
         # nfpors_select2_clip does not have DateComp and DateMod fields.. excluding them for now to keep debugging script
-        nfpors_select2_dissolve = os.path.join(scratch_workspace,'nfpors_select2_dissolve')
-        arcpy.management.Dissolve(
-            in_features=nfpors_select2_clip, 
-            out_feature_class=nfpors_select2_dissolve, 
-            dissolve_field=["agency", "trt_id", "trt_nm", 
-                            "type_name", "act_acc_ac", "trt_statnm", 
-                            #"DateComp", "DateMod", # TODO: figure out whether these fields are supposed to be in the input 
-                            "unit_id"], 
-            statistics_fields=[], 
-            multi_part="MULTI_PART", 
-            unsplit_lines="DISSOLVE_LINES", 
-            concatenation_separator=""
-            )
+        # nfpors_select2_dissolve = os.path.join(scratch_workspace,'nfpors_select2_dissolve')
+        # arcpy.management.Dissolve(
+        #     in_features=nfpors_select2_clip, 
+        #     out_feature_class=nfpors_select2_dissolve, 
+        #     dissolve_field=["agency", "trt_id", "trt_nm", 
+        #                     "type_name", "act_acc_ac", "trt_statnm", 
+        #                     #"DateComp", "DateMod", # TODO: figure out whether these fields are supposed to be in the input 
+        #                     "unit_id"], 
+        #     statistics_fields=[], 
+        #     multi_part="MULTI_PART", 
+        #     unsplit_lines="DISSOLVE_LINES", 
+        #     concatenation_separator=""
+        #     )
 
         # Process: Define Projection (Define Projection) (management)
         ## Note: This may need to be enabled depending on how the source is pulled
@@ -154,7 +154,7 @@ output_pts_enriched
         Updated_Input_Table_3_ = arcpy.management.CalculateField(
             in_table=usfs_haz_fuels_treatments_reduction2_dissolve_3_, 
             field="ADMINISTERING_ORG", 
-            expression="!agency!", 
+            expression="!agency_!", 
             expression_type="PYTHON3", 
             code_block="", 
             field_type="TEXT", 
@@ -173,15 +173,15 @@ output_pts_enriched
             )[0]
 
         # Process: Calculate Geometry Attributes (2) (Calculate Geometry Attributes) (management)
-        nfpors_select2_clip_dissolve_5_ = arcpy.management.CalculateGeometryAttributes(
-            in_features=Updated_Input_Table_4_, 
-            geometry_property=[["LATITUDE", "INSIDE_Y"], 
-                                ["LONGITUDE", "INSIDE_X"]], 
-            length_unit="", 
-            area_unit="", 
-            coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
-            coordinate_format="DD"
-            )[0]
+        # nfpors_select2_clip_dissolve_5_ = arcpy.management.CalculateGeometryAttributes(
+        #     in_features=Updated_Input_Table_4_, 
+        #     geometry_property=[["LATITUDE", "INSIDE_Y"], 
+        #                         ["LONGITUDE", "INSIDE_X"]], 
+        #     length_unit="", 
+        #     area_unit="", 
+        #     coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
+        #     coordinate_format="DD"
+        #     )[0]
 
         # Process: Calculate Treatment ID (2) (Calculate Field) (management)
         # usfs_haz_fuels_treatments_reduction2_6_ = arcpy.management.CalculateField(
@@ -204,9 +204,11 @@ output_pts_enriched
         #     field_type="TEXT", 
         #     enforce_domains="NO_ENFORCE_DOMAINS"
         #     )[0]
+
+        # Process: Calculate Activity Name (Calculate Field) (management)
         Updated_Input_Table_6_ = arcpy.management.CalculateField(
-            in_table=nfpors_select2_clip_dissolve_5_, 
-            field="TREATMENT_NAME", 
+            in_table=Updated_Input_Table_4_, 
+            field="ACTIVITY_NAME", 
             expression="!trt_nm!", 
             expression_type="PYTHON3", 
             code_block="", 
@@ -320,7 +322,7 @@ output_pts_enriched
             in_table=Updated_Input_Table_8_, 
             drop_field=["PROJECTID_USER", "AGENCY", "ORG_ADMIN_p", 
                         "PROJECT_CONTACT", "PROJECT_EMAIL", "ADMINISTERING_ORG",
-                        "PROJECTID", # adding this field to keep since i got below error PROJECTID field does not exist 
+                        "PROJECTID", # adding this field to keep since I got below error PROJECTID field does not exist 
                         "PROJECT_NAME", "PROJECT_STATUS", "PROJECT_START", 
                         "PROJECT_END", "PRIMARY_FUNDING_SOURCE", "PRIMARY_FUNDING_ORG", 
                         "IMPLEMENTING_ORG", "LATITUDE", "LONGITUDE", 
@@ -393,7 +395,7 @@ output_pts_enriched
         usfs_haz_fuels_treatments_reduction2_6_ = arcpy.management.CalculateField(
             in_table=output_polys_enriched, 
             field="TRMTID_USER", 
-            expression="!PROJECTID_USER![:13]+'-'+(!PRIMARY_OWNERSHIP_GROUP![:4])+'-'+!COUNTY![:4]+'-'+(!IN_WUI![:3])", 
+            expression="!PROJECTID_USER![-7:]+'-'+!IN_WUI![:3]+'-'+!PRIMARY_OWNERSHIP_GROUP![:1]+'-'+!COUNTY![:8]+'-'+!PRIMARY_OBJECTIVE![:12]", 
             expression_type="PYTHON3", 
             code_block="", 
             field_type="TEXT", 
@@ -404,14 +406,14 @@ output_pts_enriched
         nfpors_fuels_treatments_enriched_20220906_2_ = AssignDomains(in_table=output_polys_enriched)#[0]
 
         # Process: Calculate Geometry Attributes (Calculate Geometry Attributes) (management)
-        nfpors_select2_dissolve_5_ = arcpy.management.CalculateGeometryAttributes(
-            in_features=nfpors_select2_clip, 
-            geometry_property=[["gis_acres", "AREA"]], 
-            length_unit="", 
-            area_unit="ACRES_US", 
-            coordinate_system="PROJCS[\"NAD_1983_California_Teale_Albers\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",-4000000.0],PARAMETER[\"Central_Meridian\",-120.0],PARAMETER[\"Standard_Parallel_1\",34.0],PARAMETER[\"Standard_Parallel_2\",40.5],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]", 
-            coordinate_format="SAME_AS_INPUT"
-            )[0]
+        # nfpors_select2_dissolve_5_ = arcpy.management.CalculateGeometryAttributes(
+        #     in_features=nfpors_select2_clip, 
+        #     geometry_property=[["gis_acres", "AREA"]], 
+        #     length_unit="", 
+        #     area_unit="ACRES_US", 
+        #     coordinate_system="PROJCS[\"NAD_1983_California_Teale_Albers\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",-4000000.0],PARAMETER[\"Central_Meridian\",-120.0],PARAMETER[\"Standard_Parallel_1\",34.0],PARAMETER[\"Standard_Parallel_2\",40.5],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]", 
+        #     coordinate_format="SAME_AS_INPUT"
+        #     )[0]
 
         ### BEGIN POINTS WORKFLOW
         
@@ -540,15 +542,15 @@ output_pts_enriched
             )[0]
 
         # Process: Calculate Geometry Attributes (4) (Calculate Geometry Attributes) (management)
-        nfpors_select2p_clip_7_ = arcpy.management.CalculateGeometryAttributes(
-            in_features=Updated_Input_Table_17_, 
-            geometry_property=[["LATITUDE", "POINT_Y"], 
-                                ["LONGITUDE", "POINT_X"]], 
-            length_unit="", 
-            area_unit="", 
-            coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
-            coordinate_format="DD"
-            )[0]
+        # nfpors_select2p_clip_7_ = arcpy.management.CalculateGeometryAttributes(
+        #     in_features=Updated_Input_Table_17_, 
+        #     geometry_property=[["LATITUDE", "POINT_Y"], 
+        #                         ["LONGITUDE", "POINT_X"]], 
+        #     length_unit="", 
+        #     area_unit="", 
+        #     coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
+        #     coordinate_format="DD"
+        #     )[0]
 
         # Process: Calculate Treatment ID (3) (Calculate Field) (management)
         # usfs_haz_fuels_treatments_reduction2_5_ = arcpy.management.CalculateField(
@@ -563,7 +565,7 @@ output_pts_enriched
 
         # Process: Calculate WUI (2) (Calculate Field) (management)
         Updated_Input_Table_2_ = arcpy.management.CalculateField(
-            in_table=nfpors_select2p_clip_7_, 
+            in_table=Updated_Input_Table_17_, 
             field="IN_WUI", 
             expression="ifelse(!iswui!)", 
             expression_type="PYTHON3", 
@@ -578,10 +580,10 @@ output_pts_enriched
             enforce_domains="NO_ENFORCE_DOMAINS"
             )[0]
 
-        # Process: Calculate Treatment Name (2) (Calculate Field) (management)
+        # Process: Calculate Activity Name (2) (Calculate Field) (management)
         Updated_Input_Table_19_ = arcpy.management.CalculateField(
             in_table=Updated_Input_Table_2_, 
-            field="TREATMENT_NAME", 
+            field="ACTIVITY_NAME", 
             expression="!treatmentname!", 
             expression_type="PYTHON3", 
             code_block="", 
@@ -609,9 +611,9 @@ output_pts_enriched
             field="ACTIVITY_QUANTITY", 
             expression="ifelse(!totalaccomplishment!, !plannedaccomplishment!)", 
             expression_type="PYTHON3", 
-            code_block="""def ifelse(Actual, GIS):
+            code_block="""def ifelse(Actual, Planned):
                             if Actual == 0:
-                                return GIS
+                                return Planned
                             else:
                                 return Actual""", 
             field_type="DOUBLE", 
@@ -765,7 +767,7 @@ output_pts_enriched
         usfs_haz_fuels_treatments_reduction2_5_ = arcpy.management.CalculateField(
             in_table=output_pts_enriched, 
             field="TRMTID_USER", 
-            expression="!PROJECTID_USER![:13]+'-'+(!IN_WUI![:3])+'-'+(!PRIMARY_OWNERSHIP_GROUP![:1])", 
+            expression="!PROJECTID_USER![-7:]+'-'+!IN_WUI![:3]+'-'+!PRIMARY_OWNERSHIP_GROUP![:1]+'-'+!COUNTY![:8]+'-'+!PRIMARY_OBJECTIVE![:12])", 
             expression_type="PYTHON3", 
             code_block="", 
             field_type="TEXT", 
