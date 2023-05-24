@@ -149,6 +149,20 @@ def og_file_input(prefix:str, filetype:str, gdb):
     most_recent = files_w_prefix[-1]
     return most_recent
 
+def check_schema_lock(input):
+    """
+    Checks the schema lock on input files
+    
+    args:
+
+    input: full file path to file you want to have schema lock on
+    
+    """
+    if arcpy.TestSchemaLock(input):
+        [print(f'{input} available for schema lock')]
+    else:
+        [print(f'Unable to acquire the necessary schema lock for {input}')]
+
 def runner(workspace:str,scratch_workspace:str,func):
     with arcpy.EnvManager(
     extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 
