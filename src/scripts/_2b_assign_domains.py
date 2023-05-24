@@ -6,7 +6,7 @@ import arcpy
 from sys import argv
 import os
 from scripts.utils import init_gdb, runner
-workspace, scratch_workspace = init_gdb()
+original_gdb, workspace, scratch_workspace = init_gdb()
 
 def AssignDomains(in_table):  # 2b Assign Domains
     arcpy.env.overwriteOutput = True

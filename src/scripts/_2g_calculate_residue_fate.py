@@ -6,7 +6,7 @@ import arcpy
 import os
 from sys import argv
 from scripts.utils import init_gdb, runner
-workspace, scratch_workspace = init_gdb()
+original_gdb, workspace, scratch_workspace = init_gdb()
 
 def Residue(Input_Table):  # 2g Calculate Residue Fate
     arcpy.env.overwriteOutput = True

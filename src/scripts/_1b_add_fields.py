@@ -7,7 +7,7 @@ import os
 from sys import argv
 from scripts._2b_assign_domains import AssignDomains
 from scripts.utils import init_gdb, runner
-workspace, scratch_workspace = init_gdb()
+original_gdb, workspace, scratch_workspace = init_gdb()
 
 def FieldExists(featureclass, fieldname):                   #* Start if function to check if field exist  */
         fieldList = arcpy.ListFields(featureclass, fieldname)

@@ -6,6 +6,7 @@ import arcpy
 import os
 from sys import argv
 from .utils import init_gdb, delete_scratch_files
+from ._2k_keep_fields import KeepFields
 import time
 original_gdb, workspace, scratch_workspace = init_gdb()
 
@@ -320,62 +321,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                           join_name="Fuels_Treatments_Piles_Crosswalk")
 
     # Process: Delete Field (Delete Field) (management)
-    usfs_haz_fuels_treatments_re = arcpy.management.DeleteField(in_table=Layer_With_Join_Removed, 
-                                                                drop_field=["Prj_ID", 
-                                                                            "Prj_Name", 
-                                                                            "Prj_FundNM", 
-                                                                            "Prj_FndOrg", 
-                                                                            "Prj_Admin", 
-                                                                            "Prj_Implem", 
-                                                                            "Prj_RptOrg", 
-                                                                            "Prj_Contct", 
-                                                                            "Prj_Email", 
-                                                                            "Prj_Start", 
-                                                                            "Prj_End", 
-                                                                            "Prj_Status", 
-                                                                            "Lat", 
-                                                                            "Lon", 
-                                                                            "TreatID", 
-                                                                            "Treat_Name", 
-                                                                            "County", 
-                                                                            "WUI", 
-                                                                            "Prim_Obj", 
-                                                                            "Sec_Obj", 
-                                                                            "Tert_Obj", 
-                                                                            "Category", 
-                                                                            "Retrt_Date", 
-                                                                            "Trt_Status", 
-                                                                            "TreatStart", 
-                                                                            "Treat_End", 
-                                                                            "Treat_Acre", 
-                                                                            "Ownership", 
-                                                                            "ActivityID", 
-                                                                            "Act_Name", 
-                                                                            "P_Fund_Src", 
-                                                                            "P_Fnd_Org", 
-                                                                            "S_Fnd_Src", 
-                                                                            "S_Fnd_Org", 
-                                                                            "T_Fnd_Src", 
-                                                                            "T_Fnd_Org", 
-                                                                            "Admin_Org", 
-                                                                            "Imp_Org", 
-                                                                            "Act_Desc", 
-                                                                            "UOM_", 
-                                                                            "Act_Quant", 
-                                                                            "Act_Status", 
-                                                                            "Veg_Type", 
-                                                                            "Residue_Q", 
-                                                                            "Residue_Fa", 
-                                                                            "Act_Start", 
-                                                                            "Act_End", 
-                                                                            "Act_Percnt", 
-                                                                            "Source", 
-                                                                            "Year", 
-                                                                            "Year_txt", 
-                                                                            "Crosswalk", 
-                                                                            "Region", 
-                                                                            "Act_Code"], 
-                                                                            method="KEEP_FIELDS")
+    usfs_haz_fuels_treatments_re = KeepFields(Layer_With_Join_Removed)
 
     # Process: Table To Table (2) (Table To Table) (conversion)
     usfs_timber_harvest_table_standardized_20220715 = arcpy.conversion.TableToTable(in_rows=usfs_haz_fuels_treatments_re, 

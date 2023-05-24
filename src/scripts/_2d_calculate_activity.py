@@ -6,7 +6,7 @@ import arcpy
 from sys import argv
 import os
 from scripts.utils import init_gdb, runner
-workspace, scratch_workspace = init_gdb()
+original_gdb, workspace, scratch_workspace = init_gdb()
 
 def Activity(Input_Table):  # 2d Calculate Activity
     """Assign new values to ACTIVITY_DESCRIPTION field in the input table. Requires that Fuels_Treatments_Piles_Crosswalk table is already joined to the input table."""

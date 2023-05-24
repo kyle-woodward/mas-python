@@ -6,7 +6,7 @@ import arcpy
 import os
 from sys import argv
 from scripts.utils import init_gdb, runner
-workspace, scratch_workspace = init_gdb()
+original_gdb, workspace, scratch_workspace = init_gdb()
 
 def Year(Input_Table):  # 2h Calculate Year
     arcpy.env.overwriteOutput = True
