@@ -25,9 +25,7 @@ output_pts_enriched
 ):
     start = time.time()
     print(f'Start Time {time.ctime()}')
-    
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
+    arcpy.env.overwriteOutput = True
     
     #Define paths to required inputs
     California = os.path.join(workspace,'b_Reference','California')

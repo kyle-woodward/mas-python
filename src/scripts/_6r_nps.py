@@ -17,8 +17,8 @@ original_gdb, workspace, scratch_workspace = init_gdb()
 def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
     start = time.time()
     print(f'Start Time {time.ctime()}')
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
+    arcpy.env.overwriteOutput = True
+
     # TODO: download from feature service upon run-time
     # in meantime have access to copy of the file from Dropbox 1/3/23
     nps_flat_fuels_20021102 = os.path.join(original_gdb, 'a_Originals', 'nps_flat_fuels_20021102')
