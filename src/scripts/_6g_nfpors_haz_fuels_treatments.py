@@ -8,6 +8,7 @@ from ._2b_assign_domains import AssignDomains
 from ._7b_enrichments_pts import bEnrichmentsPoints
 from ._2c_units_domain import Units
 from ._7a_enrichments_polygon import aEnrichmentsPolygon1
+from ._2k_keep_fields import KeepFields
 from sys import argv
 from .utils import init_gdb, delete_scratch_files
 import os,time
@@ -316,41 +317,7 @@ output_pts_enriched
             )
 
         # Process: Delete Field (Delete Field) (management)
-        nfpors_select2_Select_2_ = arcpy.management.DeleteField(
-            in_table=Updated_Input_Table_8_, 
-            drop_field=["PROJECTID_USER", "AGENCY", "ORG_ADMIN_p", 
-                        "PROJECT_CONTACT", "PROJECT_EMAIL", "ADMINISTERING_ORG",
-                        "PROJECTID", # adding this field to keep since I got below error PROJECTID field does not exist 
-                        "PROJECT_NAME", "PROJECT_STATUS", "PROJECT_START", 
-                        "PROJECT_END", "PRIMARY_FUNDING_SOURCE", "PRIMARY_FUNDING_ORG", 
-                        "IMPLEMENTING_ORG", "LATITUDE", "LONGITUDE", 
-                        "BatchID_p", "Val_Status_p", "Val_Message_p", 
-                        "Val_RunDate_p", "Review_Status_p", "Review_Message_p", 
-                        "Review_RunDate_p", "Dataload_Status_p", "Dataload_Msg_p", 
-                        "TRMTID_USER", "PROJECTNAME_", "ORG_ADMIN_t", 
-                        "PRIMARY_OWNERSHIP_GROUP", "PRIMARY_OBJECTIVE", "SECONDARY_OBJECTIVE", 
-                        "TERTIARY_OBJECTIVE", "TREATMENT_STATUS", "COUNTY", 
-                        "IN_WUI", "REGION", "TREATMENT_AREA", 
-                        "TREATMENT_START", "TREATMENT_END", "RETREATMENT_DATE_EST", 
-                        "TREATMENT_NAME", "BatchID", "Val_Status_t", 
-                        "Val_Message_t", "Val_RunDate_t", "Review_Status_t", 
-                        "Review_Message_t", "Review_RunDate_t", "Dataload_Status_t", 
-                        "Dataload_Msg_t", "ACTIVID_USER", "TREATMENTID_", 
-                        "ORG_ADMIN_a", "ACTIVITY_DESCRIPTION", "ACTIVITY_CAT", 
-                        "BROAD_VEGETATION_TYPE", "BVT_USERD", "ACTIVITY_STATUS", 
-                        "ACTIVITY_QUANTITY", "ACTIVITY_UOM", "ACTIVITY_START", 
-                        "ACTIVITY_END", "ADMIN_ORG_NAME", "IMPLEM_ORG_NAME", 
-                        "PRIMARY_FUND_SRC_NAME", "PRIMARY_FUND_ORG_NAME", "SECONDARY_FUND_SRC_NAME", 
-                        "SECONDARY_FUND_ORG_NAME", "TERTIARY_FUND_SRC_NAME", "TERTIARY_FUND_ORG_NAME", 
-                        "ACTIVITY_PRCT", "RESIDUE_FATE", "RESIDUE_FATE_QUANTITY", 
-                        "RESIDUE_FATE_UNITS", "ACTIVITY_NAME", "VAL_STATUS_a", 
-                        "VAL_MSG_a", "VAL_RUNDATE_a", "REVIEW_STATUS_a", 
-                        "REVIEW_MSG_a", "REVIEW_RUNDATE_a", "DATALOAD_STATUS_a", 
-                        "DATALOAD_MSG_a", "Source", "Year", 
-                        "Year_txt", "Act_Code", "Crosswalk", 
-                        "Federal_FY", "State_FY"], 
-                method="KEEP_FIELDS"
-                )
+        nfpors_select2_Select_2_ = KeepFields(Updated_Input_Table_8_)
 
         print(f'Saving Output Polys Standardized: {output_polys_standardized}')
         # Process: Copy Features (2) (Copy Features) (management)
@@ -370,12 +337,6 @@ output_pts_enriched
         print(f'Performing Polygon Enrichments')
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
         Veg_Summarized_Polygons2 = os.path.join(scratch_workspace,'Veg_Summarized_Polygons2')
-        # File "C:\mas-python\edited\_7a_enrichments_polygon.py", line 555, in aEnrichmentsPolygon1
-        # Veg_Summarized_Polygons_Laye_11_ = arcpy.management.DeleteField(
-        # ERROR 000728: Field PROJECTID does not exist within table
-        
-        # is PROJECTID field supposed to exist in the table?... is the dataset wrong or the code wrong?
-        # see above line 323 for fix
         aEnrichmentsPolygon1(enrich_out=output_polys_enriched, enrich_in=usfs_silviculture_reforestation_enriched_20220629_2_)
 
         print(f'Saving Output Polys Enriched: {output_polys_enriched}')
@@ -706,41 +667,7 @@ output_pts_enriched
             )
 
         # Process: Delete Field (2) (Delete Field) (management)
-        nfpors_select2p_clip_8_ = arcpy.management.DeleteField(
-            in_table=output_original_polys, 
-            drop_field=["PROJECTID_USER", "AGENCY", "ORG_ADMIN_p", 
-                        "PROJECT_CONTACT", "PROJECT_EMAIL", "ADMINISTERING_ORG", 
-                        "PROJECT_NAME", "PROJECT_STATUS", "PROJECT_START", 
-                        "PROJECT_END", "PRIMARY_FUNDING_SOURCE", 
-                        "PRIMARY_FUNDING_ORG", "IMPLEMENTING_ORG", 
-                        "LATITUDE", "LONGITUDE", "BatchID_p", 
-                        "Val_Status_p", "Val_Message_p", "Val_RunDate_p", 
-                        "Review_Status_p", "Review_Message_p", "Review_RunDate_p", 
-                        "Dataload_Status_p", "Dataload_Msg_p", "TRMTID_USER", 
-                        "PROJECTID", "PROJECTNAME_", "ORG_ADMIN_t", 
-                        "PRIMARY_OWNERSHIP_GROUP", "PRIMARY_OBJECTIVE", "SECONDARY_OBJECTIVE", 
-                        "TERTIARY_OBJECTIVE", "TREATMENT_STATUS", "COUNTY", 
-                        "IN_WUI", "REGION", "TREATMENT_AREA", 
-                        "TREATMENT_START", "TREATMENT_END", "RETREATMENT_DATE_EST", 
-                        "TREATMENT_NAME", "BatchID", "Val_Status_t", 
-                        "Val_Message_t", "Val_RunDate_t", "Review_Status_t", 
-                        "Review_Message_t", "Review_RunDate_t", "Dataload_Status_t", 
-                        "Dataload_Msg_t", "ACTIVID_USER", "TREATMENTID_", 
-                        "ORG_ADMIN_a", "ACTIVITY_DESCRIPTION", "ACTIVITY_CAT", 
-                        "BROAD_VEGETATION_TYPE", "BVT_USERD", "ACTIVITY_STATUS", 
-                        "ACTIVITY_QUANTITY", "ACTIVITY_UOM", "ACTIVITY_START", 
-                        "ACTIVITY_END", "ADMIN_ORG_NAME", "IMPLEM_ORG_NAME", 
-                        "PRIMARY_FUND_SRC_NAME", "PRIMARY_FUND_ORG_NAME", 
-                        "SECONDARY_FUND_SRC_NAME", "SECONDARY_FUND_ORG_NAME", "TERTIARY_FUND_SRC_NAME", 
-                        "TERTIARY_FUND_ORG_NAME", "ACTIVITY_PRCT", "RESIDUE_FATE", 
-                        "RESIDUE_FATE_QUANTITY", "RESIDUE_FATE_UNITS", "ACTIVITY_NAME", 
-                        "VAL_STATUS_a", "VAL_MSG_a", "VAL_RUNDATE_a", 
-                        "REVIEW_STATUS_a", "REVIEW_MSG_a", "REVIEW_RUNDATE_a", 
-                        "DATALOAD_STATUS_a", "DATALOAD_MSG_a", "Source", 
-                        "Year", "Year_txt", "Act_Code", 
-                        "Crosswalk", "Federal_FY", "State_FY"], 
-                method="KEEP_FIELDS"
-                )
+        nfpors_select2p_clip_8_ = KeepFields(output_original_polys)
 
         # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
         usfs_silviculture_reforestation_enriched_20220629_4_ = AssignDomains(in_table=nfpors_select2p_clip_8_)

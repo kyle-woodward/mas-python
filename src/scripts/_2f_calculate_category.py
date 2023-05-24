@@ -7,7 +7,7 @@ import arcpy
 import os
 from sys import argv
 from scripts.utils import init_gdb, runner
-workspace, scratch_workspace = init_gdb()
+original_gdb, workspace, scratch_workspace = init_gdb()
 
 def Category(Input_Table):  # 2f Calculate Category
     arcpy.env.overwriteOutput = True
