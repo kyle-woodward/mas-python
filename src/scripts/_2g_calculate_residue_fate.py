@@ -9,10 +9,7 @@ from scripts.utils import init_gdb, runner
 workspace, scratch_workspace = init_gdb()
 
 def Residue(Input_Table):  # 2g Calculate Residue Fate
-
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
-
+    arcpy.env.overwriteOutput = True
 
     # Process: Calculate Residue Fate (Calculate Field) (management)
     Veg_Summarized_Polygons_Laye3_3_ = arcpy.management.CalculateField(in_table=Input_Table, field="RESIDUE_FATE", expression="ifelse(!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!)", expression_type="PYTHON3", code_block="""def ifelse(RES):

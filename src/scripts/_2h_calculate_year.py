@@ -9,10 +9,7 @@ from scripts.utils import init_gdb, runner
 workspace, scratch_workspace = init_gdb()
 
 def Year(Input_Table):  # 2h Calculate Year
-
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
-
+    arcpy.env.overwriteOutput = True
 
     # Process: Calculate Calendar Year (Calculate Field) (management)
     Updated_Input_Table_5_ = arcpy.management.CalculateField(in_table=Input_Table, field="Year", expression="Year($feature.ACTIVITY_END)", expression_type="ARCADE", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]

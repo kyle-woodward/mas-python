@@ -25,7 +25,7 @@ def TransformCheck(Input_Table, Output_Duplicates):  # 9c Transform Check Duplic
     Transform_Projects_Dissolve_ = arcpy.management.AddJoin(in_layer_or_view=Input_Table.__str__().format(**locals(),**globals()), 
                                                             in_field="PROJECTID_USER", 
                                                             join_table=Transform_Treatmen_Frequency_3_,
-                                                            join_field="PROJECTID_USER")[0]
+                                                            join_field="PROJECTID_USER")
 
     # Process: Select (4) (Select) (analysis)
     arcpy.analysis.Select(in_features=Transform_Projects_Dissolve_, 
@@ -34,7 +34,7 @@ def TransformCheck(Input_Table, Output_Duplicates):  # 9c Transform Check Duplic
 
     # Process: Remove Join (Remove Join) (management)
     if Output_Duplicates:
-        Layer_With_Join_Removed = arcpy.management.RemoveJoin(in_layer_or_view=Transform_Projects_Dissolve_)[0]
+        Layer_With_Join_Removed = arcpy.management.RemoveJoin(in_layer_or_view=Transform_Projects_Dissolve_)
 
 if __name__ == '__main__':
     # Global Environment settings

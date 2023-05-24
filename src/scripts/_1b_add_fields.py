@@ -49,8 +49,7 @@ def AddFields2(Input_Table,alter_fields=False):  # 1b Add Fields
     Input_Table: input table or feature class
     alter_fields: if an original field in the dataset matches one of the new fields, alter it to 'FIELDNAME_'.
     """
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
+    arcpy.env.overwriteOutput = True
 
     # Fields to add and their other settings passed to arcpy.management.AddFields()
     schema = [["PROJECTID_USER", "TEXT", "PROJECT ID USER", "40", "", ""], 
@@ -145,17 +144,18 @@ def AddFields2(Input_Table,alter_fields=False):  # 1b Add Fields
             ["Crosswalk", "TEXT", "Crosswalk Activities", "150", "", ""], 
             ["Federal_FY", "LONG", "Federal FY", "", "", ""], 
             ["State_FY", "LONG", "State FY", "", "", ""],
-            ["TRMTGEOM", "TEXT", "TREATMENT GEOMETRY", "10","",""]]
+            ["TRMT_GEOM", "TEXT", "TREATMENT GEOMETRY", "10","",""],
+            ["COUNTS_TO_MAS", "TEXT", "COUNTS TOWARDS MAS", "3","",""]]
     
     # alter existing fields found in schema
     if alter_fields:
         altered = AlterExisting(schema,Input_Table)
     
     # Process: Add Projects Fields (multiple) (Add Fields (multiple)) (management)
-    add_fields = arcpy.management.AddFields(in_table=Input_Table, field_description=schema)[0]
+    add_fields = arcpy.management.AddFields(in_table=Input_Table, field_description=schema)
 
     # Process: 2b Assign Domains (4) (2b Assign Domains) (PC414CWIMillionAcres)
-    Assign_Domains_ = AssignDomains(in_table=add_fields)#[0]
+    Assign_Domains_ = AssignDomains(in_table=add_fields)
 
     return Assign_Domains_
 

@@ -17,8 +17,8 @@ original_gdb, workspace, scratch_workspace = init_gdb()
 def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
     start = time.time()
     print(f'Start Time {time.ctime()}')
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
+    arcpy.env.overwriteOutput = True
+
     # TODO: download from feature service upon run-time
     # in meantime have access to copy of the file from Dropbox 1/3/23
     nps_flat_fuels_20021102 = os.path.join(original_gdb, 'a_Originals', 'nps_flat_fuels_20021102')
@@ -43,7 +43,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         in_features=FLAT_FUELSTREATMENT_PAST_select, 
         delete_null="KEEP_NULL", 
         validation_method="ESRI"
-        )[0]
+        )
 
     # Process: Pairwise Clip (Pairwise Clip) (analysis)
     arcpy.analysis.PairwiseClip(
@@ -83,10 +83,10 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         field_length=50, 
         field_is_nullable="NULLABLE", 
         clear_field_alias="DO_NOT_CLEAR"
-        )[0]
+        )
 
     # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-    WFRTF_Template_4_ = AddFields2(Input_Table=FLAT_FUELSTREATMENT_PAS_disso_3_)#[0]
+    WFRTF_Template_4_ = AddFields2(Input_Table=FLAT_FUELSTREATMENT_PAS_disso_3_)
 
     # Process: Calculate Project ID (Calculate Field) (management)
     Activity_SilvTSI_20220627_Se2_2_ = arcpy.management.CalculateField(
@@ -101,7 +101,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
                             return Treat""", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Agency (Calculate Field) (management)
     Updated_Input_Table_30_ = arcpy.management.CalculateField(
@@ -112,7 +112,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Data Steward (Calculate Field) (management)
     Updated_Input_Table = arcpy.management.CalculateField(
@@ -123,7 +123,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Project Contact (Calculate Field) (management)
     Updated_Input_Table_3_ = arcpy.management.CalculateField(
@@ -134,7 +134,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Project Email (Calculate Field) (management)
     Updated_Input_Table_5_ = arcpy.management.CalculateField(
@@ -145,7 +145,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Admin Org (Calculate Field) (management)
     Updated_Input_Table_31_ = arcpy.management.CalculateField(
@@ -156,7 +156,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Project Name (Calculate Field) (management)
     Updated_Input_Table_33_ = arcpy.management.CalculateField(
@@ -167,7 +167,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Fund Source (Calculate Field) (management)
     Updated_Input_Table_6_ = arcpy.management.CalculateField(
@@ -178,7 +178,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Fund Org (Calculate Field) (management)
     Updated_Input_Table_7_ = arcpy.management.CalculateField(
@@ -189,7 +189,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Imp Org (Calculate Field) (management)
     Updated_Input_Table_32_ = arcpy.management.CalculateField(
@@ -200,7 +200,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Project Name (2) (Calculate Field) (management)
     Updated_Input_Table_14_ = arcpy.management.CalculateField(
@@ -211,7 +211,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Data Steward 2 (Calculate Field) (management)
     Updated_Input_Table_8_ = arcpy.management.CalculateField(
@@ -222,7 +222,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Veg User Defined (Calculate Field) (management)
     Updated_Input_Table_9_ = arcpy.management.CalculateField(
@@ -233,7 +233,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Activity End Date (Calculate Field) (management)
     Updated_Input_Table_2_ = arcpy.management.CalculateField(
@@ -249,7 +249,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
                         return None""", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Status (Calculate Field) (management)
     Updated_Input_Table_35_ = arcpy.management.CalculateField(
@@ -265,7 +265,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
                         return \"TBD\"""", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Activity Quantity (3) (Calculate Field) (management)
     Activity_SilvTSI_20220627_Se2_6_ = arcpy.management.CalculateField(
@@ -276,7 +276,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="DOUBLE", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Activity UOM (3) (Calculate Field) (management)
     Activity_SilvTSI_20220627_Se2_5_ = arcpy.management.CalculateField(
@@ -287,7 +287,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Admin Org2 (Calculate Field) (management)
     Updated_Input_Table_10_ = arcpy.management.CalculateField(
@@ -298,7 +298,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Implementation Org 2 (Calculate Field) (management)
     Updated_Input_Table_11_ = arcpy.management.CalculateField(
@@ -309,7 +309,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Primary Fund Source (Calculate Field) (management)
     Updated_Input_Table_12_ = arcpy.management.CalculateField(
@@ -320,7 +320,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Fund Org 2 (Calculate Field) (management)
     Updated_Input_Table_13_ = arcpy.management.CalculateField(
@@ -331,7 +331,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Source (Calculate Field) (management)
     Updated_Input_Table_36_ = arcpy.management.CalculateField(
@@ -342,7 +342,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Year (Calculate Field) (management)
     Updated_Input_Table_37_ = arcpy.management.CalculateField(
@@ -353,7 +353,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Calculate Crosswalk (Calculate Field) (management)
     Updated_Input_Table_39_ = arcpy.management.CalculateField(
@@ -370,7 +370,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
                             return \"Hand Pile Burn\"""", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: Select by Years (Select) (analysis)
     arcpy.analysis.Select(
@@ -413,7 +413,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
                     "Year", "Year_txt", "Act_Code", 
                     "Crosswalk", "Federal_FY", "State_FY"], 
             method="KEEP_FIELDS"
-            )[0]
+            )
     
     print('Performing Enrichments')
     # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon) (PC414CWIMillionAcres)
@@ -438,10 +438,10 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         code_block="", 
         field_type="TEXT", 
         enforce_domains="NO_ENFORCE_DOMAINS"
-        )[0]
+        )
 
     # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
-    WFR_TF_Template_2_ = AssignDomains(in_table=output_enriched)#[0]
+    WFR_TF_Template_2_ = AssignDomains(in_table=output_enriched)
     
     print('Deleting Scratch Files')
     delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')

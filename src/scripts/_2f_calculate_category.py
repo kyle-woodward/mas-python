@@ -10,10 +10,7 @@ from scripts.utils import init_gdb, runner
 workspace, scratch_workspace = init_gdb()
 
 def Category(Input_Table):  # 2f Calculate Category
-
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
-
+    arcpy.env.overwriteOutput = True
 
     # Process: Calculate Category (Calculate Field) (management)
     Updated_Input_Table = arcpy.management.CalculateField(in_table=Input_Table, field="ACTIVITY_CAT", 

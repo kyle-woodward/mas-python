@@ -45,7 +45,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                             join_table=line_to_pt_enriched,
                                                             join_field="PROJECTID_USER",
                                                             join_type="KEEP_ALL",
-                                                            index_join_fields="INDEX_JOIN_FIELDS")[0] # changed to NO
+                                                            index_join_fields="INDEX_JOIN_FIELDS") # changed to NO
     
     # field_names = [f.name for f in arcpy.ListFields(CalTrans_act_ln_standardized)]
     # print('field names after AddJoin\n',field_names,'\n')
@@ -67,7 +67,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Longitude (Calculate Field) (management)
     Updated_Input_Table_2_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_1_, 
@@ -76,7 +76,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Owner (Calculate Field) (management)
     Updated_Input_Table_2A_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_2_, 
@@ -85,7 +85,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Primary Objective (Calculate Field) (management)
     CDFW_lines_stand_SpatialJoin2_2_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_2A_, 
@@ -94,7 +94,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                                        expression_type="PYTHON3", 
                                                                        code_block="", 
                                                                        field_type="TEXT", 
-                                                                       enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                                       enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate County (Calculate Field) (management)
     Updated_Input_Table_3_ = arcpy.management.CalculateField(in_table=CDFW_lines_stand_SpatialJoin2_2_, 
@@ -103,7 +103,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate WUI (Calculate Field) (management)
     Updated_Input_Table = arcpy.management.CalculateField(in_table=Updated_Input_Table_3_, 
@@ -112,7 +112,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                           expression_type="PYTHON3", 
                                                           code_block="", 
                                                           field_type="TEXT", 
-                                                          enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                          enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Region (Calculate Field) (management)
     Updated_Input_Table_4_ = arcpy.management.CalculateField(in_table=Updated_Input_Table, 
@@ -121,7 +121,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity Description (Calculate Field) (management)
     Updated_Input_Table_5_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_4_, 
@@ -130,7 +130,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Veg (Calculate Field) (management)
     CDFW_lines_stand_SpatialJoin2_3_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_5_, 
@@ -139,14 +139,14 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                                        expression_type="PYTHON3", 
                                                                        code_block="", 
                                                                        field_type="TEXT", 
-                                                                       enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                                       enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Category (Calculate Field) (management)
     Updated_Input_Table_6_ = arcpy.management.CalculateField(in_table=CDFW_lines_stand_SpatialJoin2_3_, 
                                                              field="ACTIVITY_CAT", 
                                                              expression="!ACTIVITY_CAT_1!", 
                                                              expression_type="PYTHON3", 
-                                                             code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Residue (Calculate Field) (management)
     Updated_Input_Table_7_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_6_, 
@@ -155,7 +155,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Calendar Year (Calculate Field) (management)
     Updated_Input_Table_8_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_7_, 
@@ -164,7 +164,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Year as Text (Calculate Field) (management)
     Updated_Input_Table_9_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_8_, 
@@ -173,7 +173,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Fed FY (Calculate Field) (management)
     Veg_Summarized_Polygons_Laye3_8_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_9_, 
@@ -181,7 +181,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                                        expression="!Federal_FY_1!", 
                                                                        expression_type="PYTHON3", 
                                                                        code_block="", field_type="TEXT", 
-                                                                       enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                                       enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate State FY (Calculate Field) (management)
     Veg_Summarized_Polygons_Laye3_7_ = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye3_8_, 
@@ -189,7 +189,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                                        expression="!State_FY_1!", 
                                                                        expression_type="PYTHON3", 
                                                                        code_block="", field_type="TEXT", 
-                                                                       enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                                       enforce_domains="NO_ENFORCE_DOMAINS")
 
     # field_names = [f.name for f in arcpy.ListFields(Veg_Summarized_Polygons_Laye3_7_)]
     # print('field names after all CalculateField operations\n',field_names,'\n')
@@ -288,7 +288,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                 "Federal_FY", 
                                                 "State_FY", 
                                                 "TRMT_GEOM"], 
-                                    method="KEEP_FIELDS")[0]
+                                    method="KEEP_FIELDS")
 
     # field_names = [f.name for f in arcpy.ListFields(Line_Layer_Temp_CopyFeatures1_3_)]
     # print('field names after DeleteField\n',field_names,'\n')
@@ -312,7 +312,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
                                                                              spatial_grid_1=0, 
                                                                              spatial_grid_2=0, 
                                                                              spatial_grid_3=0, 
-                                                                             out_alias="")[0]
+                                                                             out_alias="")
     
     
     # Appending final temp FC to a new blank dataset created off of WFR_TF_Template catches error 

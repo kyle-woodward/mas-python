@@ -18,8 +18,7 @@ original_gdb, workspace, scratch_workspace = init_gdb()
 def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_standardized, output_points_enriched, output_lines_enriched):  
     start = time.time()
     print(f'Start Time {time.ctime()}')
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
+    arcpy.env.overwriteOutput = True
 
     arcpy.ImportToolbox(r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Data Management Tools.tbx")
 
@@ -41,7 +40,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                          field_type="", 
                                                          #field_length=25, 
                                                          #field_is_nullable="NULLABLE", 
-                                                         clear_field_alias="DO_NOT_CLEAR")[0]
+                                                         clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Field Activity Description (Alter Field) (management)
     Updated_Input_Table_4_ = arcpy.management.AlterField(in_table=Updated_Input_Table_2_, 
@@ -51,7 +50,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                          field_type="", 
                                                          #field_length=70, 
                                                          #field_is_nullable="NON_NULLABLE", 
-                                                         clear_field_alias="DO_NOT_CLEAR")[0]
+                                                         clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Field Veg (Alter Field) (management)
     CalTrans_pts_Copy_2_ = arcpy.management.AlterField(in_table=Updated_Input_Table_4_, 
@@ -61,7 +60,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                        field_type="", 
                                                        #field_length=50, 
                                                        #field_is_nullable="NON_NULLABLE", 
-                                                       clear_field_alias="DO_NOT_CLEAR")[0]
+                                                       clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Field Activity Status (Alter Field) (management)
     Updated_Input_Table_18_ = arcpy.management.AlterField(in_table=CalTrans_pts_Copy_2_, 
@@ -71,7 +70,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                           field_type="", 
                                                           #field_length=25, 
                                                           #field_is_nullable="NON_NULLABLE", 
-                                                          clear_field_alias="DO_NOT_CLEAR")[0]
+                                                          clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Activity Quantity (Alter Field) (management)
     Updated_Input_Table_9_ = arcpy.management.AlterField(in_table=Updated_Input_Table_18_, 
@@ -81,7 +80,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                          field_type="", 
                                                          #field_length=8, 
                                                          #field_is_nullable="NON_NULLABLE", 
-                                                         clear_field_alias="DO_NOT_CLEAR")[0]
+                                                         clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Field Residue Fate (Alter Field) (management)
     CalTrans_pts_Copy_3_ = arcpy.management.AlterField(in_table=Updated_Input_Table_9_, 
@@ -91,7 +90,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                        field_type="", 
                                                        #field_length=35, 
                                                        #field_is_nullable="NON_NULLABLE", 
-                                                       clear_field_alias="DO_NOT_CLEAR")[0]
+                                                       clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Field Fate Units (Alter Field) (management)
     Updated_Input_Table_19_ = arcpy.management.AlterField(in_table=CalTrans_pts_Copy_3_, 
@@ -101,7 +100,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                           field_type="", 
                                                           #field_length=5, 
                                                           #field_is_nullable="NON_NULLABLE", 
-                                                          clear_field_alias="DO_NOT_CLEAR")[0]
+                                                          clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Residue Quantity (Alter Field) (management)
     CalTrans_pts_Copy_4_ = arcpy.management.AlterField(in_table=Updated_Input_Table_19_, 
@@ -111,10 +110,10 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                        field_type="", 
                                                        #field_length=8, 
                                                        #field_is_nullable="NON_NULLABLE", 
-                                                       clear_field_alias="DO_NOT_CLEAR")[0]
+                                                       clear_field_alias="DO_NOT_CLEAR")
 
     # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-    WFRTF_Template_4_ = AddFields2(Input_Table=CalTrans_pts_Copy_4_)#[0]
+    WFRTF_Template_4_ = AddFields2(Input_Table=CalTrans_pts_Copy_4_)
 
     # Process: Calculate Project ID (Calculate Field) (management)
     Updated_Input_Table_8_ = arcpy.management.CalculateField(in_table=WFRTF_Template_4_, 
@@ -123,7 +122,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Agency (Calculate Field) (management)
     Updated_Input_Table_3_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_8_, 
@@ -132,7 +131,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Org Data Steward (Calculate Field) (management)
     Updated_Input_Table_5_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_3_, 
@@ -141,7 +140,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                             expression_type="PYTHON3", 
                                                             code_block="", 
                                                             field_type="TEXT", 
-                                                            enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                            enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Project Contact (Calculate Field) (management)
     Updated_Input_Table_7_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_5_, 
@@ -150,7 +149,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Email (Calculate Field) (management)
     Updated_Input_Table = arcpy.management.CalculateField(in_table=Updated_Input_Table_7_, 
@@ -159,7 +158,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                           expression_type="PYTHON3", 
                                                           code_block="", 
                                                           field_type="TEXT", 
-                                                          enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                          enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Admin Org (Calculate Field) (management)
     CalTrans_pts_Copy_5_ = arcpy.management.CalculateField(in_table=Updated_Input_Table, 
@@ -168,7 +167,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                            expression_type="PYTHON3", 
                                                            code_block="", 
                                                            field_type="TEXT", 
-                                                           enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Primary Funding Source (Calculate Field) (management)
     Updated_Input_Table_6_ = arcpy.management.CalculateField(in_table=CalTrans_pts_Copy_5_, 
@@ -177,7 +176,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
                                                              field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                             enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Primary Funding Org (Calculate Field) (management)
     Updated_Input_Table_10_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_6_, 
@@ -186,7 +185,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Treatment ID (Calculate Field) (management)
     # Updated_Input_Table_45_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_10_, 
@@ -195,7 +194,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     #                                                           expression_type="PYTHON3", 
     #                                                           code_block="", 
     #                                                           field_type="TEXT", 
-    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate WUI (Calculate Field) (management)
     Updated_Input_Table_11_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_10_, 
@@ -210,7 +209,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                     else:
                                                                         return WUI""", field_type="TEXT", 
                                                               enforce_domains="NO_ENFORCE_DOMAINS"
-                                                                    )[0]
+                                                                    )
 
     # Process: Calculate Treatment Area (Calculate Field) (management)
     Updated_Input_Table_21_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_11_, 
@@ -222,7 +221,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                         return Q
                                                                     else:
                                                                         return None""", field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity ID (Calculate Field) (management)
     Vegetation_Con_FeatureToPoin = arcpy.management.CalculateField(in_table=Updated_Input_Table_21_, 
@@ -231,7 +230,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                    expression_type="PYTHON3", 
                                                                    code_block="", 
                                                                    field_type="TEXT", 
-                                                                   enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                                   enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Implementing Org (Calculate Field) (management)
     Updated_Input_Table_20_ = arcpy.management.CalculateField(in_table=Vegetation_Con_FeatureToPoin, 
@@ -240,7 +239,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity UOM (Calculate Field) (management)
     Updated_Input_Table_12_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_20_, 
@@ -253,7 +252,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                             else:
                                                                                 return Unit""", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity Quantity (Calculate Field) (management)
     Updated_Input_Table_13_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_12_, 
@@ -262,7 +261,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Status (Calculate Field) (management)
     Updated_Input_Table_15_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_13_, 
@@ -274,7 +273,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                             return \"COMPLETE\"
                                                                         else:
                                                                             return Status""", field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity Start (Calculate Field) (management)
     Updated_Input_Table_22_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_15_, 
@@ -283,7 +282,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity End (Calculate Field) (management)
     Updated_Input_Table_22a_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_22_, 
@@ -292,7 +291,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Source (Calculate Field) (management)
     Updated_Input_Table_16_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_22a_, 
@@ -301,7 +300,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Crosswalk (Calculate Field) (management)
     Updated_Input_Table_17_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_16_, 
@@ -310,7 +309,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Geometry Attributes (Calculate Geometry Attributes) (management)
     # CalTrans_pts_Copy_7_ = arcpy.management.CalculateGeometryAttributes(in_features=Updated_Input_Table_17_, 
@@ -318,7 +317,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     #                                                                     length_unit="", 
     #                                                                     area_unit="", 
     #                                                                     coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
-    #                                                                     coordinate_format="DD")[0]
+    #                                                                     coordinate_format="DD")
 
     # Process: Delete Field (3) (Delete Field) (management)
     CalTrans_pts_Copy_16_ = arcpy.management.DeleteField(in_table=Updated_Input_Table_17_, 
@@ -412,7 +411,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                      "Crosswalk", 
                                                                      "Federal_FY", 
                                                                      "State_FY"], 
-                                                         method="KEEP_FIELDS")[0]
+                                                         method="KEEP_FIELDS")
 
     print(f'Saving Output Points Standardized: {output_points_standardized}')
     # Process: Copy Features (Copy Features) (management)
@@ -424,7 +423,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                   spatial_grid_3=None)
 
     # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
-    usfs_silviculture_reforestation_enriched_20220629_2_ = AssignDomains(in_table=output_points_standardized)#[0]
+    usfs_silviculture_reforestation_enriched_20220629_2_ = AssignDomains(in_table=output_points_standardized)
 
     print('Performing Points Enrichments')
     # Process: 7b Enrichments pts (7b Enrichments pts) (PC414CWIMillionAcres)
@@ -448,7 +447,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
         # Process: Calculate Treatment ID (Calculate Field) (management)
     Updated_Input_Table_X_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_23_, 
@@ -457,10 +456,10 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
-    CalTrans_Activity_Points = AssignDomains(in_table=Updated_Input_Table_X_)#[0]
+    CalTrans_Activity_Points = AssignDomains(in_table=Updated_Input_Table_X_)
 
 
 
@@ -478,7 +477,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     # Process: Repair Geometry (Repair Geometry) (management)
     CalTrans_pts_Copy_13_ = arcpy.management.RepairGeometry(in_features=CalTrans_pts_Copy_8_, 
                                                             delete_null="KEEP_NULL", 
-                                                            validation_method="ESRI")[0]
+                                                            validation_method="ESRI")
 
     # Process: Alter Field County (2) (Alter Field) (management)
     Updated_Input_Table_14_ = arcpy.management.AlterField(in_table=CalTrans_pts_Copy_13_, 
@@ -488,7 +487,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                           field_type="TEXT", 
                                                           #field_length=25, 
                                                           #field_is_nullable="NULLABLE", 
-                                                          clear_field_alias="DO_NOT_CLEAR")[0]
+                                                          clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Field Activity Description (2) (Alter Field) (management)
     Updated_Input_Table_24_ = arcpy.management.AlterField(in_table=Updated_Input_Table_14_, 
@@ -498,7 +497,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                           field_type="TEXT", 
                                                           #field_length=70, 
                                                           #field_is_nullable="NULLABLE", 
-                                                          clear_field_alias="DO_NOT_CLEAR")[0]
+                                                          clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Field Veg (2) (Alter Field) (management)
     CalTrans_pts_Copy_9_ = arcpy.management.AlterField(in_table=Updated_Input_Table_24_, 
@@ -508,7 +507,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                        field_type="TEXT", 
                                                        #field_length=50, 
                                                        #field_is_nullable="NULLABLE", 
-                                                       clear_field_alias="DO_NOT_CLEAR")[0]
+                                                       clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Field Activity Status (2) (Alter Field) (management)
     Updated_Input_Table_25_ = arcpy.management.AlterField(in_table=CalTrans_pts_Copy_9_, 
@@ -518,7 +517,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                           field_type="TEXT", 
                                                           #field_length=25, 
                                                           #field_is_nullable="NULLABLE", 
-                                                          clear_field_alias="DO_NOT_CLEAR")[0]
+                                                          clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Activity Quantity (2) (Alter Field) (management)
     Updated_Input_Table_26_ = arcpy.management.AlterField(in_table=Updated_Input_Table_25_, 
@@ -528,7 +527,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                           field_type="DOUBLE", 
                                                           #field_length=8, 
                                                           #field_is_nullable="NULLABLE", 
-                                                          clear_field_alias="DO_NOT_CLEAR")[0]
+                                                          clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Field Residue Fate (2) (Alter Field) (management)
     CalTrans_pts_Copy_10_ = arcpy.management.AlterField(in_table=Updated_Input_Table_26_, 
@@ -538,7 +537,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                         field_type="TEXT", 
                                                         #field_length=35, 
                                                         #field_is_nullable="NULLABLE", 
-                                                        clear_field_alias="DO_NOT_CLEAR")[0]
+                                                        clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Field Fate Units (2) (Alter Field) (management)
     Updated_Input_Table_27_ = arcpy.management.AlterField(in_table=CalTrans_pts_Copy_10_, 
@@ -548,7 +547,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                           field_type="TEXT", 
                                                           #field_length=5, 
                                                           #field_is_nullable="NULLABLE", 
-                                                          clear_field_alias="DO_NOT_CLEAR")[0]
+                                                          clear_field_alias="DO_NOT_CLEAR")
 
     # Process: Alter Residue Quantity (2) (Alter Field) (management)
     CalTrans_pts_Copy_11_ = arcpy.management.AlterField(in_table=Updated_Input_Table_27_, 
@@ -558,10 +557,10 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                         field_type="DOUBLE", 
                                                         #field_length=8, 
                                                         #field_is_nullable="NULLABLE", 
-                                                        clear_field_alias="DO_NOT_CLEAR")[0]
+                                                        clear_field_alias="DO_NOT_CLEAR")
 
     # Process: 1b Add Fields (2) (1b Add Fields) (PC414CWIMillionAcres)
-    WFRTF_Template_2_ = AddFields2(Input_Table=CalTrans_pts_Copy_11_)#[0]
+    WFRTF_Template_2_ = AddFields2(Input_Table=CalTrans_pts_Copy_11_)
 
     # Process: Calculate Project ID (2) (Calculate Field) (management)
     Updated_Input_Table_28_ = arcpy.management.CalculateField(in_table=WFRTF_Template_2_, 
@@ -570,7 +569,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Agency (2) (Calculate Field) (management)
     Updated_Input_Table_29_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_28_, 
@@ -579,7 +578,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Data Steward (2) (Calculate Field) (management)
     Updated_Input_Table_30_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_29_, 
@@ -588,7 +587,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Project Contact (2) (Calculate Field) (management)
     Updated_Input_Table_31_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_30_, 
@@ -597,7 +596,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Email (2) (Calculate Field) (management)
     Updated_Input_Table_32_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_31_, 
@@ -606,7 +605,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Admin Org (2) (Calculate Field) (management)
     CalTrans_pts_Copy_12_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_32_, 
@@ -615,7 +614,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                             expression_type="PYTHON3", 
                                                             code_block="", 
                                                             field_type="TEXT", 
-                                                            enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                            enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Primary Funding Source (2) (Calculate Field) (management)
     Updated_Input_Table_33_ = arcpy.management.CalculateField(in_table=CalTrans_pts_Copy_12_, 
@@ -624,7 +623,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Primary Funding Org (2) (Calculate Field) (management)
     Updated_Input_Table_34_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_33_, 
@@ -633,7 +632,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Treatment ID (2) (Calculate Field) (management)
     # Updated_Input_Table_46_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_34_, 
@@ -642,7 +641,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     #                                                           expression_type="PYTHON3", 
     #                                                           code_block="", 
     #                                                           field_type="TEXT", 
-    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate WUI (2) (Calculate Field) (management)
     Updated_Input_Table_36_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_34_, 
@@ -657,7 +656,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                 else:
                                                                     return WUI""", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Treatment Area (2) (Calculate Field) (management)
     Updated_Input_Table_37_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_36_, 
@@ -670,7 +669,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                 else:
                                                                     return None""", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity ID (2) (Calculate Field) (management)
     Vegetation_Con_FeatureToPoin_2_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_37_, 
@@ -679,7 +678,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                       expression_type="PYTHON3", 
                                                                       code_block="", 
                                                                       field_type="TEXT", 
-                                                                      enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                                      enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Implementing Org (2) (Calculate Field) (management)
     Updated_Input_Table_35_ = arcpy.management.CalculateField(in_table=Vegetation_Con_FeatureToPoin_2_, 
@@ -688,7 +687,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity UOM (2) (Calculate Field) (management)
     Updated_Input_Table_38_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_35_, 
@@ -701,7 +700,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                             else:
                                                                                 return Unit""", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity Quantity (2) (Calculate Field) (management)
     Updated_Input_Table_39_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_38_, 
@@ -710,7 +709,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Status (2) (Calculate Field) (management)
     Updated_Input_Table_40_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_39_, 
@@ -723,7 +722,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                 else:
                                                                     return Status""", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity Start (2) (Calculate Field) (management)
     Updated_Input_Table_41_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_40_, 
@@ -732,7 +731,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
                                                               
     # Process: Calculate Activity End (2) (Calculate Field) (management)
     Updated_Input_Table_41a_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_41_, 
@@ -741,7 +740,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Source (2) (Calculate Field) (management)
     Updated_Input_Table_42_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_41a_, 
@@ -750,7 +749,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Crosswalk (2) (Calculate Field) (management)
     Updated_Input_Table_43_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_42_, 
@@ -759,7 +758,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Geometry Attributes (2) (Calculate Geometry Attributes) (management)
     # CalTrans_pts_Copy_15_ = arcpy.management.CalculateGeometryAttributes(in_features=Updated_Input_Table_43_, 
@@ -767,7 +766,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
     #                                                                      length_unit="", 
     #                                                                      area_unit="", 
     #                                                                      coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
-    #                                                                      coordinate_format="DD")[0]
+    #                                                                      coordinate_format="DD")
 
     # Process: Delete Field (2) (Delete Field) (management)
     CalTrans_pts_Copy_14_ = arcpy.management.DeleteField(in_table=Updated_Input_Table_43_, 
@@ -861,7 +860,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                                      "Crosswalk", 
                                                                      "Federal_FY", 
                                                                      "State_FY"], 
-                                                                  method="KEEP_FIELDS")[0]
+                                                                  method="KEEP_FIELDS")
 
     print(f'Saving Output Lines Standardized: {output_lines_standardized}')
     # Process: Copy Features (3) (Copy Features) (management)
@@ -873,7 +872,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                   spatial_grid_3=None)
 
     # Process: 2b Assign Domains (3) (2b Assign Domains) (PC414CWIMillionAcres)
-    usfs_silviculture_reforestation_enriched_20220629_3_ = AssignDomains(in_table=output_lines_standardized)#[0]
+    usfs_silviculture_reforestation_enriched_20220629_3_ = AssignDomains(in_table=output_lines_standardized)
 
     print('Performing Lines Enrichments')
     # Process: 7c Enrichments Lines (2) (7c Enrichments Lines) (PC414CWIMillionAcres)
@@ -895,7 +894,7 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
     
     ## *** IMMS_Unit_ID and IMMS_ID no longer exist after running a 7 tool on the data, so changed to 'TREATMENT_ID_USER' since that was filled with IMMS 
     ## *** prior to the 7 tool being ran. Get non-specific error (no line traceback) that nontypes and string types cannot be concatenated when 
@@ -907,10 +906,10 @@ def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_st
                                                               expression_type="PYTHON3", 
                                                               code_block="", 
                                                               field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: 2b Assign Domains (4) (2b Assign Domains) (PC414CWIMillionAcres)
-    CalTrans_Activity_Points_2_ = AssignDomains(in_table=Updated_Input_Table_Y_)#[0]
+    CalTrans_Activity_Points_2_ = AssignDomains(in_table=Updated_Input_Table_Y_)
 
     print('Deleting Scratch Files')
     delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')

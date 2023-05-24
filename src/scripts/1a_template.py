@@ -24,10 +24,10 @@ def WFRTFtemplate():  # 1a Template
     if not os.path.exists(b_Reference_new_path):
         arcpy.management.CreateFeatureDataset(out_dataset_path=workspace, out_name="b_Reference") # {spatial_reference} is third opt arg, think don't need since we are always running with EnvManager..?
     
-    WFRTF_Template = arcpy.management.CreateFeatureclass(out_path=b_Reference_new_path, out_name="WFR_TF_Template", geometry_type="POLYGON", template=[], has_m="DISABLED", has_z="DISABLED", spatial_reference="PROJCS[\"NAD_1983_California_Teale_Albers\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",-4000000.0],PARAMETER[\"Central_Meridian\",-120.0],PARAMETER[\"Standard_Parallel_1\",34.0],PARAMETER[\"Standard_Parallel_2\",40.5],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]];-16909700 -8597000 10000;#;#;0.001;#;#;IsHighPrecision", config_keyword="", spatial_grid_1=0, spatial_grid_2=0, spatial_grid_3=0, out_alias="")[0]
+    WFRTF_Template = arcpy.management.CreateFeatureclass(out_path=b_Reference_new_path, out_name="WFR_TF_Template", geometry_type="POLYGON", template=[], has_m="DISABLED", has_z="DISABLED", spatial_reference="PROJCS[\"NAD_1983_California_Teale_Albers\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",-4000000.0],PARAMETER[\"Central_Meridian\",-120.0],PARAMETER[\"Standard_Parallel_1\",34.0],PARAMETER[\"Standard_Parallel_2\",40.5],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]];-16909700 -8597000 10000;#;#;0.001;#;#;IsHighPrecision", config_keyword="", spatial_grid_1=0, spatial_grid_2=0, spatial_grid_3=0, out_alias="")
 
     # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-    WFRTF_Template_5_ = AddFields2(Input_Table=os.path.join(b_Reference_new_path,"WFR_TF_Template"))[0]
+    WFRTF_Template_5_ = AddFields2(Input_Table=os.path.join(b_Reference_new_path,"WFR_TF_Template"))
 
     return
 
