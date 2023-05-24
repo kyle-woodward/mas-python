@@ -17,7 +17,7 @@ def init_gdb():
     with open(os.path.join(three_up,'settings.yml')) as file:
         settings = yaml.full_load(file)
 
-    versioned_gdb = settings.get('gdb').get('versions')[0]
+    versioned_gdb = settings.get('gdb').get('versions')
 
     # make original gdb workspace and scratchWorkspace dynamic, not-hardcoded paths
     # original_gdb = os.path.join(three_up,"PC414 CWI Million Acres.gdb")

@@ -36,61 +36,61 @@ def TablesToDomains(D_workspace):  # 2a Tables to Domains
     D_TRMT_GEOM = os.path.join(domain_table,"D_TRMT_GEOM$")
 
     # Process: Table To Validated Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb = arcpy.management.TableToDomain(in_table=D_VERFIEDMSG_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_VERFIEDMSG", domain_description="Validated or Reviewed", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb = arcpy.management.TableToDomain(in_table=D_VERFIEDMSG_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_VERFIEDMSG", domain_description="Validated or Reviewed", update_option="REPLACE")
 
     # Process: Table To User Defined Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_3_ = arcpy.management.TableToDomain(in_table=D_USERDEFINED_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_USERDEFINED", domain_description="Yes / No", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_3_ = arcpy.management.TableToDomain(in_table=D_USERDEFINED_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_USERDEFINED", domain_description="Yes / No", update_option="REPLACE")
 
     # Process: Table To Objectives Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_4_ = arcpy.management.TableToDomain(in_table=D_OBJECTIVE_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_OBJECTIVE", domain_description="Objectives", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_4_ = arcpy.management.TableToDomain(in_table=D_OBJECTIVE_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_OBJECTIVE", domain_description="Objectives", update_option="REPLACE")
 
     # Process: Table To Status Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_5_ = arcpy.management.TableToDomain(in_table=D_STATUS_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_STATUS", domain_description="Status", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_5_ = arcpy.management.TableToDomain(in_table=D_STATUS_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_STATUS", domain_description="Status", update_option="REPLACE")
 
     # Process: Table To County Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_6_ = arcpy.management.TableToDomain(in_table=D_CNTY_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_CNTY", domain_description="County", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_6_ = arcpy.management.TableToDomain(in_table=D_CNTY_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_CNTY", domain_description="County", update_option="REPLACE")
 
     # Process: Table To WUI Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_7_ = arcpy.management.TableToDomain(in_table=D_IN_WUI_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_IN_WUI", domain_description="In WUI", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_7_ = arcpy.management.TableToDomain(in_table=D_IN_WUI_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_IN_WUI", domain_description="In WUI", update_option="REPLACE")
 
     # Process: Table To Activity Description Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_8_ = arcpy.management.TableToDomain(in_table=D_ACTVDSCRP_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_ACTVDSCRP", domain_description="Activity Description", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_8_ = arcpy.management.TableToDomain(in_table=D_ACTVDSCRP_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_ACTVDSCRP", domain_description="Activity Description", update_option="REPLACE")
 
     # Process: Table To Category Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_9_ = arcpy.management.TableToDomain(in_table=D_ACTVCAT_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_ACTVCAT", domain_description="Activity Category", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_9_ = arcpy.management.TableToDomain(in_table=D_ACTVCAT_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_ACTVCAT", domain_description="Activity Category", update_option="REPLACE")
 
     # Process: Table To Veg Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_10_ = arcpy.management.TableToDomain(in_table=D_BVT_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_BVT", domain_description="Broad Vegetation Type", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_10_ = arcpy.management.TableToDomain(in_table=D_BVT_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_BVT", domain_description="Broad Vegetation Type", update_option="REPLACE")
 
     # Process: Table To Residue Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_11_ = arcpy.management.TableToDomain(in_table=D_RESIDUEFATE_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_RESIDUEFATE", domain_description="Residue Fate", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_11_ = arcpy.management.TableToDomain(in_table=D_RESIDUEFATE_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_RESIDUEFATE", domain_description="Residue Fate", update_option="REPLACE")
 
     # Process: Table To UOM Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_12_ = arcpy.management.TableToDomain(in_table=D_UOM_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_UOM", domain_description="Unit of Measure", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_12_ = arcpy.management.TableToDomain(in_table=D_UOM_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_UOM", domain_description="Unit of Measure", update_option="REPLACE")
 
     # Process: Table To Region Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_13_ = arcpy.management.TableToDomain(in_table=D_TASKFORCE_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_TASKFORCE", domain_description="Task Force Region", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_13_ = arcpy.management.TableToDomain(in_table=D_TASKFORCE_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_TASKFORCE", domain_description="Task Force Region", update_option="REPLACE")
 
     # Process: Table To Owner Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_14_ = arcpy.management.TableToDomain(in_table=D_PR_OWN_GR_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_PR_OWN_GR", domain_description="Ownership Group", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_14_ = arcpy.management.TableToDomain(in_table=D_PR_OWN_GR_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_PR_OWN_GR", domain_description="Ownership Group", update_option="REPLACE")
 
     # Process: Table To Funding Source Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_15_ = arcpy.management.TableToDomain(in_table=D_FNDSRC_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_FNDSRC", domain_description="Funding Source", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_15_ = arcpy.management.TableToDomain(in_table=D_FNDSRC_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_FNDSRC", domain_description="Funding Source", update_option="REPLACE")
 
     # Process: Table To Organization Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_16_ = arcpy.management.TableToDomain(in_table=D_AGENCY_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_AGENCY", domain_description="Agency", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_16_ = arcpy.management.TableToDomain(in_table=D_AGENCY_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_AGENCY", domain_description="Agency", update_option="REPLACE")
 
     # Process: Table To Organization Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_16_ = arcpy.management.TableToDomain(in_table=D_ORGANIZATION_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_ORGANIZATION", domain_description="Organization", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_16_ = arcpy.management.TableToDomain(in_table=D_ORGANIZATION_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_ORGANIZATION", domain_description="Organization", update_option="REPLACE")
 
     # Process: Table To Date Status Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_17_ = arcpy.management.TableToDomain(in_table=D_DATASTATUS_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_DATASTATUS", domain_description="Data Status", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_17_ = arcpy.management.TableToDomain(in_table=D_DATASTATUS_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_DATASTATUS", domain_description="Data Status", update_option="REPLACE")
 
     # Process: Table To Data Load Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_18_ = arcpy.management.TableToDomain(in_table=D_DATAMSG_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_DATAMSG", domain_description="Data Load Message", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_18_ = arcpy.management.TableToDomain(in_table=D_DATAMSG_, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_DATAMSG", domain_description="Data Load Message", update_option="REPLACE")
 
     # Process: Table To Data Load Domain (Table To Domain) (management)
-    PC414_CWI_Million_Acres_gdb_19_ = arcpy.management.TableToDomain(in_table=D_TRMT_GEOM, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_DATAMSG", domain_description="Data Load Message", update_option="REPLACE")[0]
+    PC414_CWI_Million_Acres_gdb_19_ = arcpy.management.TableToDomain(in_table=D_TRMT_GEOM, code_field="CODE", description_field="Descr", in_workspace=D_workspace, domain_name="D_DATAMSG", domain_description="Data Load Message", update_option="REPLACE")
 
 if __name__ == '__main__':
     # Global Environment settings

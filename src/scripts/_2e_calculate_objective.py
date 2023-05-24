@@ -10,10 +10,7 @@ from scripts.utils import init_gdb, runner
 workspace, scratch_workspace = init_gdb()
 
 def Objective(Input_Table):  # 2e Calculate Objective
-
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
-
+    arcpy.env.overwriteOutput = True
 
     # Process: Calculate Objective (Calculate Field) (management)
     Veg_Summarized_Polygons_Laye3_2_ = arcpy.management.CalculateField(in_table=Input_Table, field="PRIMARY_OBJECTIVE", expression="ifelse(!Fuels_Treatments_Piles_Crosswalk.Objective!)", expression_type="PYTHON3", code_block="""def ifelse(OBJ):

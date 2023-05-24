@@ -9,9 +9,7 @@ from .utils import init_gdb, runner
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 def Units(in_table):  # 2c Units Domain
-
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
+    arcpy.env.overwriteOutput = True
 
 
     # Process: Calculate Unit of Measure (Calculate Field) (management)
@@ -31,7 +29,7 @@ def Units(in_table):  # 2c Units Domain
     elif Units == \"Each\":
         return \"EA\"
     else:
-        return Units""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+        return Units""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
     return calculatedUOM
 
 if __name__ == '__main__':

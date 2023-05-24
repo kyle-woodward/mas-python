@@ -12,18 +12,16 @@ import os
 import time
 workspace, scratch_workspace = init_gdb()
 
-def Model7(output_enriched, output_standardized, input_fc):
+def Model_USFS(output_enriched, output_standardized, input_fc):
     start = time.time()
     print(f'Start Time {time.ctime()}')
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
+    arcpy.env.overwriteOutput = True
     
 
     # define intermediary objects in scratch
     Output_Feature_Class = os.path.join(scratch_workspace,'Actv_CommonAttribute_PL_Laye_CopyFeatures')
     usfs_haz_fuels_treatments_reduction2_dissolve = os.path.join(scratch_workspace,'usfs_haz_fuels_treatments_reduction2_dissolve')
     Actv_CommonAttribute_PL_Laye_CopyFeatures2 = os.path.join(scratch_workspace,'Actv_CommonAttribute_PL_Laye_CopyFeatures2')
-    Veg_Summarized_Polygons2_3_ = os.path.join(scratch_workspace,'Veg_Summarized_Polygons2')
     
 
     # Model Environment settings
@@ -36,7 +34,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             where_clause="STATE_ABBR = 'CA'", 
             invert_where_clause=""
             )
-
+        print("Selecting Features...")
         # Process: Select Layer By Attribute Activity Code (Select Layer By Attribute) (management)
         Actv_CommonAttribute_PL_Laye2_2_, Count_3_ = arcpy.management.SelectLayerByAttribute(
             in_layer_or_view=Actv_CommonAttribute_PL_Laye2, 
@@ -162,7 +160,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             )
         
         # Process: Select Layer By Attribute Non-Wildfire (Select Layer By Attribute) (management)
-        usfs_haz_fuels_treatments_re, Count_6_ = arcpy.management.SelectLayerByAttribute(
+        usfs_haz_fuels_treatments_re, Count_6a_ = arcpy.management.SelectLayerByAttribute(
             in_layer_or_view=Actv_CommonAttribute_PL_Laye2_2_, 
             selection_type="SUBSET_SELECTION", 
             where_clause="ACTIVITY_CODE = '1117' And FUELS_KEYPOINT_AREA IS NULL", 
@@ -170,48 +168,53 @@ def Model7(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Select Layer By Attribute Non-Wildfire (Select Layer By Attribute) (management)
-        usfs_haz_fuels_treatments_re2, Count_6a_ = arcpy.management.SelectLayerByAttribute(
+        usfs_haz_fuels_treatments_re2, Count_6b_ = arcpy.management.SelectLayerByAttribute(
             in_layer_or_view=usfs_haz_fuels_treatments_re, 
             selection_type="SUBSET_SELECTION", 
             where_clause="ACTIVITY_CODE = '1119' And FUELS_KEYPOINT_AREA <> '6'", 
             invert_where_clause="INVERT"
             )
         
-                # Process: Select Layer By Attribute Non-Wildfire (Select Layer By Attribute) (management)
-        usfs_haz_fuels_treatments_re2, Count_6a_ = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=usfs_haz_fuels_treatments_re, 
+        # Process: Select Layer By Attribute Non-Wildfire (Select Layer By Attribute) (management)
+        usfs_haz_fuels_treatments_re3, Count_6c_ = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=usfs_haz_fuels_treatments_re2, 
             selection_type="SUBSET_SELECTION", 
             where_clause="ACTIVITY_CODE = '1119' And FUELS_KEYPOINT_AREA IS NULL", 
             invert_where_clause="INVERT"
             )
 
-        # Process: Select Layer By Attribute 2021 (Select Layer By Attribute) (management)
+        # Process: Select Layer By Attribute Date is not NULL (Select Layer By Attribute) (management)
         Actv_CommonAttribute_PL_Laye2_4_, Count_7_ = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=usfs_haz_fuels_treatments_re2, 
+            in_layer_or_view=usfs_haz_fuels_treatments_re3, 
+            selection_type="SUBSET_SELECTION", 
+            where_clause="DATE_COMPLETED IS NULL And DATE_AWARDED IS NULL And NEPA_SIGNED_DATE IS NULL", 
+            invert_where_clause="INVERT"
+            )
+        
+        # Process: Select Layer By Attribute Date (Select Layer By Attribute) (management)
+        Actv_CommonAttribute_PL_Laye2_4_1, Count_7_ = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=Actv_CommonAttribute_PL_Laye2_4_, 
             selection_type="SUBSET_SELECTION", 
             where_clause="DATE_COMPLETED > timestamp '1995-01-01 00:00:00' Or DATE_COMPLETED IS NULL", 
             invert_where_clause=""
             )
-
+        
         # Process: Copy Features (2) (Copy Features) (management)
-        arcpy.management.CopyFeatures(
-            in_features=Actv_CommonAttribute_PL_Laye2_4_, 
-            out_feature_class=Output_Feature_Class, 
-            config_keyword="", 
-            spatial_grid_1=None, 
-            spatial_grid_2=None,
-            spatial_grid_3=None
+        usfs_haz_fuels_treatments_reduction2_Select2_2_2 = arcpy.management.CopyFeatures(
+            Actv_CommonAttribute_PL_Laye2_4_1, 
+            Output_Feature_Class
             )
-
+        
+        print("Repairing Geometry...")
         # Process: Repair Geometry (Repair Geometry) (management)
         usfs_haz_fuels_treatments_reduction2_Select2_2_ = arcpy.management.RepairGeometry(
-            in_features=Output_Feature_Class, 
+            in_features=usfs_haz_fuels_treatments_reduction2_Select2_2_2, 
             delete_null="KEEP_NULL", 
             validation_method="ESRI"
-            )[0]
+            )
 
         # Process: Dissolve (Dissolve) (management)
-        arcpy.management.Dissolve(
+        usfs_haz_fuels_treatments_reduction2_Select2_2_2_3 = arcpy.management.Dissolve(
             in_features=usfs_haz_fuels_treatments_reduction2_Select2_2_, 
             out_feature_class=usfs_haz_fuels_treatments_reduction2_dissolve, 
             dissolve_field=["SUID", "NEPA_SIGNED_DATE", "DATE_COMPLETED", 
@@ -225,9 +228,11 @@ def Model7(output_enriched, output_standardized, input_fc):
             concatenation_separator=""
             )
 
+        print("Adding Fields...")
         # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-        WFRTF_Template_4_ = AddFields2(Input_Table=usfs_haz_fuels_treatments_reduction2_dissolve)#[0]
+        WFRTF_Template_4_ = AddFields2(Input_Table=usfs_haz_fuels_treatments_reduction2_Select2_2_2_3)
 
+        print("Transfering Attributes...")
         # Process: Calculate Project ID (Calculate Field) (management)
         Activity_SilvTSI_20220627_Se2_2_ = arcpy.management.CalculateField(
             in_table=WFRTF_Template_4_, 
@@ -237,7 +242,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Agency (Calculate Field) (management)
         Updated_Input_Table_30_ = arcpy.management.CalculateField(
@@ -248,7 +253,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Data Steward (Calculate Field) (management)
         Updated_Input_Table = arcpy.management.CalculateField(
@@ -259,7 +264,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Project Contact (Calculate Field) (management)
         Updated_Input_Table_3_ = arcpy.management.CalculateField(
@@ -270,7 +275,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Project Email (Calculate Field) (management)
         Updated_Input_Table_5_ = arcpy.management.CalculateField(
@@ -281,7 +286,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Admin Org (Calculate Field) (management)
         Updated_Input_Table_31_ = arcpy.management.CalculateField(
@@ -292,29 +297,29 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
-
+            )
+       
         # Process: Calculate Project Name (Calculate Field) (management)
-        Updated_Input_Table_33_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_31_, 
-            field="PROJECT_NAME", 
-            expression="\"NONE\"", # "NONE"
-            expression_type="PYTHON3", 
-            code_block="", 
-            field_type="TEXT", 
-            enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+        # Updated_Input_Table_33_ = arcpy.management.CalculateField(
+        #     in_table=Updated_Input_Table_31_, 
+        #     field="PROJECT_NAME", 
+        #     expression="\"None\"", # "NONE"
+        #     expression_type="PYTHON3", 
+        #     code_block="", 
+        #     field_type="TEXT", 
+        #     enforce_domains="NO_ENFORCE_DOMAINS"
+        #     )
 
         # Process: Calculate Fund Source (Calculate Field) (management)
         Updated_Input_Table_6_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_33_, 
+            in_table=Updated_Input_Table_31_, 
             field="PRIMARY_FUNDING_SOURCE", 
             expression="\"USFS\"", 
             expression_type="PYTHON3", 
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Fund Org (Calculate Field) (management)
         Updated_Input_Table_7_ = arcpy.management.CalculateField(
@@ -325,7 +330,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Imp Org (Calculate Field) (management)
         Updated_Input_Table_32_ = arcpy.management.CalculateField(
@@ -336,29 +341,20 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
-        # Process: Calculate Treatment ID (Calculate Field) (management)
-        Activity_SilvTSI_20220627_Se2_3_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_32_, 
-            field="TRMTID_USER", 
-            expression="!SUID!+'-'+!PRIMARY_OBJECTIVE![:8]", 
-            expression_type="PYTHON3", 
-            code_block="", 
-            field_type="TEXT", 
-            enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+        # Process: Calculate Treatment ID (Calculate Field) (management) after enrichment
         
         # Process: Calculate Data Steward 2 (Calculate Field) (management)
         Updated_Input_Table_8_ = arcpy.management.CalculateField(
-            in_table=Activity_SilvTSI_20220627_Se2_3_, 
+            in_table=Updated_Input_Table_32_, 
             field="ORG_ADMIN_t", 
             expression="\"USFS\"", 
             expression_type="PYTHON3", 
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Activity User ID (Calculate Field) (management)
         Updated_Input_Table_8a_ = arcpy.management.CalculateField(
@@ -369,7 +365,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Veg User Defined (Calculate Field) (management)
         Updated_Input_Table_9_ = arcpy.management.CalculateField(
@@ -380,7 +376,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate WUI (Calculate Field) (management)
         Updated_Input_Table_2a_ = arcpy.management.CalculateField(
@@ -391,14 +387,15 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="""def ifelse(WUI):
                             if WUI == \"Y\":
                                 return \"WUI_USER_DEFINED\"
-                            elif DateComp == \"N\":
+                            elif WUI == \"N\":
                                 return \"NON-WUI_USER_DEFINED\"
                             else:
                                 return None""", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
+        print("Calculating End Date...")
         # Process: Calculate Activity End Date (Calculate Field) (management)
         Updated_Input_Table_2_ = arcpy.management.CalculateField(
             in_table=Updated_Input_Table_2a_, 
@@ -412,7 +409,7 @@ def Model7(output_enriched, output_standardized, input_fc):
                                 return DateAw""", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
         usfs_haz_fuels_treatments_re_3_, Count = arcpy.management.SelectLayerByAttribute(
@@ -431,7 +428,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
         usfs_silviculture_TSI_dissol_2_, Count_2_ = arcpy.management.SelectLayerByAttribute(
@@ -441,6 +438,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             invert_where_clause=""
             )
 
+        print("Calculating Status...")
         # Process: Calculate Status (Calculate Field) (management)
         # Based on Today's Date.  Need to add Date formula
         Updated_Input_Table_35_ = arcpy.management.CalculateField(
@@ -461,7 +459,7 @@ def Model7(output_enriched, output_standardized, input_fc):
                                 return \"CANCELLED\"""",
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Activity Quantity (3) (Calculate Field) (management)
         Activity_SilvTSI_20220627_Se2_6_ = arcpy.management.CalculateField(
@@ -476,7 +474,7 @@ def Model7(output_enriched, output_standardized, input_fc):
                                 return PLANNED""", 
             field_type="DOUBLE", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Activity UOM (3) (Calculate Field) (management)
         Activity_SilvTSI_20220627_Se2_5_ = arcpy.management.CalculateField(
@@ -487,7 +485,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Admin Org2 (Calculate Field) (management)
         Updated_Input_Table_10_ = arcpy.management.CalculateField(
@@ -498,7 +496,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Implementation Org 2 (Calculate Field) (management)
         Updated_Input_Table_11_ = arcpy.management.CalculateField(
@@ -509,7 +507,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Primary Fund Source (Calculate Field) (management)
         Updated_Input_Table_12_ = arcpy.management.CalculateField(
@@ -520,7 +518,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Fund Org 2 (Calculate Field) (management)
         Updated_Input_Table_13_ = arcpy.management.CalculateField(
@@ -531,7 +529,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
         
         # Process: Calculate Activity Name (Calculate Field) (management)
         Updated_Input_Table_14_ = arcpy.management.CalculateField(
@@ -542,7 +540,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Source (Calculate Field) (management)
         Updated_Input_Table_36_ = arcpy.management.CalculateField(
@@ -553,7 +551,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Year (Calculate Field) (management)
         Updated_Input_Table_15_ = arcpy.management.CalculateField(
@@ -564,7 +562,7 @@ def Model7(output_enriched, output_standardized, input_fc):
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Crosswalk (Calculate Field) (management)
         Updated_Input_Table_39_ = arcpy.management.CalculateField(
@@ -577,12 +575,12 @@ def Model7(output_enriched, output_standardized, input_fc):
                                 return \"Piling of Fuels, Hand or Machine\"
                             else:
                                 return Act""", 
-            field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+            field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
         
         # Process: Treatment Geometry (Calculate Field) (management)
         Updated_Input_Table_40_ = arcpy.management.CalculateField(
             in_table=Updated_Input_Table_39_, 
-            field="TRMTGEOM", 
+            field="TRMT_GEOM", 
             expression="ifelse(!ACTIVITY!)", 
             expression_type="PYTHON3", 
             code_block="""def ifelse(Geom):
@@ -594,28 +592,24 @@ def Model7(output_enriched, output_standardized, input_fc):
                                 return \'POINT\'
                             else: 
                                 return Geom""", 
-            field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+            field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
         
 
         # Process: Calculate USFS Activity Code (Calculate Field) (management)
-        #usfs_silviculture_TSI_dissolve_2_ = arcpy.management.CalculateField(
-        #    in_table=Updated_Input_Table_39_, 
-        #    field="Act_Code", 
-        #    expression="!ACTIVITY_CODE!", 
-        #    expression_type="PYTHON3",
-        #    code_block="", 
-        #    field_type="TEXT", 
-        #    enforce_domains="NO_ENFORCE_DOMAINS"
-        #    )[0]
+        Updated_Input_Table_41_ = arcpy.management.CalculateField(
+           in_table=Updated_Input_Table_40_, 
+           field="Act_Code", 
+           expression="!ACTIVITY_CODE!", 
+           expression_type="PYTHON3",
+           code_block="", 
+           field_type="TEXT", 
+           enforce_domains="NO_ENFORCE_DOMAINS"
+           )
 
         # Process: Copy Features (Copy Features) (management)
         arcpy.management.CopyFeatures(
-            in_features=Updated_Input_Table_40_, 
-            out_feature_class=Actv_CommonAttribute_PL_Laye_CopyFeatures2, 
-            config_keyword="", 
-            spatial_grid_1=None, 
-            spatial_grid_2=None, 
-            spatial_grid_3=None
+            in_features=Updated_Input_Table_41_, 
+            out_feature_class=Actv_CommonAttribute_PL_Laye_CopyFeatures2 
             )
 
         # Process: Delete Field (Delete Field) (management)
@@ -652,9 +646,9 @@ def Model7(output_enriched, output_standardized, input_fc):
                         "DATALOAD_STATUS_a", "DATALOAD_MSG_a", "Source", 
                         "Year", "Year_txt", "Act_Code", 
                         "Crosswalk", "Federal_FY", "State_FY",
-                        "TRMTGEOM"], 
+                        "TRMT_GEOM", "COUNTS_TO_MAS"], 
                 method="KEEP_FIELDS"
-                )[0]
+                )
 
         print(f'Saving Output Standardized: {output_standardized}')
         # Process: Select by Years (Select) (analysis)
@@ -665,14 +659,15 @@ def Model7(output_enriched, output_standardized, input_fc):
             )
 
         # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
-        usfs_silviculture_reforestation_enriched_20220629_2_ = AssignDomains(
+        usfs_silviculture_reforestation_enriched_20220629_2a_ = AssignDomains(
             in_table=output_standardized
-            )#[0]
+            )
 
+        # print("Enriching Dataset")
         # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon) (PC414CWIMillionAcres)
         aEnrichmentsPolygon1(
-            enrich_out=output_enriched, 
-            enrich_in=usfs_silviculture_reforestation_enriched_20220629_2_
+            enrich_in=usfs_silviculture_reforestation_enriched_20220629_2a_,
+            enrich_out=output_enriched            
             )
         
         print(f'Saving Output Enriched: {output_enriched}')
@@ -681,30 +676,38 @@ def Model7(output_enriched, output_standardized, input_fc):
         # arcpy.management.CopyFeatures(
         #     in_features=Veg_Summarized_Polygons2_3_, 
         #     out_feature_class=output_enriched, 
-        #     config_keyword="", 
-        #     spatial_grid_1=None, 
-        #     spatial_grid_2=None, 
-        #     spatial_grid_3=None
         #     )
 
-        # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
-        usfs_silviculture_reforestation_enriched_20220629_3_ = AssignDomains(
-            in_table=output_enriched
-            )#[0]
+        arcpy.management.CalculateField(
+            in_table=output_enriched, 
+            field="TRMTID_USER", 
+            expression="!ACTIVID_USER!+'-'+!PRIMARY_OBJECTIVE![:8]", 
+            expression_type="PYTHON3", 
+            code_block="", 
+            field_type="TEXT", 
+            enforce_domains="NO_ENFORCE_DOMAINS"
+            )
         
-        print('Deleting Scratch Files')
+        # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
+        AssignDomains(
+            in_table=output_enriched
+            )
+        
+        # print('Deleting Scratch Files')
         delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
         
         end = time.time()
         print(f'Time Elapsed: {(end-start)/60} minutes')
+        
 if __name__ == '__main__':
     # Global Environment settings
      with arcpy.EnvManager(
-    extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
-    preserveGlobalIds=True, 
-    qualifiedFieldNames=False, 
-    scratchWorkspace=scratch_workspace, 
-    transferDomains=True, 
-    transferGDBAttributeProperties=True, 
-    workspace=workspace):
-        Model7(*argv[1:])
+        overwriteOutput=True,
+        extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
+        preserveGlobalIds=True, 
+        qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
+        transferDomains=True, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace):
+            Model_USFS(*argv[1:])

@@ -75,7 +75,7 @@ output_pts_enriched
             in_features=nfpors_select2_Select, 
             delete_null="KEEP_NULL", 
             validation_method="ESRI"
-            )[0]
+            )
 
         # Process: Pairwise Clip (Pairwise Clip) (analysis)
         # nfpors_select2_clip = os.path.join(scratch_workspace,'nfpors_select2_clip')
@@ -109,7 +109,7 @@ output_pts_enriched
         nfpors_select1_2_ = arcpy.management.DefineProjection(
             in_dataset=nfpors_select1, 
             coor_system="PROJCS[\"WGS_1984_Web_Mercator_Auxiliary_Sphere\",GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Mercator_Auxiliary_Sphere\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",0.0],PARAMETER[\"Standard_Parallel_1\",0.0],PARAMETER[\"Auxiliary_Sphere_Type\",0.0],UNIT[\"Meter\",1.0]]"
-            )[0]
+            )
         
         # AddFields2() has this AlterFields functionality option in it, 
         # but it doesn't seem like Carl would want pre-existing fields to always be altered, just specific ones...
@@ -123,10 +123,10 @@ output_pts_enriched
             field_length=55, 
             field_is_nullable="NULLABLE", 
             clear_field_alias="CLEAR_ALIAS"
-            )[0]
+            )
 
         # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-        WFRTF_Template_4_ = AddFields2(Input_Table=nfpors_select2_clip_dissolve_6_)#[0]
+        WFRTF_Template_4_ = AddFields2(Input_Table=nfpors_select2_clip_dissolve_6_)
 
         # Process: Calculate Projet ID (Calculate Field) (management)
         usfs_haz_fuels_treatments_reduction2_2_ = arcpy.management.CalculateField(
@@ -137,7 +137,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Agency (Calculate Field) (management)
         usfs_haz_fuels_treatments_reduction2_dissolve_3_ = arcpy.management.CalculateField(
@@ -148,7 +148,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Admin Org (Calculate Field) (management)
         Updated_Input_Table_3_ = arcpy.management.CalculateField(
@@ -159,7 +159,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Imp Org (Calculate Field) (management)
         Updated_Input_Table_4_ = arcpy.management.CalculateField(
@@ -170,7 +170,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Geometry Attributes (2) (Calculate Geometry Attributes) (management)
         # nfpors_select2_clip_dissolve_5_ = arcpy.management.CalculateGeometryAttributes(
@@ -181,7 +181,7 @@ output_pts_enriched
         #     area_unit="", 
         #     coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
         #     coordinate_format="DD"
-        #     )[0]
+        #     )
 
         # Process: Calculate Treatment ID (2) (Calculate Field) (management)
         # usfs_haz_fuels_treatments_reduction2_6_ = arcpy.management.CalculateField(
@@ -192,7 +192,7 @@ output_pts_enriched
         #     code_block="", 
         #     field_type="TEXT", 
         #     enforce_domains="NO_ENFORCE_DOMAINS"
-        #     )[0]
+        #     )
 
         # Process: Calculate Treatment Name (Calculate Field) (management)
         # Updated_Input_Table_6_ = arcpy.management.CalculateField(
@@ -203,7 +203,7 @@ output_pts_enriched
         #     code_block="", 
         #     field_type="TEXT", 
         #     enforce_domains="NO_ENFORCE_DOMAINS"
-        #     )[0]
+        #     )
 
         # Process: Calculate Activity Name (Calculate Field) (management)
         Updated_Input_Table_6_ = arcpy.management.CalculateField(
@@ -214,7 +214,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
         
         # Process: Calculate Geometry Attributes (3) (Calculate Geometry Attributes) (management)
         nfpors_select2_dissolve_2_ = arcpy.management.CalculateGeometryAttributes(
@@ -224,7 +224,7 @@ output_pts_enriched
             area_unit="ACRES", 
             coordinate_system="PROJCS[\"NAD_1983_California_Teale_Albers\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",-4000000.0],PARAMETER[\"Central_Meridian\",-120.0],PARAMETER[\"Standard_Parallel_1\",34.0],PARAMETER[\"Standard_Parallel_2\",40.5],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]", 
             coordinate_format="SAME_AS_INPUT"
-            )[0]
+            )
 
         # Process: Calculate Activity UOM (Calculate Field) (management)
         Updated_Input_Table_9_ = arcpy.management.CalculateField(
@@ -235,7 +235,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Activity Quantity (Calculate Field) (management)
         Updated_Input_Table_10_ = arcpy.management.CalculateField(
@@ -250,7 +250,7 @@ output_pts_enriched
                                 return Actual""", 
             field_type="DOUBLE", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Activity Start Date (Calculate Field) (management)
         nfpors_select2_clip_dissolve_2_ = arcpy.management.CalculateField(
@@ -261,7 +261,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Activity End Date (Calculate Field) (management)
         usfs_haz_fuels_treatments_reduction2_14_ = arcpy.management.CalculateField(
@@ -276,7 +276,7 @@ output_pts_enriched
                                 return DatePl""", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Status (2) (Calculate Field) (management)
         usfs_haz_fuels_treatments_reduction2_16_ = arcpy.management.CalculateField(
@@ -293,7 +293,7 @@ output_pts_enriched
                                 return Status""", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Source (2) (Calculate Field) (management)
         Updated_Input_Table_13_ = arcpy.management.CalculateField(
@@ -304,7 +304,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Crosswalk (Calculate Field) (management)
         Updated_Input_Table_8_ = arcpy.management.CalculateField(
@@ -315,7 +315,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Delete Field (Delete Field) (management)
         nfpors_select2_Select_2_ = arcpy.management.DeleteField(
@@ -352,7 +352,7 @@ output_pts_enriched
                         "Year_txt", "Act_Code", "Crosswalk", 
                         "Federal_FY", "State_FY"], 
                 method="KEEP_FIELDS"
-                )[0]
+                )
 
         print(f'Saving Output Polys Standardized: {output_polys_standardized}')
         # Process: Copy Features (2) (Copy Features) (management)
@@ -367,7 +367,7 @@ output_pts_enriched
             )
 
         # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
-        usfs_silviculture_reforestation_enriched_20220629_2_ = AssignDomains(in_table=nfpors_fuels_treatments_standardized)#[0]
+        usfs_silviculture_reforestation_enriched_20220629_2_ = AssignDomains(in_table=nfpors_fuels_treatments_standardized)
 
         print(f'Performing Polygon Enrichments')
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
@@ -400,10 +400,10 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
         
         # Process: 2b Assign Domains (4) (2b Assign Domains) (PC414CWIMillionAcres)
-        nfpors_fuels_treatments_enriched_20220906_2_ = AssignDomains(in_table=output_polys_enriched)#[0]
+        nfpors_fuels_treatments_enriched_20220906_2_ = AssignDomains(in_table=output_polys_enriched)
 
         # Process: Calculate Geometry Attributes (Calculate Geometry Attributes) (management)
         # nfpors_select2_dissolve_5_ = arcpy.management.CalculateGeometryAttributes(
@@ -413,7 +413,7 @@ output_pts_enriched
         #     area_unit="ACRES_US", 
         #     coordinate_system="PROJCS[\"NAD_1983_California_Teale_Albers\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",-4000000.0],PARAMETER[\"Central_Meridian\",-120.0],PARAMETER[\"Standard_Parallel_1\",34.0],PARAMETER[\"Standard_Parallel_2\",40.5],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]", 
         #     coordinate_format="SAME_AS_INPUT"
-        #     )[0]
+        #     )
 
         ### BEGIN POINTS WORKFLOW
         
@@ -444,7 +444,7 @@ output_pts_enriched
             field_mapping="", 
             subtype="", 
             expression=""
-            )[0]
+            )
 
         # Process: Alter source Field (Alter Field) (management)
         nfpors_select2p_clip_2_ = arcpy.management.AlterField(
@@ -456,7 +456,7 @@ output_pts_enriched
             field_length=65, 
             field_is_nullable="NULLABLE", 
             clear_field_alias="CLEAR_ALIAS"
-            )[0]
+            )
 
         # Process: Alter projectid Field (Alter Field) (management)
         nfpors_select2p_clip_6_ = arcpy.management.AlterField(
@@ -468,7 +468,7 @@ output_pts_enriched
             # field_length=50, 
             field_is_nullable="NULLABLE", 
             clear_field_alias="CLEAR_ALIAS"
-            )[0]
+            )
 
         # Process: Alter latitude Field (Alter Field) (management)
         nfpors_select2p_clip_4_ = arcpy.management.AlterField(
@@ -480,7 +480,7 @@ output_pts_enriched
             # field_length=8, 
             field_is_nullable="NULLABLE", 
             clear_field_alias="CLEAR_ALIAS"
-            )[0]
+            )
 
         # Process: Alter longitude Field (Alter Field) (management)
         nfpors_select2p_clip_5_ = arcpy.management.AlterField(
@@ -492,10 +492,10 @@ output_pts_enriched
             # field_length=8, 
             field_is_nullable="NULLABLE", 
             clear_field_alias="CLEAR_ALIAS"
-            )[0]
+            )
 
         # Process: 1b Add Fields (2) (1b Add Fields) (PC414CWIMillionAcres)
-        WFRTF_Template_2_ = AddFields2(Input_Table=nfpors_select2p_clip_5_)#[0]
+        WFRTF_Template_2_ = AddFields2(Input_Table=nfpors_select2p_clip_5_)
 
         # Process: Calculate Projet ID (2) (Calculate Field) (management)
         usfs_haz_fuels_treatments_reduction2_3_ = arcpy.management.CalculateField(
@@ -506,7 +506,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Agency (2) (Calculate Field) (management)
         usfs_haz_fuels_treatments_reduction2_dissolve_4_ = arcpy.management.CalculateField(
@@ -517,7 +517,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Admin Org (2) (Calculate Field) (management)
         Updated_Input_Table_16_ = arcpy.management.CalculateField(
@@ -528,7 +528,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Imp Org (2) (Calculate Field) (management)
         Updated_Input_Table_17_ = arcpy.management.CalculateField(
@@ -539,7 +539,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Geometry Attributes (4) (Calculate Geometry Attributes) (management)
         # nfpors_select2p_clip_7_ = arcpy.management.CalculateGeometryAttributes(
@@ -550,7 +550,7 @@ output_pts_enriched
         #     area_unit="", 
         #     coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
         #     coordinate_format="DD"
-        #     )[0]
+        #     )
 
         # Process: Calculate Treatment ID (3) (Calculate Field) (management)
         # usfs_haz_fuels_treatments_reduction2_5_ = arcpy.management.CalculateField(
@@ -561,7 +561,7 @@ output_pts_enriched
         #     code_block="", 
         #     field_type="TEXT", 
         #     enforce_domains="NO_ENFORCE_DOMAINS"
-        #     )[0]
+        #     )
 
         # Process: Calculate WUI (2) (Calculate Field) (management)
         Updated_Input_Table_2_ = arcpy.management.CalculateField(
@@ -578,7 +578,7 @@ output_pts_enriched
                                 return WUI""", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Activity Name (2) (Calculate Field) (management)
         Updated_Input_Table_19_ = arcpy.management.CalculateField(
@@ -589,7 +589,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Activity UOM (2) (Calculate Field) (management)
         Updated_Input_Table_21_ = arcpy.management.CalculateField(
@@ -600,10 +600,10 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: 2c Units Domain (2c Units Domain) (PC414CWIMillionAcres)
-        StateParks_XY_enriched_20220708_StateParks_XY_enriched_20220708_3_ = Units(in_table=Updated_Input_Table_21_)#[0]
+        StateParks_XY_enriched_20220708_StateParks_XY_enriched_20220708_3_ = Units(in_table=Updated_Input_Table_21_)
 
         # Process: Calculate Activity Quantity (2) (Calculate Field) (management)
         Updated_Input_Table_22_ = arcpy.management.CalculateField(
@@ -618,7 +618,7 @@ output_pts_enriched
                                 return Actual""", 
             field_type="DOUBLE", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Treatment Area Field (Calculate Field) (management)
         nfpors_select2p_clip_9_ = arcpy.management.CalculateField(
@@ -631,7 +631,7 @@ output_pts_enriched
                                 return Quant""", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Activity Start Date (2) (Calculate Field) (management)
         nfpors_select2_clip_dissolve_4_ = arcpy.management.CalculateField(
@@ -646,7 +646,7 @@ output_pts_enriched
                                 return Planned""", 
             field_type="TEXT", 
             enforce_domains="ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Activity End Date (2) (Calculate Field) (management)
         usfs_haz_fuels_treatments_reduction2_7_ = arcpy.management.CalculateField(
@@ -661,7 +661,7 @@ output_pts_enriched
                                 return DatePl""", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Status (3) (Calculate Field) (management)
         usfs_haz_fuels_treatments_reduction2_8_ = arcpy.management.CalculateField(
@@ -672,7 +672,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Source (3) (Calculate Field) (management)
         Updated_Input_Table_23_ = arcpy.management.CalculateField(
@@ -683,7 +683,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
 
         # Process: Calculate Crosswalk (2) (Calculate Field) (management)
         Updated_Input_Table_26_ = arcpy.management.CalculateField(
@@ -694,7 +694,7 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="ENFORCE_DOMAINS"
-            )[0]
+            )
 
         print(f'Saving Output Points Standardized: {output_pts_standardized}')
         # Process: Copy Features (3) (Copy Features) (management)
@@ -742,10 +742,10 @@ output_pts_enriched
                         "Year", "Year_txt", "Act_Code", 
                         "Crosswalk", "Federal_FY", "State_FY"], 
                 method="KEEP_FIELDS"
-                )[0]
+                )
 
         # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
-        usfs_silviculture_reforestation_enriched_20220629_4_ = AssignDomains(in_table=nfpors_select2p_clip_8_)#[0]
+        usfs_silviculture_reforestation_enriched_20220629_4_ = AssignDomains(in_table=nfpors_select2p_clip_8_)
 
         print('Performing Points Enrichments')
         # Process: 7b Enrichments pts (7b Enrichments pts) (PC414CWIMillionAcres)
@@ -772,10 +772,10 @@ output_pts_enriched
             code_block="", 
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
-            )[0]
+            )
         
         # Process: 2b Assign Domains (3) (2b Assign Domains) (PC414CWIMillionAcres)
-        WFR_TF_Template_2_ = AssignDomains(in_table=output_pts_enriched)#[0]
+        WFR_TF_Template_2_ = AssignDomains(in_table=output_pts_enriched)
         
         print('Deleting Scratch Files')
         delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')

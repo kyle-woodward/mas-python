@@ -15,14 +15,13 @@ workspace, scratch_workspace = init_gdb()
 
 # first arg is the output fc path and the other is the input fc you are enriching
 def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichments Polygon
-
     arcpy.ImportToolbox(r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Analysis Tools.tbx")
     arcpy.ImportToolbox(r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\GeoAnalytics Desktop Tools.tbx")
     arcpy.ImportToolbox(r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Data Management Tools.tbx")
     
     # wrapping entire process within an arcpy.EnvManager() instance fixes the SummarizeWithin tool failed error 
     with arcpy.EnvManager(
-    overwriteOutput=False, # To allow overwriting outputs change overwriteOutput option to True
+    overwriteOutput=True,
     extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 
     outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
     preserveGlobalIds=True, 
@@ -50,7 +49,8 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
         WHR13NAME_Summary_temp_name = os.path.join(scratch_workspace,"WHR13NAME_Summary_temp")
         # Begin tool chain processes
 
-        # print('Executing Polygon Enrichments...')
+        print('Executing Polygon Enrichments...')
+        print("Calculating Broad Vegetation Type...")
         # Process: Summarize Within (Summarize Within) (analysis)
         arcpy.analysis.SummarizeWithin(
                                     in_polygons=enrich_in, 
@@ -86,7 +86,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                     join_field="sum_Area_ACRES", 
                                     join_type="KEEP_ALL", 
                                     index_join_fields="INDEX_JOIN_FIELDS"
-                                    )[0]
+                                    )
 
         # Process: Table To Table (Table To Table) (conversion)
         WHR13NAME_Summary_temp = arcpy.conversion.TableToTable(
@@ -97,7 +97,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                             # ideally want to chunk out field mapping string to reduce line length .. 
                             field_mapping="Join_ID \"Join_ID\" true true false 4 Long 0 0,First,#,WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,WHR13NAME_Summary_SummarizeAttributes.Join_ID,-1,-1;COUNT \"COUNT\" true true false 8 Double 0 0,First,#,WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,WHR13NAME_Summary_SummarizeAttributes.COUNT,-1,-1;MAX_Sum_Area_ACRES \"MAX_Sum_Area_ACRES\" true true false 8 Double 0 0,First,#,WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,WHR13NAME_Summary_SummarizeAttributes.MAX_Sum_Area_ACRES,-1,-1;OBJECTID \"OBJECTID\" false true false 4 Long 0 9,First,#,WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,WHR13NAME_Summary.OBJECTID,-1,-1;Join_ID \"Join ID\" true true false 4 Long 0 0,First,#,WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,WHR13NAME_Summary.Join_ID,-1,-1;WHR13NAME \"WHR13NAME\" true true false 255 Text 0 0,First,#,WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,WHR13NAME_Summary.WHR13NAME,0,255;sum_Area_ACRES \"Summarized Area in ACRES\" true true false 8 Double 0 0,First,#,WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,WHR13NAME_Summary.sum_Area_ACRES,-1,-1;Polygon_Count \"Count of Polygons\" true true false 4 Long 0 0,First,#,WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,WHR13NAME_Summary.Polygon_Count,-1,-1", 
                             config_keyword=""
-                            )[0]
+                            )
 
         # Process: Delete Identical (Delete Identical) (management)
         WHR13NAME_Summary_temp_2_ = arcpy.management.DeleteIdentical(
@@ -105,7 +105,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                 fields=["Join_ID", "MAX_Sum_Area_ACRES", "WHR13NAME"], 
                                 xy_tolerance="", 
                                 z_tolerance=0
-                                )[0]
+                                )
 
         # Process: Add Join (3) (Add Join) (management)
         usfs_haz_fuels_treatments_re = arcpy.management.AddJoin(
@@ -115,7 +115,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                     join_field="Join_ID", 
                                     join_type="KEEP_ALL", 
                                     index_join_fields="INDEX_JOIN_FIELDS"
-                                    )[0]
+                                    )
 
         # Process: Select Layer By BVT Not Null (Select Layer By Attribute) (management)
         Veg_Summarized_Polygons_Laye_3_, Count = arcpy.management.SelectLayerByAttribute(
@@ -134,7 +134,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                             code_block="", 
                             field_type="TEXT", 
                             enforce_domains="NO_ENFORCE_DOMAINS"
-                            )[0]
+                            )
 
         # Process: Switch Selection (Select Layer By Attribute) (management)
         Updated_Layer_Or_Table_View, Count_5_ = arcpy.management.SelectLayerByAttribute(
@@ -179,7 +179,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                                 return \"WETLAND\"
                                             else:
                                                 return VEG""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS"
-                                        )[0]
+                                        )
 
         # Process: Calculate BVT User Defined No (Calculate Field) (management)
         Updated_Input_Table_4_ = arcpy.management.CalculateField(
@@ -190,14 +190,15 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                             code_block="", 
                             field_type="TEXT", 
                             enforce_domains="NO_ENFORCE_DOMAINS"
-                            )[0]
+                            )
 
         # Process: Remove Join (Remove Join) (management)
         Layer_With_Join_Removed = arcpy.management.RemoveJoin(
                                 in_layer_or_view=Updated_Input_Table_4_, 
                                 join_name="WHR13NAME_Summary_temp"
-                                )[0]
+                                )
 
+        print("Calculating WUI...")
         # Process: Select Layer WUI Null (Select Layer By Attribute) (management)
         Veg_Summarized_Polygons_Laye_7_, Count_8_ = arcpy.management.SelectLayerByAttribute(
                                                 in_layer_or_view=Layer_With_Join_Removed, 
@@ -223,7 +224,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                     code_block="", 
                                     field_type="TEXT", 
                                     enforce_domains="NO_ENFORCE_DOMAINS"
-                                    )[0]
+                                    )
 
         # Process: Select Layer WUI Auto No (Select Layer By Attribute) (management)
         Veg_Summarized_Polygons_Laye_5_, Count_6_ = arcpy.management.SelectLayerByAttribute(
@@ -242,7 +243,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                         code_block="", 
                                         field_type="TEXT", 
                                         enforce_domains="NO_ENFORCE_DOMAINS"
-                                        )[0]
+                                        )
 
         # Process: Clear Selection (Select Layer By Attribute) (management)
         Treatments_Merge3_California_5_, Count_4_ = arcpy.management.SelectLayerByAttribute(
@@ -260,6 +261,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                         point_location="INSIDE"
                                         )
 
+        print("Calculating Ownership and Counties...")
         # Process: Spatial Join (Spatial Join) (analysis)
         arcpy.analysis.SpatialJoin(
                                 target_features=Veg_Summarized_Centroids, 
@@ -273,6 +275,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                 distance_field_name=""
                                 )
 
+        print("Calculating Task Force Regions...")
         # Process: Spatial Join (2) (Spatial Join) (analysis)
         arcpy.analysis.SpatialJoin(
                                 target_features=Veg_Summarized_Join1_Own, 
@@ -294,7 +297,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                         join_field="ORIG_FID", 
                                         join_type="KEEP_ALL", 
                                         index_join_fields="INDEX_JOIN_FIELDS"
-                                        )[0]
+                                        )
 
         # Process: Calculate Owner (Calculate Field) (management)
         Veg_Summarized_Polygons_Laye = arcpy.management.CalculateField(
@@ -323,7 +326,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                             return Own""", 
                                     field_type="TEXT", 
                                     enforce_domains="NO_ENFORCE_DOMAINS"
-                                    )[0]
+                                    )
 
         # Process: Calculate County (Calculate Field) (management)
         Veg_Summarized_Polygons_Laye2_4_ = arcpy.management.CalculateField(
@@ -452,7 +455,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                                 return CO""", 
                                         field_type="TEXT", 
                                         enforce_domains="NO_ENFORCE_DOMAINS"
-                                        )[0]
+                                        )
 
         # Process: Calculate Region (Calculate Field) (management)
         Veg_Summarized_Polygons_Laye_6_ = arcpy.management.CalculateField(
@@ -473,14 +476,15 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                             return Reg""", 
                                         field_type="TEXT", 
                                         enforce_domains="NO_ENFORCE_DOMAINS"
-                                        )[0]
+                                        )
 
         # Process: Remove Join (10) (Remove Join) (management)
         Veg_Summarized_Polygons_Laye2 = arcpy.management.RemoveJoin(
                                     in_layer_or_view=Veg_Summarized_Polygons_Laye_6_, 
                                     join_name="Veg_Summarized_Join2_RCD"
-                                    )[0]
+                                    )
 
+        print("Calculating Crosswalking Activites...")
         # Process: Add Join (Add Join) (management)
         Veg_Summarized_Polygons_Laye4 = arcpy.management.AddJoin(
                                     in_layer_or_view=Veg_Summarized_Polygons_Laye2, 
@@ -489,7 +493,8 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                     join_field="Original_Activity", 
                                     join_type="KEEP_ALL", 
                                     index_join_fields="INDEX_JOIN_FIELDS"
-                                    )[0]
+                                    )
+        
         # Process: Select by Attribute (management)
         Pts_enrichment_Veg_Layer_4_, Count_7_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Veg_Summarized_Polygons_Laye4, where_clause="ACTIVITY_DESCRIPTION IS NULL")
 
@@ -500,15 +505,15 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                 expression="!Fuels_Treatments_Piles_Crosswalk.Activity!", 
                                 expression_type="PYTHON3", code_block="", field_type="TEXT", 
                                 enforce_domains="NO_ENFORCE_DOMAINS"
-                                )[0]
+                                )
 
         # Process: Select Layer By Attribute (4) (Select Layer By Attribute) (management)
         Updated_Input_Table_4_, Count_8_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Updated_Input_Table_3_, selection_type="CLEAR_SELECTION")
         
         # Process: 2d Calculate Activity (2d Calculate Activity) (PC414CWIMillionAcres)
-        # print('Calculating Activity...')
-        Veg_Summarized_Polygons_Laye3_5_ = Activity(Input_Table=Updated_Input_Table_4_)#[0]
+        Veg_Summarized_Polygons_Laye3_5_ = Activity(Input_Table=Updated_Input_Table_4_)
         
+        print("Calculating Residue Fate...")
         # Process: Calculate Residue Fate (Calculate Field) (management)
         usfs_edw_facts_common_attrib1 = arcpy.management.CalculateField(
                                 in_table=Veg_Summarized_Polygons_Laye3_5_, 
@@ -516,19 +521,30 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                 expression="!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!", 
                                 expression_type="PYTHON3", code_block="", field_type="TEXT", 
                                 enforce_domains="NO_ENFORCE_DOMAINS"
-                                )[0]
+                                )
 
-        # print('Calculating Residue...')
         # Process: 2g Calculate Residue Fate (2g Calculate Residue Fate) (PC414CWIMillionAcres)
-        Veg_Summarized_Polygons_Laye3_3_ = Residue(Input_Table=Veg_Summarized_Polygons_Laye3_5_)#[0]
+        Veg_Summarized_Polygons_Laye3_3_ = Residue(Input_Table=usfs_edw_facts_common_attrib1)
+
+        print("Calculating Counts to Million Acres...")
+        # Process: Calculate Counts to MAS (Calculate Field) (management)
+        usfs_edw_facts_common_attrib2 = arcpy.management.CalculateField(
+                                in_table=Veg_Summarized_Polygons_Laye3_3_, 
+                                field="Veg_Summarized_Polygons.COUNTS_TO_MAS", 
+                                expression="!Fuels_Treatments_Piles_Crosswalk.Counts_to_MAS!", 
+                                expression_type="PYTHON3", code_block="", field_type="TEXT", 
+                                enforce_domains="NO_ENFORCE_DOMAINS"
+                                )
 
         # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
         Veg_Summarized_Polygons_Laye_9_, Count_3_ = arcpy.management.SelectLayerByAttribute(
-                                                in_layer_or_view=Veg_Summarized_Polygons_Laye3_3_, 
+                                                in_layer_or_view=usfs_edw_facts_common_attrib2, 
                                                 selection_type="NEW_SELECTION", 
                                                 where_clause="PRIMARY_OBJECTIVE IS NULL", 
                                                 invert_where_clause=""
                                                 )
+        
+        print('Calculating Objective...')
         # Process: Calculate Objective (Calculate Field) (management)
         Updated_Input_Table_5_ = arcpy.management.CalculateField(
                             in_table=Veg_Summarized_Polygons_Laye_9_, 
@@ -536,11 +552,10 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                             expression="!Fuels_Treatments_Piles_Crosswalk.Objective!", 
                             expression_type="PYTHON3", code_block="", field_type="TEXT", 
                             enforce_domains="NO_ENFORCE_DOMAINS"
-                            )[0]
+                            )
                 
-        # print('Calculating Objective...')
         # Process: 2e Calculate Objective (2e Calculate Objective) (PC414CWIMillionAcres)
-        Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Veg_Summarized_Polygons_Laye_9_)#[0]
+        Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Updated_Input_Table_5_)
 
         # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
         Veg_Summarized_Polygons_Laye_10_, Count_7_ = arcpy.management.SelectLayerByAttribute(
@@ -554,16 +569,17 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
         Layer_With_Join_Removed_2_ = arcpy.management.RemoveJoin(
                                 in_layer_or_view=Veg_Summarized_Polygons_Laye_10_, 
                                 join_name="Fuels_Treatments_Piles_Crosswalk"
-                                )[0]
+                                )
 
-        # print('Calculating Category...')
+        print('Calculating Activity Category...')
         # Process: 2f Calculate Category (2f Calculate Category) (PC414CWIMillionAcres)
-        Updated_Input_Table = Category(Input_Table=Layer_With_Join_Removed_2_)#[0]
+        Updated_Input_Table = Category(Input_Table=Layer_With_Join_Removed_2_)
 
-        # print('Calculating Year...')
+        print('Calculating Years...')
         # Process: 2h Calculate Year (2h Calculate Year) (PC414CWIMillionAcres)
-        Veg_Summarized_Polygons_Laye3_7_ = Year(Input_Table=Updated_Input_Table)#[0]
+        Veg_Summarized_Polygons_Laye3_7_ = Year(Input_Table=Updated_Input_Table)
 
+        print("Calculating Latitude and Longitude...")
         # Process: Calculate Geometry Attributes (3) (Calculate Geometry Attributes) (management)
         Veg_Summarized_Polygons_Laye_4_ = arcpy.management.CalculateGeometryAttributes(
                                         in_features=Veg_Summarized_Polygons_Laye3_7_, 
@@ -572,7 +588,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                         area_unit="", 
                                         coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
                                         coordinate_format="DD"
-                                        )[0]
+                                        )
 
         # Process: Calculate Geometry Attributes (4) (Calculate Geometry Attributes) (management)
         Veg_Summarized_Polygons_Laye_8_ = arcpy.management.CalculateGeometryAttributes(
@@ -582,7 +598,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                         area_unit="ACRES_US", 
                                         coordinate_system="PROJCS[\"NAD_1983_California_Teale_Albers\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",-4000000.0],PARAMETER[\"Central_Meridian\",-120.0],PARAMETER[\"Standard_Parallel_1\",34.0],PARAMETER[\"Standard_Parallel_2\",40.5],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]", 
                                         coordinate_format="SAME_AS_INPUT"
-                                        )[0]
+                                        )
 
         # Process: Delete Field (Delete Field) (management)
         Veg_Summarized_Polygons_Laye_11_ = arcpy.management.DeleteField(
@@ -612,9 +628,9 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                                     "ACTIVITY_NAME", "VAL_STATUS_a", "VAL_MSG_a", "VAL_RUNDATE_a", 
                                                     "REVIEW_STATUS_a", "REVIEW_MSG_a", "REVIEW_RUNDATE_a", "DATALOAD_STATUS_a", 
                                                     "DATALOAD_MSG_a", "Source", "Year", "Year_txt", "Act_Code", "Crosswalk", 
-                                                    "Federal_FY", "State_FY", "TRMT_GEOM"], 
+                                                    "Federal_FY", "State_FY", "TRMT_GEOM", "COUNTS_TO_MAS"], 
                                         method="KEEP_FIELDS"
-                                        )[0]
+                                        )
 
         # Process: Delete Identical (Delete Identical) (management)
         Veg_Summarized_Polygons_Laye_12_ = arcpy.management.DeleteIdentical(
@@ -644,20 +660,20 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
                                         "ACTIVITY_NAME", "VAL_STATUS_a", "VAL_MSG_a", "VAL_RUNDATE_a", 
                                         "REVIEW_STATUS_a", "REVIEW_MSG_a", "REVIEW_RUNDATE_a", "DATALOAD_STATUS_a", 
                                         "DATALOAD_MSG_a", "Source", "Year", "Year_txt", "Act_Code", "Crosswalk", 
-                                        "Federal_FY", "State_FY"], 
+                                        "Federal_FY", "State_FY", "TRMT_GEOM", "COUNTS_TO_MAS"], 
                                 xy_tolerance="", 
                                 z_tolerance=0
-                                )[0]        
+                                )        
         
         # Process: Select (Select) (analysis)
-        arcpy.analysis.Select(
+        Veg_Summarized_Polygons_Laye_13_ = arcpy.analysis.Select(
             in_features=Veg_Summarized_Polygons_Laye_12_, 
             out_feature_class=enrich_out, 
             where_clause="County IS NOT NULL"
             )
         
         if delete_scratch:
-            print('Deleting Scratch Files')
+            # print('Deleting Scratch Files')
             delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
 
 if __name__ == '__main__':
