@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-
-"""
 import arcpy
 import os
 from sys import argv
