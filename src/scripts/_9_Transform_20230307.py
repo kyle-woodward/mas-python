@@ -4,7 +4,7 @@ from scripts._9b_Transform_Treatments import TransformTreatments
 from ._2k_keep_fields import KeepFields
 from sys import argv
 from datetime import datetime
-from .utils import init_gdb, delete_scratch_files
+from .utils import init_gdb, delete_scratch_files, runner
 import os
 original_gdb, workspace, scratch_workspace = init_gdb()
 
@@ -240,7 +240,7 @@ def Transform2(Treat_n_harvests_polygons,
 
     # Process: Delete Field (3) (Delete Field) (management)
     if Activities_20221229_2_ and Projects_Treatments_lns and Projects_Treatments_poly and Projects_Treatments_pts and Updated_Datasets_2_ and Value:
-            Activities_2_ = KeepFields(Treat_n_harves_Treatments_SpatialJoin_3_)
+            Activities_2_ = arcpy.management.DeleteField(in_table=Treat_n_harves_Treatments_SpatialJoin_3_, drop_field=["TRMTID_USER", "ACTIVID_USER", "TREATMENTID_", "ORG_ADMIN_a", "ACTIVITY_DESCRIPTION", "ACTIVITY_CAT", "BROAD_VEGETATION_TYPE", "BVT_USERD", "ACTIVITY_STATUS", "ACTIVITY_QUANTITY", "ACTIVITY_UOM", "ACTIVITY_START", "ACTIVITY_END", "ADMIN_ORG_NAME", "IMPLEM_ORG_NAME", "PRIMARY_FUND_SRC_NAME", "PRIMARY_FUND_ORG_NAME", "SECONDARY_FUND_SRC_NAME", "SECONDARY_FUND_ORG_NAME", "TERTIARY_FUND_SRC_NAME", "TERTIARY_FUND_ORG_NAME", "ACTIVITY_PRCT", "RESIDUE_FATE", "RESIDUE_FATE_QUANTITY", "RESIDUE_FATE_UNITS", "ACTIVITY_NAME", "VAL_STATUS_a", "VAL_MSG_a", "VAL_RUNDATE_a", "REVIEW_STATUS_a", "REVIEW_MSG_a", "REVIEW_RUNDATE_a", "DATALOAD_STATUS_a", "DATALOAD_MSG_a", "Source", "Year", "Year_txt", "Act_Code", "Crosswalk", "Federal_FY", "State_FY", "GlobalID"], method="KEEP_FIELDS")
 
     # Process: Append (3) (Append) (management)
     if Activities_20221229_2_ and Projects_Treatments_lns and Projects_Treatments_poly and Projects_Treatments_pts and Updated_Datasets_2_ and Value:
@@ -294,13 +294,14 @@ def Transform2(Treat_n_harvests_polygons,
     return Activities_Value_
 
 if __name__ == '__main__':
-    # Global Environment settings
-    with arcpy.EnvManager(
-    extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
-    preserveGlobalIds=True, 
-    qualifiedFieldNames=False, 
-    scratchWorkspace=scratch_workspace, 
-    transferDomains=True, 
-    transferGDBAttributeProperties=True, 
-    workspace=workspace):
-        Transform2(*argv[1:])
+       runner(workspace,scratch_workspace,Transform2, '*argv[1:]')
+#     # Global Environment settings
+#     with arcpy.EnvManager(
+#     extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
+#     preserveGlobalIds=True, 
+#     qualifiedFieldNames=False, 
+#     scratchWorkspace=scratch_workspace, 
+#     transferDomains=True, 
+#     transferGDBAttributeProperties=True, 
+#     workspace=workspace):
+#         Transform2(*argv[1:])

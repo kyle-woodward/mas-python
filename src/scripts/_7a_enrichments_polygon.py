@@ -645,7 +645,7 @@ def aEnrichmentsPolygon1(enrich_out, enrich_in, delete_scratch=False):  # 7a Enr
             delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
 
 if __name__ == '__main__':
-    runner()
+    runner(workspace,scratch_workspace,aEnrichmentsPolygon1, '*argv[1:]')
     # # Global Environment settings
     # with arcpy.EnvManager(
     # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 

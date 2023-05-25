@@ -170,17 +170,18 @@ def AssignDomains(in_table):  # 2b Assign Domains
     return COUNTS_TO_MAS
 
 if __name__ == '__main__':
-    # Global Environment settings
-    with arcpy.EnvManager(
-    extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 
-    outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
-    preserveGlobalIds=True, 
-    qualifiedFieldNames=False, 
-    scratchWorkspace=scratch_workspace, 
-    transferDomains=True, 
-    transferGDBAttributeProperties=True, 
-    workspace=workspace):
-        # AssignDomains(*argv[1:])
-        # AssignDomains(WFR_TF_Template="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\WFR_TF_Template")
-        AssignDomains(in_table= os.path.join(workspace,"b_Reference","WFR_TF_Template"))
+    runner(workspace,scratch_workspace,AssignDomains, '*argv[1:]')
+    # # Global Environment settings
+    # with arcpy.EnvManager(
+    # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 
+    # outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
+    # preserveGlobalIds=True, 
+    # qualifiedFieldNames=False, 
+    # scratchWorkspace=scratch_workspace, 
+    # transferDomains=True, 
+    # transferGDBAttributeProperties=True, 
+    # workspace=workspace):
+    #     # AssignDomains(*argv[1:])
+    #     # AssignDomains(WFR_TF_Template="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\WFR_TF_Template")
+    #     AssignDomains(in_table= os.path.join(workspace,"b_Reference","WFR_TF_Template"))
         
