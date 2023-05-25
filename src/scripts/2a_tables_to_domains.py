@@ -1,6 +1,6 @@
 import arcpy
 import os
-from utils import init_gdb, runner
+from utils import init_gdb
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 # Assigns Domains to the workspace Geodatabase using the Domain Tables .xlsx

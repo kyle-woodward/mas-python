@@ -2,9 +2,8 @@
 import arcpy
 from scripts._9_Transform_20230307 import Transform2
 from sys import argv
-from scripts.utils import init_gdb, runner
+from scripts.utils import init_gdb
 import os
-import requests
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 Treat_n_harvests_polygons = os.path.join(workspace, 'e_Appended', 'Treat_n_harvests_polygons_20221115')
