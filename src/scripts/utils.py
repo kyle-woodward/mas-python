@@ -158,10 +158,13 @@ def check_schema_lock(input):
     input: full file path to file you want to have schema lock on
     
     """
-    if arcpy.TestSchemaLock(input):
-        [print(f'{input} available for schema lock')]
+    if not arcpy.Exists(input):
+        [print(f"Dataset does not exist: {input}")]
     else:
-        [print(f'Unable to acquire the necessary schema lock for {input}')]
+        if arcpy.TestSchemaLock(input):
+            [print(f'Available for schema lock: {input}')]
+        else:
+            raise arcpy.ExecuteError(f'Cannot get exclusive schema lock for {input}. Either being edited or in use by another application or service.')
 
 def runner(workspace:str,scratch_workspace:str,func, arg):
     with arcpy.EnvManager(
