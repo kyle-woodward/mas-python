@@ -14,4 +14,4 @@ DOC_Ag_enriched = os.path.join(workspace, "d_Enriched", f'DOC_Ag_enriched_{date_
 DOC_Ag_OG = os.path.join(workspace, "a_Originals", "DOC_Ag_easements_Range2022")
 
 DOC6(DOC_Ag_Standardized, DOC_Ag_enriched, DOC_Ag_OG)
-# %%
+ # %%
