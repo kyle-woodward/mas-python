@@ -219,7 +219,7 @@ def CalVTP(CalVTP_enriched,
 
     # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
     print("step 26/30 assign domains...")
-    CalVTP_Standardized = AssignDomains(WFR_TF_Template=CalVTP_standardized.__str__().format(**locals(),**globals()))[0]
+    CalVTP_Standardized = AssignDomains(in_table=CalVTP_standardized.__str__().format(**locals(),**globals()))[0]
 
     # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
     print("step 27/30 enrich polygons...")
