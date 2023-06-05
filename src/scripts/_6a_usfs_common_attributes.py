@@ -1,7 +1,7 @@
 import arcpy
-from ._1b_add_fields import AddFields2
+from ._1b_add_fields import AddFields
 from ._2b_assign_domains import AssignDomains
-from ._7a_enrichments_polygon import aEnrichmentsPolygon1
+from ._7a_enrichments_polygon import enrich_polygons
 from ._2k_keep_fields import KeepFields
 from sys import argv
 from .utils import init_gdb, delete_scratch_files, runner
@@ -16,16 +16,16 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
     
 
     # define intermediary objects in scratch
-    Output_Feature_Class = os.path.join(scratch_workspace,'Actv_CommonAttribute_PL_Laye_CopyFeatures')
-    usfs_haz_fuels_treatments_reduction2_dissolve = os.path.join(scratch_workspace,'usfs_haz_fuels_treatments_reduction2_dissolve')
-    Actv_CommonAttribute_PL_Laye_CopyFeatures2 = os.path.join(scratch_workspace,'Actv_CommonAttribute_PL_Laye_CopyFeatures2')
+    usfs_intermediate_scratch = os.path.join(scratch_workspace,'usfs_intermediate_scratch')
+    usfs_intermediate_scratch_dissolved = os.path.join(scratch_workspace,'usfs_intermediate_scratch_dissolved')
+    usfs_scratch_standardized = os.path.join(scratch_workspace,'usfs_scratch_standardized')
     
 
     # Model Environment settings
     with arcpy.EnvManager(outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]"""):
         print('Performing Standardization...')
         # Process: Select Layer By Attribute California (Select Layer By Attribute) (management)
-        Actv_CommonAttribute_PL_Laye2, Count_4_ = arcpy.management.SelectLayerByAttribute(
+        usfs_CA = arcpy.management.SelectLayerByAttribute(
             in_layer_or_view=input_fc, 
             selection_type="NEW_SELECTION", 
             where_clause="STATE_ABBR = 'CA'", 
@@ -34,8 +34,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
         
         print("   Selecting Features...")
         # Process: Select Layer By Attribute Activity Code (Select Layer By Attribute) (management)
-        Actv_CommonAttribute_PL_Laye2_2_, Count_3_ = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=Actv_CommonAttribute_PL_Laye2, 
+        usfs_select_activities, Count_3_ = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=usfs_CA, 
             selection_type="SUBSET_SELECTION", 
             where_clause="""ACTIVITY_CODE = '1102' Or 
                             ACTIVITY_CODE = '1111' Or
@@ -150,71 +150,71 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
                             ACTIVITY_CODE = '9400'""", invert_where_clause="")
 
         # Process: Select Layer By Attribute Non-Wildfire (Select Layer By Attribute) (management)
-        usfs_haz_fuels_treatments_re, Count_6_ = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=Actv_CommonAttribute_PL_Laye2_2_, 
+        usfs_non_wildfire = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=usfs_select_activities, 
             selection_type="SUBSET_SELECTION", 
             where_clause="ACTIVITY_CODE = '1117' And FUELS_KEYPOINT_AREA <> '6'", 
             invert_where_clause="INVERT"
             )
         
         # Process: Select Layer By Attribute Non-Wildfire (Select Layer By Attribute) (management)
-        usfs_haz_fuels_treatments_re, Count_6a_ = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=Actv_CommonAttribute_PL_Laye2_2_, 
+        usfs_non_wildfire = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=usfs_non_wildfire, 
             selection_type="SUBSET_SELECTION", 
             where_clause="ACTIVITY_CODE = '1117' And FUELS_KEYPOINT_AREA IS NULL", 
             invert_where_clause="INVERT"
             )
 
         # Process: Select Layer By Attribute Non-Wildfire (Select Layer By Attribute) (management)
-        usfs_haz_fuels_treatments_re2, Count_6b_ = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=usfs_haz_fuels_treatments_re, 
+        usfs_non_wildfire_v2 = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=usfs_non_wildfire, 
             selection_type="SUBSET_SELECTION", 
             where_clause="ACTIVITY_CODE = '1119' And FUELS_KEYPOINT_AREA <> '6'", 
             invert_where_clause="INVERT"
             )
         
         # Process: Select Layer By Attribute Non-Wildfire (Select Layer By Attribute) (management)
-        usfs_haz_fuels_treatments_re3, Count_6c_ = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=usfs_haz_fuels_treatments_re2, 
+        usfs_non_wildfire_v3 = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=usfs_non_wildfire_v2, 
             selection_type="SUBSET_SELECTION", 
             where_clause="ACTIVITY_CODE = '1119' And FUELS_KEYPOINT_AREA IS NULL", 
             invert_where_clause="INVERT"
             )
 
         # Process: Select Layer By Attribute Date is not NULL (Select Layer By Attribute) (management)
-        Actv_CommonAttribute_PL_Laye2_4_, Count_7_ = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=usfs_haz_fuels_treatments_re3, 
+        usfs_non_wildfire_date_not_null = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=usfs_non_wildfire_v3, 
             selection_type="SUBSET_SELECTION", 
             where_clause="DATE_COMPLETED IS NULL And DATE_AWARDED IS NULL And NEPA_SIGNED_DATE IS NULL", 
             invert_where_clause="INVERT"
             )
         
         # Process: Select Layer By Attribute Date (Select Layer By Attribute) (management)
-        Actv_CommonAttribute_PL_Laye2_4_1, Count_7_ = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=Actv_CommonAttribute_PL_Laye2_4_, 
+        usfs_non_wildfire_after_1995 = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=usfs_non_wildfire_date_not_null, 
             selection_type="SUBSET_SELECTION", 
             where_clause="DATE_COMPLETED > timestamp '1995-01-01 00:00:00' Or DATE_COMPLETED IS NULL", 
             invert_where_clause=""
             )
         
         # Process: Copy Features (2) (Copy Features) (management)
-        usfs_haz_fuels_treatments_reduction2_Select2_2_2 = arcpy.management.CopyFeatures(
-            Actv_CommonAttribute_PL_Laye2_4_1, 
-            Output_Feature_Class
+        usfs_non_wildfire_after_1995_copy = arcpy.management.CopyFeatures(
+            usfs_non_wildfire_after_1995, 
+            usfs_intermediate_scratch
             )
         
         print("   Repairing Geometry...")
         # Process: Repair Geometry (Repair Geometry) (management)
-        usfs_haz_fuels_treatments_reduction2_Select2_2_ = arcpy.management.RepairGeometry(
-            in_features=usfs_haz_fuels_treatments_reduction2_Select2_2_2, 
+        usfs_non_wildfire_after_1995_repaired_geom = arcpy.management.RepairGeometry(
+            in_features=usfs_non_wildfire_after_1995_copy, 
             delete_null="KEEP_NULL", 
             validation_method="ESRI"
             )
 
         # Process: Dissolve (Dissolve) (management)
-        usfs_haz_fuels_treatments_reduction2_Select2_2_2_3 = arcpy.management.Dissolve(
-            in_features=usfs_haz_fuels_treatments_reduction2_Select2_2_, 
-            out_feature_class=usfs_haz_fuels_treatments_reduction2_dissolve, 
+        usfs_non_wildfire_after_1995_dissolved = arcpy.management.Dissolve(
+            in_features=usfs_non_wildfire_after_1995_repaired_geom, 
+            out_feature_class=usfs_intermediate_scratch_dissolved, 
             dissolve_field=["SUID", "NEPA_SIGNED_DATE", "DATE_COMPLETED", 
                             "NBR_UNITS_ACCOMPLISHED", "FACTS_ID", "UOM", 
                             "ACTIVITY", "NEPA_PROJECT_NAME", "DATE_AWARDED", 
@@ -228,12 +228,12 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
 
         print("   Adding Fields...")
         # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-        WFRTF_Template_4_ = AddFields2(Input_Table=usfs_haz_fuels_treatments_reduction2_Select2_2_2_3)
+        usfs_non_wildfire_after_1995_w_fields = AddFields(Input_Table=usfs_non_wildfire_after_1995_dissolved)
 
         print("   Transfering Attributes...")
         # Process: Calculate Project ID (Calculate Field) (management)
-        Activity_SilvTSI_20220627_Se2_2_ = arcpy.management.CalculateField(
-            in_table=WFRTF_Template_4_, 
+        usfs_non_wildfire_after_1995_calc_field_v1 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_w_fields, 
             field="PROJECTID_USER", 
             expression="!NEPA_DOC_NBR!", 
             expression_type="PYTHON3", 
@@ -243,8 +243,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Agency (Calculate Field) (management)
-        Updated_Input_Table_30_ = arcpy.management.CalculateField(
-            in_table=Activity_SilvTSI_20220627_Se2_2_, 
+        usfs_non_wildfire_after_1995_calc_field_v2 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v1, 
             field="AGENCY", 
             expression="\"USDA\"", 
             expression_type="PYTHON3", 
@@ -254,8 +254,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Data Steward (Calculate Field) (management)
-        Updated_Input_Table = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_30_, 
+        usfs_non_wildfire_after_1995_calc_field_v3 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v2, 
             field="ORG_ADMIN_p", 
             expression="\"USFS\"", 
             expression_type="PYTHON3", 
@@ -265,8 +265,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Project Contact (Calculate Field) (management)
-        Updated_Input_Table_3_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table, 
+        usfs_non_wildfire_after_1995_calc_field_v4 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v3, 
             field="PROJECT_CONTACT", 
             expression="\"Tawndria Melville\"", 
             expression_type="PYTHON3", 
@@ -276,8 +276,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Project Email (Calculate Field) (management)
-        Updated_Input_Table_5_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_3_, 
+        usfs_non_wildfire_after_1995_calc_field_v5 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v4, 
             field="PROJECT_EMAIL", 
             expression="\"tawndria.melville@usda.gov\"", 
             expression_type="PYTHON3", 
@@ -287,8 +287,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Admin Org (Calculate Field) (management)
-        Updated_Input_Table_31_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_5_, 
+        usfs_non_wildfire_after_1995_calc_field_v6 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v5, 
             field="ADMINISTERING_ORG", 
             expression="\"USFS\"", 
             expression_type="PYTHON3", 
@@ -309,8 +309,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
         #     )
 
         # Process: Calculate Fund Source (Calculate Field) (management)
-        Updated_Input_Table_6_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_31_, 
+        usfs_non_wildfire_after_1995_calc_field_v7 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v6, 
             field="PRIMARY_FUNDING_SOURCE", 
             expression="\"USFS\"", 
             expression_type="PYTHON3", 
@@ -320,8 +320,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Fund Org (Calculate Field) (management)
-        Updated_Input_Table_7_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_6_, 
+        usfs_non_wildfire_after_1995_calc_field_v8 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v7, 
             field="PRIMARY_FUNDING_ORG", 
             expression="\"USFS\"", 
             expression_type="PYTHON3", 
@@ -331,8 +331,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Imp Org (Calculate Field) (management)
-        Updated_Input_Table_32_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_7_, 
+        usfs_non_wildfire_after_1995_calc_field_v9 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v8, 
             field="IMPLEMENTING_ORG", 
             expression="\"Pacific Southwest Regional Office\"", 
             expression_type="PYTHON3", 
@@ -344,8 +344,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
         # Process: Calculate Treatment ID (Calculate Field) (management) after enrichment
         
         # Process: Calculate Data Steward 2 (Calculate Field) (management)
-        Updated_Input_Table_8_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_32_, 
+        usfs_non_wildfire_after_1995_calc_field_v10 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v9, 
             field="ORG_ADMIN_t", 
             expression="\"USFS\"", 
             expression_type="PYTHON3", 
@@ -355,8 +355,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Activity User ID (Calculate Field) (management)
-        Updated_Input_Table_8a_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_8_, 
+        usfs_non_wildfire_after_1995_calc_field_v11 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v10, 
             field="ACTIVID_USER", 
             expression="!SUID!", 
             expression_type="PYTHON3", 
@@ -366,8 +366,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Veg User Defined (Calculate Field) (management)
-        Updated_Input_Table_9_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_8a_, 
+        usfs_non_wildfire_after_1995_calc_field_v12 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v11, 
             field="BVT_USERD", 
             expression="\"NO\"", 
             expression_type="PYTHON3", 
@@ -377,8 +377,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate WUI (Calculate Field) (management)
-        Updated_Input_Table_2a_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_9_, 
+        usfs_non_wildfire_after_1995_calc_field_v13 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v12, 
             field="IN_WUI", 
             expression="ifelse(!ISWUI!)", 
             expression_type="PYTHON3", 
@@ -395,8 +395,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
 
         print("   Calculating End Date...")
         # Process: Calculate Activity End Date (Calculate Field) (management)
-        Updated_Input_Table_2_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_2a_, 
+        usfs_non_wildfire_after_1995_calc_field_v14 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v13, 
             field="ACTIVITY_END", 
             expression="ifelse(!DATE_COMPLETED!, !DATE_AWARDED!)", 
             expression_type="PYTHON3", 
@@ -410,16 +410,16 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
-        usfs_haz_fuels_treatments_re_3_, Count = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=Updated_Input_Table_2_, 
+        usfs_non_wildfire_after_1995_selection = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=usfs_non_wildfire_after_1995_calc_field_v14, 
             selection_type="NEW_SELECTION", 
             where_clause="ACTIVITY_END IS NULL", 
             invert_where_clause=""
             )
 
         # Process: Calculate Activity End Date (4) (Calculate Field) (management)
-        Updated_Input_Table_4_ = arcpy.management.CalculateField(
-            in_table=usfs_haz_fuels_treatments_re_3_, 
+        usfs_non_wildfire_after_1995_calc_field_v15 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_selection, 
             field="ACTIVITY_END", 
             expression="!NEPA_SIGNED_DATE!", 
             expression_type="PYTHON3", 
@@ -429,8 +429,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
-        usfs_silviculture_TSI_dissol_2_, Count_2_ = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=Updated_Input_Table_4_, 
+        usfs_non_wildfire_after_1995_clear_selection = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=usfs_non_wildfire_after_1995_calc_field_v15, 
             selection_type="CLEAR_SELECTION", 
             where_clause="", 
             invert_where_clause=""
@@ -439,8 +439,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
         print("   Calculating Status...")
         # Process: Calculate Status (Calculate Field) (management)
         # Based on Today's Date.  Need to add Date formula
-        Updated_Input_Table_35_ = arcpy.management.CalculateField(
-            in_table=usfs_silviculture_TSI_dissol_2_, 
+        usfs_non_wildfire_after_1995_calc_field_v16 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_clear_selection, 
             field="ACTIVITY_STATUS", 
             expression="ifelse(!DATE_COMPLETED!, !DATE_AWARDED!, !NEPA_SIGNED_DATE!)", 
             expression_type="PYTHON3", 
@@ -460,8 +460,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Activity Quantity (3) (Calculate Field) (management)
-        Activity_SilvTSI_20220627_Se2_6_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_35_, 
+        usfs_non_wildfire_after_1995_calc_field_v17 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v16, 
             field="ACTIVITY_QUANTITY", 
             expression="ifelse(!NBR_UNITS_ACCOMPLISHED!, !NBR_UNITS_PLANNED!)", 
             expression_type="PYTHON3", 
@@ -475,8 +475,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Activity UOM (3) (Calculate Field) (management)
-        Activity_SilvTSI_20220627_Se2_5_ = arcpy.management.CalculateField(
-            in_table=Activity_SilvTSI_20220627_Se2_6_, 
+        usfs_non_wildfire_after_1995_calc_field_v18 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v17, 
             field="ACTIVITY_UOM", 
             expression="!UOM!", 
             expression_type="PYTHON3", 
@@ -486,8 +486,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Admin Org2 (Calculate Field) (management)
-        Updated_Input_Table_10_ = arcpy.management.CalculateField(
-            in_table=Activity_SilvTSI_20220627_Se2_5_, 
+        usfs_non_wildfire_after_1995_calc_field_v19 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v18, 
             field="ADMIN_ORG_NAME", 
             expression="\"USFS\"", 
             expression_type="PYTHON3", 
@@ -497,8 +497,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Implementation Org 2 (Calculate Field) (management)
-        Updated_Input_Table_11_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_10_, 
+        usfs_non_wildfire_after_1995_calc_field_v20 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v19, 
             field="IMPLEM_ORG_NAME", 
             expression="!WORKFORCE_CODE!", 
             expression_type="PYTHON3", 
@@ -508,8 +508,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Primary Fund Source (Calculate Field) (management)
-        Updated_Input_Table_12_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_11_, 
+        usfs_non_wildfire_after_1995_calc_field_v21 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v20, 
             field="PRIMARY_FUND_SRC_NAME", 
             expression="\"USFS\"", 
             expression_type="PYTHON3", 
@@ -519,8 +519,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Fund Org 2 (Calculate Field) (management)
-        Updated_Input_Table_13_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_12_, 
+        usfs_non_wildfire_after_1995_calc_field_v22 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v21, 
             field="PRIMARY_FUND_ORG_NAME", 
             expression="\"USFS\"", 
             expression_type="PYTHON3", 
@@ -530,8 +530,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
         
         # Process: Calculate Activity Name (Calculate Field) (management)
-        Updated_Input_Table_14_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_13_, 
+        usfs_non_wildfire_after_1995_calc_field_v23 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v22, 
             field="ACTIVITY_NAME", 
             expression="None", 
             expression_type="PYTHON3", 
@@ -541,8 +541,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Source (Calculate Field) (management)
-        Updated_Input_Table_36_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_14_, 
+        usfs_non_wildfire_after_1995_calc_field_v24 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v23, 
             field="Source", 
             expression="\"usfs_treatments\"", 
             expression_type="PYTHON3", 
@@ -552,8 +552,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Year (Calculate Field) (management)
-        Updated_Input_Table_15_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_36_, 
+        usfs_non_wildfire_after_1995_calc_field_v25 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v24, 
             field="Year", 
             expression="Year($feature.ACTIVITY_END)", 
             expression_type="ARCADE", 
@@ -563,8 +563,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Crosswalk (Calculate Field) (management)
-        Updated_Input_Table_39_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_15_, 
+        usfs_non_wildfire_after_1995_calc_field_v26 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v25, 
             field="Crosswalk", 
             expression="ifelse(!ACTIVITY!)", 
             expression_type="PYTHON3", 
@@ -576,8 +576,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
         
         # Process: Treatment Geometry (Calculate Field) (management)
-        Updated_Input_Table_40_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_39_, 
+        usfs_non_wildfire_after_1995_calc_field_v27 = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v26, 
             field="TRMT_GEOM", 
             expression="ifelse(!ACTIVITY!)", 
             expression_type="PYTHON3", 
@@ -594,8 +594,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
         
 
         # Process: Calculate USFS Activity Code (Calculate Field) (management)
-        Updated_Input_Table_41_ = arcpy.management.CalculateField(
-           in_table=Updated_Input_Table_40_, 
+        usfs_non_wildfire_after_1995_calc_field_v28 = arcpy.management.CalculateField(
+           in_table=usfs_non_wildfire_after_1995_calc_field_v27, 
            field="Act_Code", 
            expression="!ACTIVITY_CODE!", 
            expression_type="PYTHON3",
@@ -606,30 +606,30 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
 
         # Process: Copy Features (Copy Features) (management)
         arcpy.management.CopyFeatures(
-            in_features=Updated_Input_Table_41_, 
-            out_feature_class=Actv_CommonAttribute_PL_Laye_CopyFeatures2 
+            in_features=usfs_non_wildfire_after_1995_calc_field_v28, 
+            out_feature_class=usfs_scratch_standardized
             )
 
         # Process: Delete Field (Delete Field) (management)
-        usfs_haz_fuels_treatments_re_2_ = KeepFields(Actv_CommonAttribute_PL_Laye_CopyFeatures2)
+        usfs_scratch_standardized_keep_fields = KeepFields(usfs_scratch_standardized)
 
         print(f'Saving Output Standardized: {output_standardized}')
         # Process: Select by Years (Select) (analysis)
         arcpy.analysis.Select(
-            in_features=usfs_haz_fuels_treatments_re_2_, 
+            in_features=usfs_scratch_standardized_keep_fields, 
             out_feature_class=output_standardized, 
             where_clause="Year >= 1995 And Year <= 2025"
             )
 
         # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
-        usfs_silviculture_reforestation_enriched_20220629_2a_ = AssignDomains(
+        usfs_standardized_w_domains = AssignDomains(
             in_table=output_standardized
             )
 
         # print("Enriching Dataset")
         # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon) (PC414CWIMillionAcres)
-        aEnrichmentsPolygon1(
-            enrich_in=usfs_silviculture_reforestation_enriched_20220629_2a_,
+        enrich_polygons(
+            enrich_in=usfs_standardized_w_domains,
             enrich_out=output_enriched            
             )
         
@@ -652,9 +652,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
         
         # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
-        AssignDomains(
-            in_table=output_enriched
-            )
+        AssignDomains(in_table=output_enriched)
         
         # print('   Deleting Scratch Files')
         delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')

@@ -1,9 +1,9 @@
 """
 """
 import arcpy
-from scripts._1b_add_fields import AddFields2
+from scripts._1b_add_fields import AddFields
 from scripts._2b_assign_domains import AssignDomains
-from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
+from scripts._7a_enrichments_polygon import enrich_polygons
 from scripts.utils import runner, init_gdb
 from sys import argv
 import os
@@ -38,7 +38,7 @@ def CalVTP(CalVTP_enriched,
                                               new_field_name="County_")[0]
 
     # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-    CalVTP_add_fields = AddFields2(Input_Table=CALVTP_alter_field)[0]
+    CalVTP_add_fields = AddFields(Input_Table=CALVTP_alter_field)[0]
 
     # Process: Calculate Project User ID (Calculate Field) (management)
     CALVTP_calc_proj_user_id = arcpy.management.CalculateField(in_table=CalVTP_add_fields, 
@@ -196,7 +196,7 @@ def CalVTP(CalVTP_enriched,
     CalVTP_Standardized = AssignDomains(WFR_TF_Template=CalVTP_standardized.__str__().format(**locals(),**globals()))[0]
 
     # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
-    aEnrichmentsPolygon1(enrich_out=CalVTP_enriched_scratch, 
+    enrich_polygons(enrich_out=CalVTP_enriched_scratch, 
                          enrich_in=CalVTP_Standardized)
 
     # Process: Copy Features (3) (Copy Features) (management)

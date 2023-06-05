@@ -1,9 +1,9 @@
 """
 """
 import arcpy
-from scripts._1b_add_fields import AddFields2
+from scripts._1b_add_fields import AddFields
 from scripts._2b_assign_domains import AssignDomains
-from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
+from scripts._7a_enrichments_polygon import enrich_polygons
 from scripts.utils import runner, init_gdb
 from sys import argv
 import os
@@ -50,7 +50,7 @@ def TahoeFF6(TahoeFF_Tx_enriched,
                                                                              new_field_alias="YEAR_")
 
         # Process: 1b Add Fields (2) (1b Add Fields) (PC414CWIMillionAcres)
-        TahoeFF_add_fields = AddFields2(Input_Table=TahoeFF_alter_year)
+        TahoeFF_add_fields = AddFields(Input_Table=TahoeFF_alter_year)
 
         # Process: Calculate Project ID (Calculate Field) (management)
         Tahoe_calc_proj_id = arcpy.management.CalculateField(in_table=TahoeFF_add_fields, 
@@ -370,7 +370,7 @@ def Reclass(JURIS):
                                                                                       method="KEEP_FIELDS")
 
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
-        aEnrichmentsPolygon1(enrich_out=TahoeFF_enriched_scratch, 
+        enrich_polygons(enrich_out=TahoeFF_enriched_scratch, 
                              enrich_in=TahoeFF_Tx_standardized_keep_fields)
 
         # Process: Copy Features (2) (Copy Features) (management)

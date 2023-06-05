@@ -1,7 +1,7 @@
 import arcpy
-from ._1b_add_fields import AddFields2
+from ._1b_add_fields import AddFields
 from ._2b_assign_domains import AssignDomains
-from ._7a_enrichments_polygon import aEnrichmentsPolygon1
+from ._7a_enrichments_polygon import enrich_polygons
 from ._2k_keep_fields import KeepFields
 from sys import argv
 from .utils import init_gdb, delete_scratch_files, runner
@@ -82,7 +82,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
         )
 
     # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-    WFRTF_Template_4_ = AddFields2(Input_Table=FLAT_FUELSTREATMENT_PAS_disso_3_)
+    WFRTF_Template_4_ = AddFields(Input_Table=FLAT_FUELSTREATMENT_PAS_disso_3_)
 
     # Process: Calculate Project ID (Calculate Field) (management)
     Activity_SilvTSI_20220627_Se2_2_ = arcpy.management.CalculateField(
@@ -380,7 +380,7 @@ def rFlatFuelsTreatmentDraft(input_fc, output_standardized,output_enriched):
     
     print('Performing Enrichments')
     # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon) (PC414CWIMillionAcres)
-    aEnrichmentsPolygon1(enrich_out=Veg_Summarized_Polygons2, enrich_in=FLAT_FUELSTREATMENT_PAS_disso_2_)
+    enrich_polygons(enrich_out=Veg_Summarized_Polygons2, enrich_in=FLAT_FUELSTREATMENT_PAS_disso_2_)
 
     print(f'Saving Output Enriched: {output_enriched}')
     # Process: Copy Features (Copy Features) (management)

@@ -1,9 +1,9 @@
 """
 """
 import arcpy
-from scripts._1b_add_fields import AddFields2
+from scripts._1b_add_fields import AddFields
 from scripts._2b_assign_domains import AssignDomains
-from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
+from scripts._7a_enrichments_polygon import enrich_polygons
 from scripts.utils import runner, init_gdb
 from sys import argv
 import os
@@ -71,7 +71,7 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
                                                                new_field_name="County_")
 
         # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-        WCB_add_fields = AddFields2(Input_Table=WCB_Dissolve_alter_field_2)
+        WCB_add_fields = AddFields(Input_Table=WCB_Dissolve_alter_field_2)
 
         # Process: Calculate Project ID User (Calculate Field) (management)
         WCB_calc_proj_id_user = arcpy.management.CalculateField(in_table=WCB_add_fields, 
@@ -278,7 +278,7 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
         WCB_w_domains = AssignDomains(in_table=WCB_standardized_keep_fields)[0]
 
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
-        aEnrichmentsPolygon1(enrich_out=WCB_enriched_scratch, 
+        enrich_polygons(enrich_out=WCB_enriched_scratch, 
                              enrich_in=WCB_w_domains)
 
         # Process: Select Layer By Attribute (3) (Select Layer By Attribute) (management)

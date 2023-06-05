@@ -6,7 +6,7 @@ from ._2k_keep_fields import KeepFields
 import time
 original_gdb, workspace, scratch_workspace = init_gdb()
 
-def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-Draft
+def ACCG(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-Draft
     start = time.time()
     print(f'Start Time {time.ctime()}')
     arcpy.env.overwriteOutput = True
@@ -16,7 +16,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
     # _scratchgdb_ = f"{arcpy.env.scratchGDB}" replaced with "scratch_workspace"
     Fuels_Treatments_Piles_Crosswalk = os.path.join(workspace, "Fuels_Treatments_Piles_Crosswalk")
     # PC414_CWI_Million_Acres_gdb = "C:\\Users\\sageg\\SIG Dropbox\\Carl Rudeen\\PC414 Million Acre\\PC414 CWI Million Acres.gdb" replaced with "workspace"
-    California_2_ = os.path.join(workspace, "b_Reference", "California")
+    California = os.path.join(workspace, "b_Reference", "California")
 
     # Process: Table To Table (Table To Table) (conversion)
     ACCG_Project_table = arcpy.conversion.TableToTable(in_rows=input_fc,
@@ -35,7 +35,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                where_clause="PROCLAIMED_FOREST_CODE = '0417' Or PROCLAIMED_FOREST_CODE = '0501' Or PROCLAIMED_FOREST_CODE = '0502' Or PROCLAIMED_FOREST_CODE = '0503' Or PROCLAIMED_FOREST_CODE = '0504' Or PROCLAIMED_FOREST_CODE = '0505' Or PROCLAIMED_FOREST_CODE = '0506' Or PROCLAIMED_FOREST_CODE = '0507' Or PROCLAIMED_FOREST_CODE = '0508' Or PROCLAIMED_FOREST_CODE = '0509' Or PROCLAIMED_FOREST_CODE = '0510' Or PROCLAIMED_FOREST_CODE = '0511' Or PROCLAIMED_FOREST_CODE = '0512' Or PROCLAIMED_FOREST_CODE = '0513' Or PROCLAIMED_FOREST_CODE = '0514' Or PROCLAIMED_FOREST_CODE = '0515' Or PROCLAIMED_FOREST_CODE = '0516' Or PROCLAIMED_FOREST_CODE = '0517' Or PROCLAIMED_FOREST_CODE = '0519' Or PROCLAIMED_FOREST_CODE = '0602' Or PROCLAIMED_FOREST_CODE = '0610'")
 
     # Process: Add Projects Fields (multiple) (2) (Add Fields (multiple)) (management)
-    WFR_TF_Template_2_ = arcpy.management.AddFields(in_table=ACCG_Project_table2, 
+    accg_project_table_add_fields = arcpy.management.AddFields(in_table=ACCG_Project_table2, 
                                                     field_description=[["Prj_ID", "TEXT", "Project ID", "50", "", ""], 
                                                                        ["Prj_Name", "TEXT", "Project Name", "150", "", ""], 
                                                                        ["Prj_FundNM", "TEXT", "Primary Funding Source Name", "130", "", ""], 
@@ -53,7 +53,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                        template=[])
 
     # Process: Add Treatments Fields (multiple) (2) (Add Fields (multiple)) (management)
-    Updated_Input_Table_26_ = arcpy.management.AddFields(in_table=WFR_TF_Template_2_, 
+    accg_project_table_add_fields_v2 = arcpy.management.AddFields(in_table=accg_project_table_add_fields, 
                                                          field_description=[["TreatID", "TEXT", "TreatmentID", "50", "", ""], 
                                                                             ["Treat_Name", "TEXT", "Treatment Name", "100", "", ""], 
                                                                             ["County", "TEXT", "County", "35", "", "County"], 
@@ -71,7 +71,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                             template=[])
 
     # Process: Add Activities Fields (multiple) (2) (Add Fields (multiple)) (management)
-    Updated_Input_Table_2_ = arcpy.management.AddFields(in_table=Updated_Input_Table_26_, 
+    accg_project_table_add_fields_v3 = arcpy.management.AddFields(in_table=accg_project_table_add_fields_v2, 
                                                         field_description=[["ActivityID", "TEXT", "Activity Id", "50", "", ""], 
                                                                            ["Act_Name", "TEXT", "Activity Name", "100", "", ""], 
                                                                            ["P_Fund_Src", "TEXT", "Primary Funding Source Name", "100", "", ""], 
@@ -101,7 +101,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                            template=[])
 
     # Process: Calculate Admin Org (2) (Calculate Field) (management)
-    Updated_Input_Table_3_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_2_, 
+    accg_project_table_calc_field_v1 = arcpy.management.CalculateField(in_table=accg_project_table_add_fields_v3, 
                                                              field="Prj_Admin", 
                                                              expression="!ORGANIZATI!", 
                                                              expression_type="PYTHON3", 
@@ -110,7 +110,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Reporting Org (2) (Calculate Field) (management)
-    Updated_Input_Table_18_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_3_, 
+    accg_project_table_calc_field_v2 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v1, 
                                                               field="Prj_RptOrg", 
                                                               expression="!ORGANIZATI!", 
                                                               expression_type="PYTHON3", 
@@ -119,7 +119,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Field (Calculate Field) (management)
-    ACCG_Project_table2_3_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_18_, 
+    accg_project_table_calc_field_v3 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v2, 
                                                              field="Prj_Name", 
                                                              expression="!NAME!", 
                                                              expression_type="PYTHON3", 
@@ -128,7 +128,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Projet ID (2) (Calculate Field) (management)
-    usfs_haz_fuels_treatments_reduction2_3_ = arcpy.management.CalculateField(in_table=ACCG_Project_table2_3_, 
+    accg_project_table_calc_field_v4 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v3, 
                                                                               field="Prj_ID", 
                                                                               expression="!OBJECTID!", 
                                                                               expression_type="PYTHON3", 
@@ -137,7 +137,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Treatment ID (2) (Calculate Field) (management)
-    usfs_haz_fuels_treatments_reduction2_5_ = arcpy.management.CalculateField(in_table=usfs_haz_fuels_treatments_reduction2_3_, 
+    accg_project_table_calc_field_v5 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v4, 
                                                                               field="TreatmentID", 
                                                                               expression="!MAINTENANC!", 
                                                                               expression_type="PYTHON3", 
@@ -146,7 +146,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity UOM (2) (Calculate Field) (management)
-    Updated_Input_Table_21_ = arcpy.management.CalculateField(in_table=usfs_haz_fuels_treatments_reduction2_5_, 
+    accg_project_table_calc_field_v6 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v5, 
                                                               field="UOM_", 
                                                               expression="!ACRES!", 
                                                               expression_type="PYTHON3", 
@@ -155,7 +155,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity Quantity (2) (Calculate Field) (management)
-    Updated_Input_Table_22_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_21_, 
+    accg_project_table_calc_field_v7 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v6, 
                                                               field="Act_Quant", 
                                                               expression="!ACRES!", 
                                                               expression_type="PYTHON3", 
@@ -164,7 +164,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Field (5) (Calculate Field) (management)
-    ACCG_Project_table2_4_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_22_, 
+    accg_project_table_calc_field_v8 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v7, 
                                                              field="Act_Code", 
                                                              expression="\"NULL\"", 
                                                              expression_type="PYTHON3", 
@@ -173,7 +173,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity End Date (3) (Calculate Field) (management)
-    usfs_haz_fuels_treatments_reduction2_7_ = arcpy.management.CalculateField(in_table=ACCG_Project_table2_4_, 
+    accg_project_table_calc_field_v9 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v8, 
                                                                               field="Act_End", 
                                                                               expression="ifelse(!DATE_COMPLETED!, !DATE_AWARDED!, !DATE_PLANNED!)", 
                                                                               expression_type="PYTHON3", 
@@ -188,7 +188,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity End Date (4) (Calculate Field) (management)
-    Updated_Input_Table_5_ = arcpy.management.CalculateField(in_table=usfs_haz_fuels_treatments_reduction2_7_, 
+    accg_project_table_calc_field_v10 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v9, 
                                                              field="Act_End", 
                                                              expression="ifelse(!DATE_COMPLETED!, !DATE_AWARDED!)", 
                                                              expression_type="PYTHON3", 
@@ -202,13 +202,14 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Select Layer By Attribute (3) (Select Layer By Attribute) (management)
-    usfs_silviculture_TSI_dissol_3_, Count_3_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Updated_Input_Table_5_, 
+    accg_project_table_select = arcpy.management.SelectLayerByAttribute(in_layer_or_view=accg_project_table_calc_field_v10, 
                                                                                         selection_type="NEW_SELECTION", 
                                                                                         where_clause="Act_End IS NULL", 
                                                                                         invert_where_clause="")
 
     # Process: Calculate Activity End Date (5) (Calculate Field) (management)
-    Updated_Input_Table_6_ = arcpy.management.CalculateField(in_table=usfs_silviculture_TSI_dissol_3_, field="Act_End", 
+    accg_project_table_calc_field_v11 = arcpy.management.CalculateField(in_table=accg_project_table_select, 
+                                                             field="Act_End", 
                                                              expression="!DATE_PLANNED!", 
                                                              expression_type="PYTHON3", 
                                                              code_block="", 
@@ -216,13 +217,13 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Select Layer By Attribute (4) (Select Layer By Attribute) (management)
-    usfs_silviculture_TSI_dissol_4_, Count_4_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Updated_Input_Table_6_, 
+    accg_project_table_calc_field_v12 = arcpy.management.SelectLayerByAttribute(in_layer_or_view=accg_project_table_calc_field_v11, 
                                                                                         selection_type="CLEAR_SELECTION", 
                                                                                         where_clause="", 
                                                                                         invert_where_clause="")
 
     # Process: Calculate Status (2) (Calculate Field) (management)
-    usfs_haz_fuels_treatments_reduction2_8_ = arcpy.management.CalculateField(in_table=usfs_silviculture_TSI_dissol_4_, 
+    accg_project_table_calc_field_v13 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v12, 
                                                                               field="Act_Status", 
                                                                               expression="ifelse(!DATE_COMPLETED!, !DATE_AWARDED!, !DATE_PLANNED!)", 
                                                                               expression_type="PYTHON3", 
@@ -242,7 +243,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                                 enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Source (2) (Calculate Field) (management)
-    Updated_Input_Table_23_ = arcpy.management.CalculateField(in_table=usfs_haz_fuels_treatments_reduction2_8_, 
+    accg_project_table_calc_field_v14 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v13, 
                                                               field="Source", 
                                                               expression="\"usfs_timber_harvests\"", 
                                                               expression_type="PYTHON3", 
@@ -251,7 +252,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Year (2) (Calculate Field) (management)
-    Updated_Input_Table_24_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_23_, 
+    accg_project_table_calc_field_v15 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v14, 
                                                               field="Year", 
                                                               expression="Year($feature.Act_End)", 
                                                               expression_type="ARCADE", 
@@ -260,7 +261,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Year Text (2) (Calculate Field) (management)
-    Updated_Input_Table_25_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_24_, 
+    accg_project_table_calc_field_v16 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v15, 
                                                               field="Year_txt", 
                                                               expression="!Year!", 
                                                               expression_type="PYTHON3", 
@@ -269,7 +270,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Crosswalk (2) (Calculate Field) (management)
-    Updated_Input_Table_27_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_25_, 
+    accg_project_table_calc_field_v17 = arcpy.management.CalculateField(in_table=accg_project_table_calc_field_v16, 
                                                               field="Crosswalk", 
                                                               expression="!ACTIVITY_NAME!", 
                                                               expression_type="PYTHON3", 
@@ -278,7 +279,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="ENFORCE_DOMAINS")
 
     # Process: Add Join (Add Join) (management)
-    usfs_harvests_table2_View = arcpy.management.AddJoin(in_layer_or_view=Updated_Input_Table_27_, 
+    accg_addjoin = arcpy.management.AddJoin(in_layer_or_view=accg_project_table_calc_field_v17, 
                                                          in_field="Act_Code", 
                                                          join_table=Fuels_Treatments_Piles_Crosswalk, 
                                                          join_field="USFS_Activity_Code", 
@@ -286,7 +287,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                          index_join_fields="NO_INDEX_JOIN_FIELDS")
 
     # Process: Calculate Field (2) (Calculate Field) (management)
-    usfs_harvests_table2_View_2_ = arcpy.management.CalculateField(in_table=usfs_harvests_table2_View, 
+    accg_addjoin_calc_field_v1 = arcpy.management.CalculateField(in_table=accg_addjoin, 
                                                                    field="usfs_harvests_table2.Prim_Obj", 
                                                                    expression="!Fuels_Treatments_Piles_Crosswalk.Objective!", 
                                                                    expression_type="PYTHON3", 
@@ -295,7 +296,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                    enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Field (3) (Calculate Field) (management)
-    usfs_harvests_table2_View_3_ = arcpy.management.CalculateField(in_table=usfs_harvests_table2_View_2_, 
+    accg_addjoin_calc_field_v2 = arcpy.management.CalculateField(in_table=accg_addjoin_calc_field_v1, 
                                                                    field="usfs_harvests_table2.Category", 
                                                                    expression="!Fuels_Treatments_Piles_Crosswalk.Category!", 
                                                                    expression_type="PYTHON3", 
@@ -304,7 +305,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                    enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Field (4) (Calculate Field) (management)
-    usfs_harvests_table2_View_4_ = arcpy.management.CalculateField(in_table=usfs_harvests_table2_View_3_, 
+    accg_addjoin_calc_field_v3 = arcpy.management.CalculateField(in_table=accg_addjoin_calc_field_v2, 
                                                                    field="usfs_harvests_table2.Act_Desc", 
                                                                    expression="!Fuels_Treatments_Piles_Crosswalk.Activity!", 
                                                                    expression_type="PYTHON3", 
@@ -313,16 +314,16 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                    enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Remove Join (Remove Join) (management)
-    Layer_With_Join_Removed = arcpy.management.RemoveJoin(in_layer_or_view=usfs_harvests_table2_View_4_, 
+    accg_removejoin = arcpy.management.RemoveJoin(in_layer_or_view=accg_addjoin_calc_field_v3, 
                                                           join_name="Fuels_Treatments_Piles_Crosswalk")
 
     # Process: Delete Field (Delete Field) (management)
-    usfs_haz_fuels_treatments_re = KeepFields(Layer_With_Join_Removed)
+    accg_keepfields = KeepFields(accg_removejoin)
 
     # Process: Table To Table (2) (Table To Table) (conversion)
-    usfs_timber_harvest_table_standardized_20220715 = arcpy.conversion.TableToTable(in_rows=usfs_haz_fuels_treatments_re, 
+    accg_copy = arcpy.conversion.TableToTable(in_rows=accg_keepfields, 
                                                                                     out_path=workspace, 
-                                                                                    out_name="usfs_timber_harvest_table_standardized_20220715", 
+                                                                                    out_name="accg_copy", 
                                                                                     where_clause="", 
                                                                                     field_mapping="", 
                                                                                     config_keyword="")
@@ -335,21 +336,21 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                           where_clause="DATE_COMPLETED > timestamp '1995-01-01 00:00:00' Or DATE_COMPLETED IS NULL")
 
     # Process: Repair Geometry (2) (Repair Geometry) (management)
-    Repaired_Input_Features_2_ = arcpy.management.RepairGeometry(in_features=ACCG_Project_Select, 
+    accg_select_repair_geom = arcpy.management.RepairGeometry(in_features=ACCG_Project_Select, 
                                                                  delete_null="DELETE_NULL", 
                                                                  validation_method="ESRI")
 
     # Process: Pairwise Clip (Pairwise Clip) (analysis)
     ACCG_Project_clip = os.path.join(scratch_workspace, "ACCG_Project_clip")
-    arcpy.analysis.PairwiseClip(in_features=Repaired_Input_Features_2_, 
-                                clip_features=California_2_, 
+    arcpy.analysis.PairwiseClip(in_features=accg_select_repair_geom, 
+                                clip_features=California, 
                                 out_feature_class=ACCG_Project_clip, 
                                 cluster_tolerance="")
 
     # Process: Dissolve (Dissolve) (management)
-    ACCG_Project_TSI_dissolve = os.path.join(scratch_workspace, "ACCG_Project_TSI_dissolve")
+    ACCG_Project_dissolved = os.path.join(scratch_workspace, "ACCG_Project_dissolved")
     arcpy.management.Dissolve(in_features=ACCG_Project_clip, 
-                              out_feature_class=ACCG_Project_TSI_dissolve, 
+                              out_feature_class=ACCG_Project_dissolved, 
                               dissolve_field=["OBJECTID_1", 
                                               "ACRES", 
                                               "STATUS", 
@@ -371,7 +372,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                               concatenation_separator="")
 
     # Process: Add Projects Fields (multiple) (3) (Add Fields (multiple)) (management)
-    Updated_Input_Table_28_ = arcpy.management.AddFields(in_table=ACCG_Project_TSI_dissolve, 
+    accg_project_fields = arcpy.management.AddFields(in_table=ACCG_Project_dissolved, 
                                                          field_description=[["Prj_ID", "TEXT", "Project ID", "50", "", ""], 
                                                                             ["Prj_Name", "TEXT", "Project Name", "150", "", ""], 
                                                                             ["Prj_FundNM", "TEXT", "Primary Funding Source Name", "130", "", ""], 
@@ -389,7 +390,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                             template=[])
 
     # Process: Add Treatments Fields (multiple) (3) (Add Fields (multiple)) (management)
-    Updated_Input_Table = arcpy.management.AddFields(in_table=Updated_Input_Table_28_, 
+    accg_treatment_fields = arcpy.management.AddFields(in_table=accg_project_fields, 
                                                      field_description=[["TreatID", "TEXT", "TreatmentID", "50", "", ""], 
                                                                         ["Treat_Name", "TEXT", "Treatment Name", "100", "", ""], 
                                                                         ["County", "TEXT", "County", "35", "", ""], 
@@ -407,7 +408,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                      template=[])
 
     # Process: Add Activities Fields (multiple) (3) (Add Fields (multiple)) (management)
-    Updated_Input_Table_29_ = arcpy.management.AddFields(in_table=Updated_Input_Table, 
+    accg_activity_fields = arcpy.management.AddFields(in_table=accg_treatment_fields, 
                                                          field_description=[["ActivityID", "TEXT", "Activity Id", "50", "", ""], 
                                                                             ["Act_Name", "TEXT", "Activity Name", "100", "", ""], 
                                                                             ["P_Fund_Src", "TEXT", "Primary Funding Source Name", "100", "", ""], 
@@ -439,7 +440,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                             template=[])
 
     # Process: Calculate Admin Org (3) (Calculate Field) (management)
-    Updated_Input_Table_30_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_29_, 
+    accg_calc_field_v1 = arcpy.management.CalculateField(in_table=accg_activity_fields, 
                                                               field="Admin_Org", 
                                                               expression="!ORGANIZATI!", 
                                                               expression_type="PYTHON3", 
@@ -448,7 +449,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Reporting Org (3) (Calculate Field) (management)
-    Updated_Input_Table_31_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_30_, 
+    accg_calc_field_v2 = arcpy.management.CalculateField(in_table=accg_calc_field_v1, 
                                                               field="Prj_RptOrg", 
                                                               expression="!ORGANIZATI!", 
                                                               expression_type="PYTHON3", 
@@ -457,7 +458,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Imp Org (3) (Calculate Field) (management)
-    Updated_Input_Table_32_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_31_, 
+    accg_calc_field_v3 = arcpy.management.CalculateField(in_table=accg_calc_field_v2, 
                                                               field="Imp_Org", 
                                                               expression="!ORGANIZATI!", 
                                                               expression_type="PYTHON3", 
@@ -466,7 +467,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Project Name (Calculate Field) (management)
-    Updated_Input_Table_33_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_32_, 
+    accg_calc_field_v4 = arcpy.management.CalculateField(in_table=accg_calc_field_v3, 
                                                               field="Prj_Name", 
                                                               expression="!PROJECT!", 
                                                               expression_type="PYTHON3", 
@@ -475,7 +476,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Project ID (Calculate Field) (management)
-    Activity_SilvTSI_20220627_Se2_2_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_33_, 
+    accg_calc_field_v5 = arcpy.management.CalculateField(in_table=accg_calc_field_v4, 
                                                                        field="Prj_ID", 
                                                                        expression="!OBJECTID!", 
                                                                        expression_type="PYTHON3", 
@@ -484,7 +485,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                        enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Treatment ID (3) (Calculate Field) (management)
-    Activity_SilvTSI_20220627_Se2_3_ = arcpy.management.CalculateField(in_table=Activity_SilvTSI_20220627_Se2_2_, 
+    accg_calc_field_v6 = arcpy.management.CalculateField(in_table=accg_calc_field_v5, 
                                                                        field="TreatID", 
                                                                        expression="!MAINTENANC!", 
                                                                        expression_type="PYTHON3", 
@@ -493,7 +494,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                        enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity UOM (3) (Calculate Field) (management)
-    Activity_SilvTSI_20220627_Se2_5_ = arcpy.management.CalculateField(in_table=Activity_SilvTSI_20220627_Se2_3_, 
+    accg_calc_field_v7 = arcpy.management.CalculateField(in_table=accg_calc_field_v6, 
                                                                        field="UOM_", 
                                                                        expression="\"ACRES\"", 
                                                                        expression_type="PYTHON3", 
@@ -502,7 +503,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                        enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity Quantity (3) (Calculate Field) (management)
-    Activity_SilvTSI_20220627_Se2_6_ = arcpy.management.CalculateField(in_table=Activity_SilvTSI_20220627_Se2_5_, 
+    accg_calc_field_v8 = arcpy.management.CalculateField(in_table=accg_calc_field_v7, 
                                                                        field="Act_Quant", 
                                                                        expression="!ACRES!", 
                                                                        expression_type="PYTHON3", 
@@ -511,7 +512,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                        enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Activity End Date (Calculate Field) (management)
-    Updated_Input_Table_34_ = arcpy.management.CalculateField(in_table=Activity_SilvTSI_20220627_Se2_6_, 
+    accg_calc_field_v9 = arcpy.management.CalculateField(in_table=accg_calc_field_v8, 
                                                               field="Act_End", 
                                                               expression="!YEAR! + \"-12-31\"", 
                                                               expression_type="PYTHON3", 
@@ -520,13 +521,13 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
-    ACCG_Project_TSI_dissolve_La, Count = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Updated_Input_Table_34_, 
+    accg_year_not_null = arcpy.management.SelectLayerByAttribute(in_layer_or_view=accg_calc_field_v9, 
                                                                                   selection_type="NEW_SELECTION", 
                                                                                   where_clause="YEAR IS NOT NULL", 
                                                                                   invert_where_clause="")
 
     # Process: Calculate Activity End Date (2) (Calculate Field) (management)
-    Updated_Input_Table_4_ = arcpy.management.CalculateField(in_table=ACCG_Project_TSI_dissolve_La, 
+    accg_calc_act_end = arcpy.management.CalculateField(in_table=accg_year_not_null, 
                                                              field="Act_End", 
                                                              expression="!YEAR! + \"-12-31\"", 
                                                              expression_type="PYTHON3", 
@@ -535,13 +536,13 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                              enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
-    usfs_silviculture_TSI_dissol_2_, Count_2_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Updated_Input_Table_4_, 
+    accg_clear_selection = arcpy.management.SelectLayerByAttribute(in_layer_or_view=accg_calc_act_end, 
                                                                                         selection_type="CLEAR_SELECTION", 
                                                                                         where_clause="", 
                                                                                         invert_where_clause="")
 
     # Process: Calculate Status (3) (Calculate Field) (management)
-    Updated_Input_Table_35_ = arcpy.management.CalculateField(in_table=usfs_silviculture_TSI_dissol_2_, 
+    accg_calc_status = arcpy.management.CalculateField(in_table=accg_clear_selection, 
                                                               field="Act_Status", 
                                                               expression="ifelse(!STATUS!)", 
                                                               expression_type="PYTHON3", 
@@ -561,7 +562,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Source (3) (Calculate Field) (management)
-    Updated_Input_Table_36_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_35_, 
+    accg_calc_src = arcpy.management.CalculateField(in_table=accg_calc_status, 
                                                               field="Source", 
                                                               expression="\"ACCG_Stakeholder\"", 
                                                               expression_type="PYTHON3", 
@@ -570,7 +571,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Year (3) (Calculate Field) (management)
-    Updated_Input_Table_37_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_36_, 
+    accg_calc_year = arcpy.management.CalculateField(in_table=accg_calc_src, 
                                                               field="Year", 
                                                               expression="Year($feature.Act_End)", 
                                                               expression_type="ARCADE", 
@@ -579,7 +580,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Year Text (3) (Calculate Field) (management)
-    Updated_Input_Table_38_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_37_, 
+    accg_calc_text = arcpy.management.CalculateField(in_table=accg_calc_year, 
                                                               field="Year_txt", 
                                                               expression="!Year!", 
                                                               expression_type="PYTHON3", 
@@ -588,7 +589,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Crosswalk (3) (Calculate Field) (management)
-    Updated_Input_Table_39_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_38_, 
+    accg_calc_xwalk = arcpy.management.CalculateField(in_table=accg_calc_text, 
                                                               field="Crosswalk", 
                                                               expression="!ACTIVITY!", 
                                                               expression_type="PYTHON3", 
@@ -597,7 +598,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                               enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate USFS Activity Code (Calculate Field) (management)
-    usfs_silviculture_TSI_dissolve_2_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_39_, 
+    accg_calc_usfs_act_code = arcpy.management.CalculateField(in_table=accg_calc_xwalk, 
                                                                         field="Act_Code", 
                                                                         expression="\"NULL\"", 
                                                                         expression_type="PYTHON3", 
@@ -606,7 +607,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                         enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate Geometry Attributes (3) (Calculate Geometry Attributes) (management)
-    Activity_SilvTSI_20220627_dissolve_4_ = arcpy.management.CalculateGeometryAttributes(in_features=usfs_silviculture_TSI_dissolve_2_, 
+    accg_calc_latlong = arcpy.management.CalculateGeometryAttributes(in_features=accg_calc_usfs_act_code, 
                                                                                          geometry_property=[["Lat", "INSIDE_Y"], 
                                                                                                             ["Lon", "INSIDE_X"]], 
                                                                                          length_unit="", 
@@ -614,7 +615,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
                                                                                          coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", coordinate_format="DD")
 
     # Process: Calculate Geometry Attributes (4) (Calculate Geometry Attributes) (management)
-    Activity_SilvTSI_20220627_dissolve_3_ = arcpy.management.CalculateGeometryAttributes(in_features=Activity_SilvTSI_20220627_dissolve_4_, 
+    accg_calc_acres = arcpy.management.CalculateGeometryAttributes(in_features=accg_calc_latlong, 
                                                                                          geometry_property=[["Treat_Acre", "AREA"]], 
                                                                                          length_unit="", 
                                                                                          area_unit="ACRES", 
@@ -622,7 +623,7 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
 
     # Process: Copy Features (3) (Copy Features) (management)
     # ACCG_Stakeholder_standardized_20220828 = os.path.join(scratch_workspace, "ACCG_Stakeholder_standardized_20220828")
-    arcpy.management.CopyFeatures(in_features=Activity_SilvTSI_20220627_dissolve_3_, 
+    arcpy.management.CopyFeatures(in_features=accg_calc_acres, 
                                   out_feature_class=output_standardized, 
                                   config_keyword="", 
                                   spatial_grid_1=None, 
@@ -634,10 +635,10 @@ def pACCGStakeholderDraft(input_fc,output_standardized):  # 6p_ACCG_Stakeholder-
     
     end = time.time()
     print(f'Time Elapsed: {(end-start)/60} minutes')
-    return usfs_timber_harvest_table_standardized_20220715
+    return accg_copy
 
 if __name__ == '__main__':
-    runner(workspace,scratch_workspace,pACCGStakeholderDraft, '*argv[1:]')
+    runner(workspace,scratch_workspace,ACCG, '*argv[1:]')
     # # Global Environment settings
     # with arcpy.EnvManager(
     # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
@@ -647,4 +648,4 @@ if __name__ == '__main__':
     # transferDomains=True, 
     # transferGDBAttributeProperties=True, 
     # workspace=workspace):
-    #     pACCGStakeholderDraft(*argv[1:])
+    #     ACCG(*argv[1:])

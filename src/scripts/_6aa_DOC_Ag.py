@@ -1,9 +1,9 @@
 """
 """
 import arcpy
-from scripts._1b_add_fields import AddFields2
+from scripts._1b_add_fields import AddFields
 from scripts._2b_assign_domains import AssignDomains
-from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
+from scripts._7a_enrichments_polygon import enrich_polygons
 from scripts.utils import runner, init_gdb
 from sys import argv
 import os
@@ -42,7 +42,7 @@ def DOC6(DOC_Ag_Standardized,
         DOC_Repaired_Geometry = arcpy.management.RepairGeometry(in_features=DOC_Ag_OG_Dissolve)
 
         # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-        DOC_w_Fields = AddFields2(Input_Table=DOC_Repaired_Geometry)
+        DOC_w_Fields = AddFields(Input_Table=DOC_Repaired_Geometry)
 
         # Process: Calculate Project ID (Calculate Field) (management)
         DOC_calc_proj_id = arcpy.management.CalculateField(in_table=DOC_w_Fields, 
@@ -134,7 +134,7 @@ def DOC6(DOC_Ag_Standardized,
                                       out_feature_class=DOC_Ag_Standardized.__str__().format(**locals(),**globals()))
 
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
-        aEnrichmentsPolygon1(enrich_out=DOC_Summarized_Polygons, 
+        enrich_polygons(enrich_out=DOC_Summarized_Polygons, 
                              enrich_in=DOC_Ag_Standardized.__str__().format(**locals(),**globals()))
 
         # Process: Copy Features (2) (Copy Features) (management)

@@ -1,7 +1,7 @@
 import arcpy
-from ._1b_add_fields import AddFields2
+from ._1b_add_fields import AddFields
 from ._2b_assign_domains import AssignDomains
-from ._7b_enrichments_pts import bEnrichmentsPoints
+from ._7b_enrichments_pts import enrich_points
 from ._2k_keep_fields import KeepFields
 import os
 from sys import argv
@@ -53,7 +53,7 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
                                                                       clear_field_alias="DO_NOT_CLEAR")
 
         # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-        WFRTF_Template_4_ = AddFields2(Input_Table=PFIRS_2018_2022_CopyFeatures_2_)
+        WFRTF_Template_4_ = AddFields(Input_Table=PFIRS_2018_2022_CopyFeatures_2_)
 
         # Process: Calculate Project ID (Calculate Field) (management)
         Activity_SilvTSI_20220627_Se2_2_ = arcpy.management.CalculateField(in_table=WFRTF_Template_4_, 
@@ -322,7 +322,7 @@ def Model72(input_fc, output_standardized, output_enriched, treat_poly):
         print('Performing Enrichments')
         # Process: 7b Enrichments pts (7b Enrichments pts) (PC414CWIMillionAcres)
         # Pts_enrichment_Veg2 = os.path.join(scratch_workspace, "Pts_enrichment_Veg2") # no point in having final output be a scratch file
-        bEnrichmentsPoints(enrich_pts_out=output_enriched, 
+        enrich_points(enrich_pts_out=output_enriched, 
                            enrich_pts_in=output_standardized_copy)
 
         print(f'Saving Output Enriched: {output_enriched}')
