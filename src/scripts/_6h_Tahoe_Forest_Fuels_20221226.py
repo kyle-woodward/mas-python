@@ -103,7 +103,7 @@ def TahoeFF6(TahoeFF_Tx_enriched,
                                                                   expression="ifelse(!YEAR_!)", 
                                                                   code_block="""def ifelse(ID):
     if ID == 0:
-        return None
+        return 0
     return ID""")
 
         # Process: Calculate Own Full Null (Calculate Field) (management)
@@ -188,10 +188,10 @@ def Reclass(JURIS):
 
         # Process: Select Layer By State Parks Location (Select Layer By Location) (management)
         print("Executing Step 18/40 : Calculate Select CPAD_Ownership_stateparks...")
-        TahoeFF_select_SP = arcpy.management.SelectLayerByLocation(in_layer=Tahoe_calc_admin_org, 
-                                                                                                         overlap_type="HAVE_THEIR_CENTER_IN", 
-                                                                                                         select_features=CPAD_Ownership_StateParks, 
-                                                                                                         search_distance="1 Meters")
+        TahoeFF_select_SP = arcpy.management.SelectLayerByLocation(in_layer=Tahoe_calc_admin_org,
+                                                                   overlap_type="HAVE_THEIR_CENTER_IN",
+                                                                   select_features=CPAD_Ownership_StateParks,
+                                                                   search_distance="1 Meters")
 
         # Process: Calculate Admin Org Parks (Calculate Field) (management)
         print("Executing Step 19/40 : Calculate ADMINISTERING_ORG...")
@@ -313,6 +313,11 @@ def Reclass(JURIS):
         # Process: Delete Field (Delete Field) (management)
         print("Executing Step 37/40 : Keep Fields...")
         TahoeFF_Tx_standardized_keep_fields = KeepFields(TahoeFF_Tx_standardized.__str__().format(**locals(),**globals()))
+        
+
+        # check_this_out = os.path.join(scratch_workspace, "check_this_one")
+        # arcpy.management.CopyFeatures(in_features=TahoeFF_Tx_standardized_keep_fields, 
+        #                               out_feature_class = check_this_out.__str__().format(**locals(),**globals()))
         
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
         print("Executing Step 38/40 : Enrich Polygons...")
