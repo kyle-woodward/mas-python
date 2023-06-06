@@ -1,10 +1,15 @@
 """
 """
 import arcpy
-from scripts._1b_add_fields import AddFields2
+from scripts._1b_add_fields import AddFields
 from scripts._2b_assign_domains import AssignDomains
+<<<<<<< HEAD
+from scripts._7a_enrichments_polygon import enrich_polygons
+from scripts.utils import runner, init_gdb
+=======
 from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
 from scripts.utils import runner, init_gdb, KeepFields
+>>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
 from sys import argv
 import os
 import datetime
@@ -78,8 +83,12 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
                                                                new_field_name="County_")
 
         # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
+<<<<<<< HEAD
+        WCB_add_fields = AddFields(Input_Table=WCB_Dissolve_alter_field_2)
+=======
         print("Executing Step 8/34 : Add Fields...")
         WCB_add_fields = AddFields2(Input_Table=WCB_Dissolve_alter_field_2)
+>>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
 
         # Process: Calculate Project ID User (Calculate Field) (management)
         print("Executing Step 9/34 : Calculate PROJECTID_USER...")
@@ -216,8 +225,12 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
         WCB_w_domains = AssignDomains(in_table=WCB_standardized_keep_fields)
 
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
+<<<<<<< HEAD
+        enrich_polygons(enrich_out=WCB_enriched_scratch, 
+=======
         print("Executing Step 31/34 : Enrich Polygons...")
         aEnrichmentsPolygon1(enrich_out=WCB_enriched_scratch, 
+>>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
                              enrich_in=WCB_w_domains)
 
         # Process: Select Layer By Attribute (3) (Select Layer By Attribute) (management)

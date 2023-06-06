@@ -8,13 +8,13 @@ def Year(Input_Table):  # 2h Calculate Year
     arcpy.env.overwriteOutput = True
 
     # Process: Calculate Calendar Year (Calculate Field) (management)
-    Updated_Input_Table_5_ = arcpy.management.CalculateField(in_table=Input_Table, field="Year", expression="Year($feature.ACTIVITY_END)", expression_type="ARCADE", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    year_calculated = arcpy.management.CalculateField(in_table=Input_Table, field="Year", expression="Year($feature.ACTIVITY_END)", expression_type="ARCADE", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Year as Text (Calculate Field) (management)
-    Updated_Input_Table_6_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_5_, field="Year_txt", expression="!Year!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
+    year_txt_calculated = arcpy.management.CalculateField(in_table=year_calculated, field="Year_txt", expression="!Year!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")[0]
 
     # Process: Calculate Fed FY (Calculate Field) (management)
-    Veg_Summarized_Polygons_Laye3_8_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_6_, field="Federal_FY", expression="ifelse(!ACTIVITY_END!)", expression_type="PYTHON3", code_block="""def ifelse(DATE):
+    year_fed_fy = arcpy.management.CalculateField(in_table=year_txt_calculated, field="Federal_FY", expression="ifelse(!ACTIVITY_END!)", expression_type="PYTHON3", code_block="""def ifelse(DATE):
     if DATE >= datetime.datetime(1994,10,1) and DATE < datetime.datetime(1995,10,1):
         return 1995
     elif DATE >= datetime.datetime(1995,10,1) and DATE < datetime.datetime(1996,10,1):
@@ -83,7 +83,7 @@ def Year(Input_Table):  # 2h Calculate Year
         return None""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Calculate State FY (Calculate Field) (management)
-    Veg_Summarized_Polygons_Laye3_7_ = arcpy.management.CalculateField(in_table=Veg_Summarized_Polygons_Laye3_8_, field="State_FY", expression="ifelse(!ACTIVITY_END!)", expression_type="PYTHON3", code_block="""def ifelse(DATE):
+    year_final = arcpy.management.CalculateField(in_table=year_fed_fy, field="State_FY", expression="ifelse(!ACTIVITY_END!)", expression_type="PYTHON3", code_block="""def ifelse(DATE):
     if DATE >= datetime.datetime(1994,7,1) and DATE < datetime.datetime(1995,7,1):
         return 1995
     elif DATE >= datetime.datetime(1995,7,1) and DATE < datetime.datetime(1996,7,1):
@@ -151,7 +151,7 @@ def Year(Input_Table):  # 2h Calculate Year
     else:
         return None""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
-    return Veg_Summarized_Polygons_Laye3_7_
+    return year_final
 
 if __name__ == '__main__':
     # runner(workspace,scratch_workspace,Year, '*argv[1:]')

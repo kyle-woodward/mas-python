@@ -1,10 +1,15 @@
 """
 """
 import arcpy
-from scripts._1b_add_fields import AddFields2
+from scripts._1b_add_fields import AddFields
 from scripts._2b_assign_domains import AssignDomains
+<<<<<<< HEAD
+from scripts._7a_enrichments_polygon import enrich_polygons
+from scripts.utils import runner, init_gdb
+=======
 from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
 from scripts.utils import runner, init_gdb, delete_scratch_files, KeepFields
+>>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
 from sys import argv
 import os
 original_gdb, workspace, scratch_workspace = init_gdb()
@@ -52,8 +57,12 @@ def TahoeFF6(TahoeFF_Tx_enriched,
                                                                              new_field_alias="YEAR_")
 
         # Process: 1b Add Fields (2) (1b Add Fields) (PC414CWIMillionAcres)
+<<<<<<< HEAD
+        TahoeFF_add_fields = AddFields(Input_Table=TahoeFF_alter_year)
+=======
         print("Executing Step 5/40 : Add Fields...")
         TahoeFF_add_fields = AddFields2(Input_Table=TahoeFF_alter_year)
+>>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
 
         # Process: Calculate Project ID (Calculate Field) (management)
         print("Executing Step 5/40 : Calculate PROJECT_ID...")
@@ -320,8 +329,12 @@ def Reclass(JURIS):
         #                               out_feature_class = check_this_out.__str__().format(**locals(),**globals()))
         
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
+<<<<<<< HEAD
+        enrich_polygons(enrich_out=TahoeFF_enriched_scratch, 
+=======
         print("Executing Step 38/40 : Enrich Polygons...")
         aEnrichmentsPolygon1(enrich_out=TahoeFF_enriched_scratch, 
+>>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
                              enrich_in=TahoeFF_Tx_standardized_keep_fields)
 
         # Process: Copy Features (2) (Copy Features) (management)

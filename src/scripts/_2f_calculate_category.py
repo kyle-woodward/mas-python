@@ -8,7 +8,7 @@ def Category(Input_Table):  # 2f Calculate Category
     arcpy.env.overwriteOutput = True
 
     # Process: Calculate Category (Calculate Field) (management)
-    Updated_Input_Table = arcpy.management.CalculateField(in_table=Input_Table, field="ACTIVITY_CAT", 
+    category_calculated = arcpy.management.CalculateField(in_table=Input_Table, field="ACTIVITY_CAT", 
             expression="ifelse(!ACTIVITY_DESCRIPTION!, !BROAD_VEGETATION_TYPE!, !PRIMARY_OBJECTIVE!)", 
             expression_type="PYTHON3", code_block="""def ifelse(Act, Veg, Obj):
             if Act in ['MECH_HFR', 'BENEFICIAL_FIRE', 'GRAZING', 'LAND_PROTEC', 'SANI_SALVG', 
@@ -57,7 +57,7 @@ def Category(Input_Table):  # 2f Calculate Category
                 return \"NOT_DEFINED\"""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
 
-    return Updated_Input_Table
+    return category_calculated
 
 if __name__ == '__main__':
     # runner(workspace,scratch_workspace,Category, '*argv[1:]')

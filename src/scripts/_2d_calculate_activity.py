@@ -10,7 +10,7 @@ def Activity(Input_Table):  # 2d Calculate Activity
 
 
     # Process: Calculate Activity (Calculate Field) (management)
-    Veg_Summarized_Polygons_Laye3_4_ = arcpy.management.CalculateField(in_table=Input_Table, field="ACTIVITY_DESCRIPTION", expression="ifelse(!Fuels_Treatments_Piles_Crosswalk.Activity!)", expression_type="PYTHON3", code_block="""def ifelse(ACT):
+    activity_calculated = arcpy.management.CalculateField(in_table=Input_Table, field="ACTIVITY_DESCRIPTION", expression="ifelse(!Fuels_Treatments_Piles_Crosswalk.Activity!)", expression_type="PYTHON3", code_block="""def ifelse(ACT):
     if ACT in [\'AMW_AREA_RESTOR\', 
     \'BIOMASS_REMOVAL\', 
     \'BROADCAST_BURN\', 
@@ -194,7 +194,7 @@ def Activity(Input_Table):  # 2d Calculate Activity
     else:
         return \"TBD\"""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
-    return Veg_Summarized_Polygons_Laye3_4_
+    return activity_calculated
 
 if __name__ == '__main__':
     # runner(workspace,scratch_workspace,Activity, '*argv[1:]')

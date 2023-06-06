@@ -8,7 +8,7 @@ def Objective(Input_Table):  # 2e Calculate Objective
     arcpy.env.overwriteOutput = True
 
     # Process: Calculate Objective (Calculate Field) (management)
-    Veg_Summarized_Polygons_Laye3_2_ = arcpy.management.CalculateField(in_table=Input_Table, field="PRIMARY_OBJECTIVE", expression="ifelse(!Fuels_Treatments_Piles_Crosswalk.Objective!)", expression_type="PYTHON3", code_block="""def ifelse(OBJ):
+    objective_calculated = arcpy.management.CalculateField(in_table=Input_Table, field="PRIMARY_OBJECTIVE", expression="ifelse(!Fuels_Treatments_Piles_Crosswalk.Objective!)", expression_type="PYTHON3", code_block="""def ifelse(OBJ):
     if OBJ ==\"Biomass Utilization\":
         return \"BIOMASS_UTIL\"
     elif OBJ == \"Burned Area Restoration\":
@@ -66,7 +66,7 @@ def Objective(Input_Table):  # 2e Calculate Objective
     else:
         return \"TBD\"""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
-    return Veg_Summarized_Polygons_Laye3_2_
+    return objective_calculated
 
 if __name__ == '__main__':
     # runner(workspace,scratch_workspace,Objective, '*argv[1:]')

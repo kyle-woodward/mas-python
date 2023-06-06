@@ -1,13 +1,13 @@
 import arcpy
 import os
-from ._7b_enrichments_pts import bEnrichmentsPoints
+from ._7b_enrichments_pts import enrich_points
 from ._2k_keep_fields import KeepFields
 from sys import argv
 from .utils import init_gdb, delete_scratch_files, runner
 
 original_gdb, workspace, scratch_workspace = init_gdb()
 
-def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
+def enrich_lines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
 
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
@@ -32,8 +32,8 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
 
     # Process: 7b Enrichments pts (7b Enrichments pts)
     # Kyle: skip to speed up debugging
-    print('Executing bEnrichmentsPoints...')
-    bEnrichmentsPoints(enrich_pts_out=line_to_pt_enriched, enrich_pts_in=Line_to_Pt,delete_scratch=False) # within 7c, we can set delete_scratch to false or true
+    print('Executing enrich_points...')
+    enrich_points(enrich_pts_out=line_to_pt_enriched, enrich_pts_in=Line_to_Pt,delete_scratch=False) # within 7c, we can set delete_scratch to false or true
     
     print('Performing Field Modifications...')
     # Process: Add Join (Add Join) (management)
@@ -239,7 +239,7 @@ def cEnrichmentsLines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
     return Line_Enriched_Temp_CopyFeatures_append # does this capture the object that has since been renamed or only the file path as defined by the variable ln469? # Line_Enriched_Temp_CopyFeatures
 
 if __name__ == '__main__':
-    runner(workspace,scratch_workspace,cEnrichmentsLines, '*argv[1:]')
+    runner(workspace,scratch_workspace,enrich_lines, '*argv[1:]')
     # # Global Environment settings
     # with arcpy.EnvManager(
     # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
@@ -249,4 +249,4 @@ if __name__ == '__main__':
     # transferDomains=True, 
     # transferGDBAttributeProperties=True, 
     # workspace=workspace):
-    #     cEnrichmentsLines(*argv[1:])
+    #     enrich_lines(*argv[1:])

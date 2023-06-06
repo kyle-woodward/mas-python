@@ -8,7 +8,7 @@ def Residue(Input_Table):  # 2g Calculate Residue Fate
     arcpy.env.overwriteOutput = True
 
     # Process: Calculate Residue Fate (Calculate Field) (management)
-    Veg_Summarized_Polygons_Laye3_3_ = arcpy.management.CalculateField(in_table=Input_Table, field="RESIDUE_FATE", expression="ifelse(!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!)", expression_type="PYTHON3", code_block="""def ifelse(RES):
+    residue_calculated = arcpy.management.CalculateField(in_table=Input_Table, field="RESIDUE_FATE", expression="ifelse(!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!)", expression_type="PYTHON3", code_block="""def ifelse(RES):
     if RES == \"Biochar or Other Pyrolysis\":
         return \"BIOCHAR_PYROLYSIS\"
     elif RES == \"Broadcast Burn\":
@@ -41,7 +41,7 @@ def Residue(Input_Table):  # 2g Calculate Residue Fate
         return None
    """, field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
-    return Veg_Summarized_Polygons_Laye3_3_
+    return residue_calculated
 
 if __name__ == '__main__':
     # runner(workspace,scratch_workspace,Residue, '*argv[1:]')
