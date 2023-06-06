@@ -14,3 +14,4 @@ CalVTP_standardized= os.path.join(workspace, 'c_Standardized', f'CalVTP_standard
 CalVTP_OG = os.path.join(workspace, 'a_Originals', 'CalVTP_20220923') 
 
 CalVTP(CalVTP_enriched, CalVTP_standardized, CalVTP_OG)
+# %%

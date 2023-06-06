@@ -7,7 +7,7 @@ import os
 import datetime
 
 original_gdb, workspace, scratch_workspace = init_gdb()
-date_id = datetime.datetime.utcnow().strftime("%Y-%m-%d").replace('-','') # like 20221216
+date_id = datetime.datetime.now().strftime("%Y-%m-%d").replace('-','') # like 20221216
 
 TahoeFF_Tx_enriched = os.path.join(workspace, 'd_Enriched', f'Tahoe_Forest_Fuels_Tx_enriched_{date_id}')
 TahoeFF_Tx_standardized = os.path.join(workspace, 'c_Standardized', f'Tahoe_Forest_Fuels_Tx_standardized_{date_id}') 
