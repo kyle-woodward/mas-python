@@ -30,11 +30,11 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
     ):
     
         # define file paths to required input datasets (mostly from b_Reference featuredataset in original GDB)
-        RasterT_fveg1_2_ = os.path.join(workspace,'b_Reference','RasterT_fveg1')
-        RasterT_Reclass_WUI_2_ = os.path.join(workspace,'b_Reference','RasterT_Reclass_WUI')
+        RasterT_fveg1 = os.path.join(workspace,'b_Reference','RasterT_fveg1')
+        RasterT_Reclass_WUI = os.path.join(workspace,'b_Reference','RasterT_Reclass_WUI')
         CPAD_Ownership_Update = os.path.join(workspace,'b_Reference','CPAD_Ownership_Update')
         WFRTF_Regions_Draft = os.path.join(workspace,'b_Reference','WFRTF_Regions_Draft')
-        Fuels_Treatments_Piles_Crosswalk_2_ = os.path.join(workspace,'Fuels_Treatments_Piles_Crosswalk')
+        Fuels_Treatments_Piles_Crosswalk = os.path.join(workspace,'Fuels_Treatments_Piles_Crosswalk')
         
         # define file paths to intermediary outputs in scratch gdb
         Veg_Summarized_Polygons = os.path.join(scratch_workspace,'Veg_Summarized_Polygons')
@@ -43,7 +43,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
         Veg_Summarized_Centroids = os.path.join(scratch_workspace,'Veg_Summarized_Centroids')
         Veg_Summarized_Join1_Own = os.path.join(scratch_workspace,'Veg_Summarized_Join1_Own')
         Veg_Summarized_Join2_RCD = os.path.join(scratch_workspace,'Veg_Summarized_Join2_RCD')
-        WHR13NAME_Summary_temp_name = os.path.join(scratch_workspace,"WHR13NAME_Summary_temp")
+        WHR13NAME_Summary_temp = os.path.join(scratch_workspace,"WHR13NAME_Summary_temp")
         # Begin tool chain processes
 
         print('Executing Polygon Enrichments...')
@@ -51,7 +51,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
         # Process: Summarize Within (Summarize Within) (analysis)
         arcpy.analysis.SummarizeWithin(
                                     in_polygons=enrich_in, 
-                                    in_sum_features=RasterT_fveg1_2_, 
+                                    in_sum_features=RasterT_fveg1, 
                                     out_feature_class=Veg_Summarized_Polygons, 
                                     keep_all_polygons="KEEP_ALL", 
                                     sum_fields=None,  # changed from []
@@ -115,7 +115,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                     )
 
         # Process: Select Layer By BVT Not Null (Select Layer By Attribute) (management)
-        Veg_Summarized_Polygons_Laye_3_, Count = arcpy.management.SelectLayerByAttribute(
+        Veg_Summarized_Polygons_Laye_3_ = arcpy.management.SelectLayerByAttribute(
                                             in_layer_or_view=usfs_haz_fuels_treatments_re, 
                                             selection_type="NEW_SELECTION", 
                                             where_clause="BROAD_VEGETATION_TYPE IS NOT NULL", 
@@ -134,7 +134,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                             )
 
         # Process: Switch Selection (Select Layer By Attribute) (management)
-        Updated_Layer_Or_Table_View, Count_5_ = arcpy.management.SelectLayerByAttribute(
+        Updated_Layer_Or_Table_View = arcpy.management.SelectLayerByAttribute(
                                             in_layer_or_view=Updated_Input_Table_2_, 
                                             selection_type="SWITCH_SELECTION", 
                                             where_clause="", 
@@ -197,17 +197,17 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
 
         print("   Calculating WUI...")
         # Process: Select Layer WUI Null (Select Layer By Attribute) (management)
-        Veg_Summarized_Polygons_Laye_7_, Count_8_ = arcpy.management.SelectLayerByAttribute(
+        Veg_Summarized_Polygons_Laye_7_ = arcpy.management.SelectLayerByAttribute(
                                                 in_layer_or_view=Layer_With_Join_Removed, 
                                                 selection_type="NEW_SELECTION", 
                                                 where_clause="IN_WUI IS NULL Or IN_WUI = ''", 
                                                 invert_where_clause="")
 
         # Process: Select Layer By WUI (Select Layer By Location) (management)
-        Veg_Summarized_Polygons_Laye1_2_, Output_Layer_Names_2_, Count_2_ = arcpy.management.SelectLayerByLocation(
+        Veg_Summarized_Polygons_Laye1_2_ = arcpy.management.SelectLayerByLocation(
                                                                         in_layer=[Veg_Summarized_Polygons_Laye_7_], 
                                                                         overlap_type="INTERSECT", 
-                                                                        select_features=RasterT_Reclass_WUI_2_, 
+                                                                        select_features=RasterT_Reclass_WUI, 
                                                                         search_distance="", 
                                                                         selection_type="SUBSET_SELECTION", 
                                                                         invert_spatial_relationship="NOT_INVERT")
@@ -224,7 +224,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                     )
 
         # Process: Select Layer WUI Auto No (Select Layer By Attribute) (management)
-        Veg_Summarized_Polygons_Laye_5_, Count_6_ = arcpy.management.SelectLayerByAttribute(
+        Veg_Summarized_Polygons_Laye_5_ = arcpy.management.SelectLayerByAttribute(
                                                 in_layer_or_view=usfs_haz_fuels_treatments_re3, 
                                                 selection_type="NEW_SELECTION", 
                                                 where_clause="IN_WUI IS NULL Or IN_WUI = ''", 
@@ -243,7 +243,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                         )
 
         # Process: Clear Selection (Select Layer By Attribute) (management)
-        Treatments_Merge3_California_5_, Count_4_ = arcpy.management.SelectLayerByAttribute(
+        Treatments_Merge3_California_5_ = arcpy.management.SelectLayerByAttribute(
                                                 in_layer_or_view=usfs_haz_fuels_treatments_re3_2_, 
                                                 selection_type="CLEAR_SELECTION", 
                                                 where_clause="", 
@@ -486,14 +486,14 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
         Veg_Summarized_Polygons_Laye4 = arcpy.management.AddJoin(
                                     in_layer_or_view=Veg_Summarized_Polygons_Laye2, 
                                     in_field="Crosswalk", 
-                                    join_table=Fuels_Treatments_Piles_Crosswalk_2_, 
+                                    join_table=Fuels_Treatments_Piles_Crosswalk, 
                                     join_field="Original_Activity", 
                                     join_type="KEEP_ALL", 
                                     index_join_fields="INDEX_JOIN_FIELDS"
                                     )
         
         # Process: Select by Attribute (management)
-        Pts_enrichment_Veg_Layer_4_, Count_7_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Veg_Summarized_Polygons_Laye4, where_clause="ACTIVITY_DESCRIPTION IS NULL")
+        Pts_enrichment_Veg_Layer_4_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Veg_Summarized_Polygons_Laye4, where_clause="ACTIVITY_DESCRIPTION IS NULL")
 
         # Process: Calculate Activity Description (Calculate Field) (management)
         Updated_Input_Table_3_ = arcpy.management.CalculateField(
@@ -505,7 +505,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                 )
 
         # Process: Select Layer By Attribute (4) (Select Layer By Attribute) (management)
-        Updated_Input_Table_4_, Count_8_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Updated_Input_Table_3_, selection_type="CLEAR_SELECTION")
+        Updated_Input_Table_4_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Updated_Input_Table_3_, selection_type="CLEAR_SELECTION")
         
         # Process: 2d Calculate Activity (2d Calculate Activity) (PC414CWIMillionAcres)
         Veg_Summarized_Polygons_Laye3_5_ = Activity(Input_Table=Updated_Input_Table_4_)
@@ -534,7 +534,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                 )
 
         # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
-        Veg_Summarized_Polygons_Laye_9_, Count_3_ = arcpy.management.SelectLayerByAttribute(
+        Veg_Summarized_Polygons_Laye_9_ = arcpy.management.SelectLayerByAttribute(
                                                 in_layer_or_view=usfs_edw_facts_common_attrib2, 
                                                 selection_type="NEW_SELECTION", 
                                                 where_clause="PRIMARY_OBJECTIVE IS NULL", 
@@ -555,7 +555,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
         Veg_Summarized_Polygons_Laye3_2_ = Objective(Input_Table=Updated_Input_Table_5_)
 
         # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
-        Veg_Summarized_Polygons_Laye_10_, Count_7_ = arcpy.management.SelectLayerByAttribute(
+        Veg_Summarized_Polygons_Laye_10_ = arcpy.management.SelectLayerByAttribute(
                                                 in_layer_or_view=Veg_Summarized_Polygons_Laye3_2_, 
                                                 selection_type="CLEAR_SELECTION", 
                                                 where_clause="", 

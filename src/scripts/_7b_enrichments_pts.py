@@ -17,7 +17,7 @@ def enrich_points(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 7b En
     arcpy.env.qualifiedFieldNames = False 
     
     WUI = os.path.join(workspace, "b_Reference", "RasterT_Reclass_WUI")
-    Fuels_Treatments_Piles_Crosswalk_2_ = os.path.join(workspace, "Fuels_Treatments_Piles_Crosswalk")
+    Fuels_Treatments_Piles_Crosswalk = os.path.join(workspace, "Fuels_Treatments_Piles_Crosswalk")
     CPAD_Ownership_Update = os.path.join(workspace, "b_Reference", "CPAD_Ownership_Update")
     WFRTF_Regions_Draft = os.path.join(workspace, "b_Reference", "WFRTF_Regions_Draft")
     RasterT_fveg1 = os.path.join(workspace, "b_Reference", "RasterT_fveg1")
@@ -36,13 +36,13 @@ def enrich_points(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 7b En
                                   spatial_grid_3=None)
 
     # Process: Select WUI Null (Select Layer By Attribute) (management)
-    Pts_enrichment_copy_Layer1, Count = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Pts_enrichment_copy,
+    Pts_enrichment_copy_Layer1 = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Pts_enrichment_copy,
                                                                                 selection_type="NEW_SELECTION",
                                                                                 where_clause="IN_WUI IS NULL Or IN_WUI = ''",
                                                                                 invert_where_clause="")
 
     # Process: Select WUI Intersect (Select Layer By Location) (management)
-    Pts_enrichment_copy_Layer, Output_Layer_Names_2_, Count_2_ = arcpy.management.SelectLayerByLocation(in_layer=[Pts_enrichment_copy_Layer1],
+    Pts_enrichment_copy_Layer = arcpy.management.SelectLayerByLocation(in_layer=[Pts_enrichment_copy_Layer1],
                                                                                                         overlap_type="INTERSECT",
                                                                                                         select_features=WUI,
                                                                                                         search_distance="",
@@ -59,7 +59,7 @@ def enrich_points(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 7b En
                                                                    enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Select WUI Null 2 (Select Layer By Attribute) (management)
-    Pts_enrichment_copy_Layer_3_, Count_3_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Pts_enrichment_copy_Layer_2_,
+    Pts_enrichment_copy_Layer_3_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Pts_enrichment_copy_Layer_2_,
                                                                                      selection_type="NEW_SELECTION",
                                                                                      where_clause="IN_WUI IS NULL Or IN_WUI = ''",
                                                                                      invert_where_clause="")
@@ -74,7 +74,7 @@ def enrich_points(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 7b En
                                                                    enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Clear Selection (Select Layer By Attribute) (management)
-    Treatments_Merge3_California_5_, Count_4_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Pts_enrichment_copy_Layer_4_,
+    Treatments_Merge3_California_5_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Pts_enrichment_copy_Layer_4_,
                                                                                         selection_type="CLEAR_SELECTION",
                                                                                         where_clause="",
                                                                                         invert_where_clause="")
@@ -337,20 +337,20 @@ def enrich_points(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 7b En
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
         Pts_enrichment_Veg_Layer = arcpy.management.AddJoin(in_layer_or_view=Pts_enrichment_Veg,
                                                             in_field="Crosswalk",
-                                                            join_table=Fuels_Treatments_Piles_Crosswalk_2_,
+                                                            join_table=Fuels_Treatments_Piles_Crosswalk,
                                                             join_field="Original_Activity",
                                                             join_type="KEEP_ALL",
                                                             index_join_fields="INDEX_JOIN_FIELDS")
     # Process: Select by Attribute (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_: 
-        Pts_enrichment_Veg_Layer_4_, Count_7_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Pts_enrichment_Veg_Layer, where_clause="ACTIVITY_DESCRIPTION IS NULL")
+        Pts_enrichment_Veg_Layer_4_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Pts_enrichment_Veg_Layer, where_clause="ACTIVITY_DESCRIPTION IS NULL")
 
     # Process: Calculate Activity Description (Calculate Field) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
         Updated_Input_Table_3_ = arcpy.management.CalculateField(in_table=Pts_enrichment_Veg_Layer_4_, field="Pts_enrichment_Veg.ACTIVITY_DESCRIPTION", expression="!Fuels_Treatments_Piles_Crosswalk.Activity!", expression_type="PYTHON3", code_block="", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
     # Process: Select Layer By Attribute (4) (Select Layer By Attribute) (management)
-        Updated_Input_Table_4_, Count_8_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Updated_Input_Table_3_, selection_type="CLEAR_SELECTION")
+        Updated_Input_Table_4_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Updated_Input_Table_3_, selection_type="CLEAR_SELECTION")
 
     # Process: 2d Calculate Activity (2d Calculate Activity) (PC414CWIMillionAcres)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
@@ -366,7 +366,7 @@ def enrich_points(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 7b En
 
     # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Pts_enrichment_Veg_Layer_3_, Count_5_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Veg_Summarized_Polygons_Laye3_5_,
+        Pts_enrichment_Veg_Layer_3_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Veg_Summarized_Polygons_Laye3_5_,
                                                                                         selection_type="NEW_SELECTION",
                                                                                         where_clause="Pts_enrichment_Veg.PRIMARY_OBJECTIVE IS NULL",
                                                                                         invert_where_clause="")
@@ -381,7 +381,7 @@ def enrich_points(enrich_pts_out, enrich_pts_in, delete_scratch=False):  # 7b En
 
     # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
     if Pts_enrichment_Veg_2_ and Treatments_Merge3_California_5_:
-        Pts_enrichment_Veg_Layer_5_, Count_6_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Veg_Summarized_Polygons_Laye3_2_,
+        Pts_enrichment_Veg_Layer_5_ = arcpy.management.SelectLayerByAttribute(in_layer_or_view=Veg_Summarized_Polygons_Laye3_2_,
                                                                                         selection_type="CLEAR_SELECTION",
                                                                                         where_clause="", 
                                                                                         invert_where_clause="")
