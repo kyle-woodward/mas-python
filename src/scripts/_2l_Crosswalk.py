@@ -42,15 +42,13 @@ def Crosswalk(Input_Table):  # 2l Crosswalk
     #     print("{0} is a type of {1} with a length of {2}"
     #       .format(field.name, field.type, field.length))
 
-
-
     # Process: Calculate Counts Towards MAS (Calculate Field) (management)
     xwalk_counts_to_mas = arcpy.management.CalculateField(in_table=xwalk_residue_fate, 
                                                              field="COUNTS_TO_MAS", 
                                                              expression="!Fuels_Treatments_Piles_Crosswalk.Counts_to_MAS!")
 
     # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
-    select_tbd_objective = arcpy.management.SelectLayerByAttribute(in_layer_or_view=xwalk_residue_fate, #xwalk_counts_to_mas, 
+    select_tbd_objective = arcpy.management.SelectLayerByAttribute(in_layer_or_view=xwalk_counts_to_mas, 
                                                                                      where_clause="PRIMARY_OBJECTIVE IS NULL Or PRIMARY_OBJECTIVE = 'TBD'")
 
     # Process: Calculate Objective (Calculate Field) (management)
