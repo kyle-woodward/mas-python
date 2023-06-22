@@ -36,12 +36,6 @@ def Crosswalk(Input_Table):  # 2l Crosswalk
                                                                     field="RESIDUE_FATE", 
                                                                     expression="!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!")
 
-    # fields = arcpy.ListFields(xwalk_residue_fate)
-
-    # for field in fields:
-    #     print("{0} is a type of {1} with a length of {2}"
-    #       .format(field.name, field.type, field.length))
-
     # Process: Calculate Counts Towards MAS (Calculate Field) (management)
     xwalk_counts_to_mas = arcpy.management.CalculateField(in_table=xwalk_residue_fate, 
                                                              field="COUNTS_TO_MAS", 
