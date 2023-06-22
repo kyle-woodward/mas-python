@@ -38,7 +38,7 @@ def AlterExisting(schema,featureclass):
     return featureclass
 
 
-def AddFields2(Input_Table,alter_fields=False):  # 1b Add Fields
+def AddFields(Input_Table,alter_fields=False):  # 1b Add Fields
     """
     Adds a defined schema of fields to a feature class; 
     
@@ -156,23 +156,31 @@ def AddFields2(Input_Table,alter_fields=False):  # 1b Add Fields
     return Assign_Domains_
 
 if __name__ == '__main__':
-    runner(workspace,scratch_workspace,AddFields2, '*argv[1:]')
+<<<<<<< HEAD
+    runner(workspace,scratch_workspace,AddFields, '*argv[1:]')
     # # Global Environment settings
     # # run desired function with environment settings set by arcpy.EnvManager
     # # trying a one-line execution of the below.. might not be so easy
     # # runner(workspace,scratch_workspace,AddFields2)
+=======
+    # runner(workspace,scratch_workspace,AddFields2, '*argv[1:]')
+    # Global Environment settings
+    # run desired function with environment settings set by arcpy.EnvManager
+    # trying a one-line execution of the below.. might not be so easy
+    # runner(workspace,scratch_workspace,AddFields2)
+>>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
 
     
-    # # Global Environment settings
-    # # to fix syntax errors in extent and outputCoordinateSystem args, wrap string values in triple quotes
-    # with arcpy.EnvManager(
-    # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 
-    # outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
-    # preserveGlobalIds=True, 
-    # qualifiedFieldNames=False, 
-    # scratchWorkspace=scratch_workspace, 
-    # transferDomains=True, 
-    # transferGDBAttributeProperties=True, 
-    # workspace=workspace):
+    # Global Environment settings
+    # to fix syntax errors in extent and outputCoordinateSystem args, wrap string values in triple quotes
+    with arcpy.EnvManager(
+    extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 
+    outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
+    preserveGlobalIds=True, 
+    qualifiedFieldNames=False, 
+    scratchWorkspace=scratch_workspace, 
+    transferDomains=True, 
+    transferGDBAttributeProperties=True, 
+    workspace=workspace):
         
-    #     AddFields2(Input_Table=os.path.join(workspace,"WFR_TF_Template"))
+        AddFields2(Input_Table=os.path.join(workspace,"WFR_TF_Template"))

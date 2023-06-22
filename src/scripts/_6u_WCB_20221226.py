@@ -1,10 +1,15 @@
 """
 """
 import arcpy
-from scripts._1b_add_fields import AddFields2
+from scripts._1b_add_fields import AddFields
 from scripts._2b_assign_domains import AssignDomains
-from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
+<<<<<<< HEAD
+from scripts._7a_enrichments_polygon import enrich_polygons
 from scripts.utils import runner, init_gdb
+=======
+from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
+from scripts.utils import runner, init_gdb, KeepFields
+>>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
 from sys import argv
 import os
 import datetime
@@ -14,7 +19,7 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
 
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
-    date_id = datetime.datetime.utcnow().strftime("%Y-%m-%d").replace('-','')
+    date_id = datetime.datetime.now().strftime("%Y-%m-%d").replace('-','')
 
     # scratch outputs
     WCB_CopyFeatures = os.path.join(scratch_workspace, 'WCB_CopyFeatures')
@@ -28,20 +33,24 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
     with arcpy.EnvManager(unionDimension=False):
 
         # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
+        print("Executing Step 1/34 : Select Layer by Attribute...")
         WCB_select = arcpy.management.SelectLayerByAttribute(in_layer_or_view=WCB_OG, 
                                                                              where_clause="Function = 'Disposal/Sale' Or Function = 'Other (Plan, Study, Etc.)' Or Function = 'Infrastructure' Or Function = 'Lease' Or Function = 'Public Access' Or Function = 'Transfer of Control'", 
                                                                              invert_where_clause="INVERT")
 
         # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
+        print("Executing Step 2/34 : Select Layer by Attribute...")
         WCB_select_2 = arcpy.management.SelectLayerByAttribute(in_layer_or_view=WCB_select, 
                                                                                   selection_type="SUBSET_SELECTION", 
                                                                                   where_clause="dtmBoardAp >= timestamp '1995-01-01 00:00:00'")
 
         # Process: Copy Features (2) (Copy Features) (management)
+        print("Executing Step 3/34 : Copy Features...")
         arcpy.management.CopyFeatures(in_features=WCB_select_2, 
                                       out_feature_class=WCB_CopyFeatures)
 
         # Process: Dissolve (Dissolve) (management)
+        print("Executing Step 4/34 : Dissolve...")
         arcpy.management.Dissolve(in_features=WCB_CopyFeatures, 
                                   out_feature_class=WCB_Dissolve, 
                                   dissolve_field=["County", 
@@ -57,240 +66,188 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
                                                   "WCBFunding"])
 
         # Process: Repair Geometry (Repair Geometry) (management)
+        print("Executing Step 5/34 : Repair Geometry...")
         WCB_Dissolve_repair_geom = arcpy.management.RepairGeometry(in_features=WCB_Dissolve, 
                                                                 delete_null="KEEP_NULL")
 
         # Process: Alter Field (Alter Field) (management)
+        print("Executing Step 6/34 : Alter Field...")
         WCB_Dissolve_alter_field = arcpy.management.AlterField(in_table=WCB_Dissolve_repair_geom, 
                                                                field="ProjectID", 
                                                                new_field_name="ProjectID2")
 
         # Process: Alter Field (2) (Alter Field) (management)
+        print("Executing Step 7/34 : Alter Field...")
         WCB_Dissolve_alter_field_2 = arcpy.management.AlterField(in_table=WCB_Dissolve_alter_field, 
                                                                field="County", 
                                                                new_field_name="County_")
 
         # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
+<<<<<<< HEAD
+        WCB_add_fields = AddFields(Input_Table=WCB_Dissolve_alter_field_2)
+=======
+        print("Executing Step 8/34 : Add Fields...")
         WCB_add_fields = AddFields2(Input_Table=WCB_Dissolve_alter_field_2)
+>>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
 
         # Process: Calculate Project ID User (Calculate Field) (management)
+        print("Executing Step 9/34 : Calculate PROJECTID_USER...")
         WCB_calc_proj_id_user = arcpy.management.CalculateField(in_table=WCB_add_fields, 
                                                               field="PROJECTID_USER", 
                                                               expression="!ProjectID2!")
 
         # Process: Calculate Treatment ID User (Calculate Field) (management)
+        print("Executing Step 10/34 : Calculate TRMTID_USER...")
         WCB_calc_treat_id_user = arcpy.management.CalculateField(in_table=WCB_calc_proj_id_user, 
-                                                                                   field="TRMTID_USER", 
-                                                                                   expression="!PROJECTID_USER!+'-'+!PRIMARY_OWNERSHIP_GROUP![:4]+'-'+!IN_WUI![:3]")
+                                                                    field="TRMTID_USER", 
+                                                                    expression="!PROJECTID_USER!")#+'-'+!PRIMARY_OWNERSHIP_GROUP![:4]")#+'-'+!IN_WUI![:3]")
 
         # Process: Calculate Agency (Calculate Field) (management)
+        print("Executing Step 11/34 : Calculate AGENCY...")
         WCB_calc_agency = arcpy.management.CalculateField(in_table=WCB_calc_treat_id_user,
                                                                   field="AGENCY", 
                                                                   expression="\"CNRA\"")
 
         # Process: Calculate Project Contact (Calculate Field) (management)
+        print("Executing Step 12/34 : Calculate PROJECT_CONTACT...")
         WCB_calc_proj_contact = arcpy.management.CalculateField(in_table=WCB_calc_agency, 
                                                                   field="PROJECT_CONTACT", 
                                                                   expression="\"Scott McFarlin\"")
 
         # Process: Calculate Project Email (Calculate Field) (management)
+        print("Executing Step 13/34 : Calculate PROJECT_EMAIL...")
         WCB_calc_proj_email = arcpy.management.CalculateField(in_table=WCB_calc_proj_contact, 
                                                                   field="PROJECT_EMAIL", 
                                                                   expression="\"Scott.McFarlin@wildlife.ca.gov\"")
 
         # Process: Calculate Admin Org (Calculate Field) (management)
+        print("Executing Step 14/34 : Calculate ADMINISTERING_ORG...")
         WCB_calc_admin_org = arcpy.management.CalculateField(in_table=WCB_calc_proj_email, 
                                                                   field="ADMINISTERING_ORG", 
                                                                   expression="\"WCB\"")
 
         # Process: Calculate Project Name (Calculate Field) (management)
+        print("Executing Step 15/34 : PROJECT_NAME...")
         WCB_calc_proj_name = arcpy.management.CalculateField(in_table=WCB_calc_admin_org, 
                                                                  field="PROJECT_NAME", 
                                                                  expression="!ProjName!")
 
         # Process: Calculate Project Start (Calculate Field) (management)
+        print("Executing Step 16/34 : Calculate PROJECT_START...")
         WCB_calc_proj_start = arcpy.management.CalculateField(in_table=WCB_calc_proj_name, 
                                                                  field="PROJECT_START", 
                                                                  expression="!dtmBoardAp!")
 
         # Process: Calculate Primary Objective (Calculate Field) (management)
+        print("Executing Step 17/34 : Calculate PRIMARY_OBJECTIVE...")
         WCB_calc_prim_obj = arcpy.management.CalculateField(in_table=WCB_calc_proj_start, 
                                                                  field="PRIMARY_OBJECTIVE", 
-                                                                 expression="!PrimPurp!")[0]
+                                                                 expression="!PrimPurp!")#[0]
 
         # Process: Calculate Secondary Objective (Calculate Field) (management)
+        print("Executing Step 18/34 : Calculate SECONDARY_OBJECTIVE...")
         WCB_calc_sec_obj = arcpy.management.CalculateField(in_table=WCB_calc_prim_obj, 
                                                                  field="SECONDARY_OBJECTIVE", 
-                                                                 expression="!Type!")[0]
+                                                                 expression="!Type!")#[0]
 
         # Process: Calculate Tertiary Objective (Calculate Field) (management)
+        print("Executing Step 19/34 : Calculate TERTIARY_OBJECTIVE...")
         WCB_calc_tert_obj = arcpy.management.CalculateField(in_table=WCB_calc_sec_obj, 
                                                                  field="TERTIARY_OBJECTIVE", 
                                                                  expression="!Function!", 
-                                                                 enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                                 enforce_domains="NO_ENFORCE_DOMAINS")#[0]
 
         # Process: Calculate Primary Funding Source (Calculate Field) (management)
+        print("Executing Step 20/34 : Calculate PRIMARY_FUNDING_SOURCE...")
         WCB_calc_prim_fund_src = arcpy.management.CalculateField(in_table=WCB_calc_tert_obj, 
                                                                  field="PRIMARY_FUNDING_SOURCE", 
                                                                  expression="!Program!", 
-                                                                 enforce_domains="NO_ENFORCE_DOMAINS")[0]
+                                                                 enforce_domains="NO_ENFORCE_DOMAINS")#[0]
 
         # Process: Calculate Activity Acres (Calculate Field) (management)
+        print("Executing Step 21/34 : Calculate ACTIVITY_QUANTITY...")
         WCB_calc_act_ac = arcpy.management.CalculateField(in_table=WCB_calc_prim_fund_src, 
                                                                  field="ACTIVITY_QUANTITY", 
-                                                                 expression="!TotalAcres!")[0]
+                                                                 expression="!TotalAcres!")#[0]
 
         # Process: Calculate UOM (Calculate Field) (management)
+        print("Executing Step 22/34 : Calculate ACTIVITY_UOM...")
         WCB_calc_uom = arcpy.management.CalculateField(in_table=WCB_calc_act_ac, 
                                                                   field="ACTIVITY_UOM", 
-                                                                  expression="\"AC\"")[0]
+                                                                  expression="\"AC\"")#[0]
 
         # Process: Calculate Activity End Date (Calculate Field) (management)
+        print("Executing Step 23/34 : Calculate ACTIVITY_END...")
         WCB_calc_act_end_date = arcpy.management.CalculateField(in_table=WCB_calc_uom, 
                                                                   field="ACTIVITY_END", 
-                                                                  expression="!dtmBoardAp!")[0]
+                                                                  expression="!dtmBoardAp!")#[0]
 
         # Process: Calculate Activity Status (Calculate Field) (management)
+        print("Executing Step 24/34 : Calculate ACTIVITY_STATUS...")
         WCB_calc_act_stat = arcpy.management.CalculateField(in_table=WCB_calc_act_end_date, 
                                                                    field="ACTIVITY_STATUS", 
-                                                                   expression="\"ACTIVE\"")[0]
+                                                                   expression="\"ACTIVE\"")#[0]
 
         # Process: Calculate Implementing Org (Calculate Field) (management)
+        print("Executing Step 25/34 : Calculate IMPLEM_ORG_NAME...")
         WCB_calc_imp_org = arcpy.management.CalculateField(in_table=WCB_calc_act_stat, 
                                                                  field="IMPLEM_ORG_NAME", 
-                                                                 expression="!PrimGrante!")[0]
+                                                                 expression="!PrimGrante!")#[0]
 
         # Process: Calculate Source (Calculate Field) (management)
+        print("Executing Step 26/34 : Calculate Source...")
         WCB_calc_src = arcpy.management.CalculateField(in_table=WCB_calc_imp_org, 
                                                             field="Source", 
-                                                            expression="\"WCB\"")[0]
+                                                            expression="\"WCB\"")#[0]
 
         # Process: Calculate Crosswalk (Calculate Field) (management)
+        print("Executing Step 27/34 : Calculate Crosswalk...")
         WCB_calc_xwalk = arcpy.management.CalculateField(in_table=WCB_calc_src, 
                                                                   field="Crosswalk", 
-                                                                  expression="!Function! + \" \" + !PrimPurp!")[0]
+                                                                  expression="!Function! + \" \" + !PrimPurp!")#[0]
 
         # Process: Calculate Year (Calculate Field) (management)
+        print("Executing Step 28/34 : Calculate Year...")
         WCB_calc_year = arcpy.management.CalculateField(in_table=WCB_calc_xwalk, 
                                                                   field="Year", 
                                                                   expression="Year($feature.dtmBoardAp)", 
-                                                                  expression_type="ARCADE")[0]
+                                                                  expression_type="ARCADE")#[0]
 
         # Process: Copy Features (Copy Features) (management)
+        print("Executing Step 29/34 : Copy Features...")
         arcpy.management.CopyFeatures(in_features=WCB_calc_year, 
                                       out_feature_class=WCB_standardized.__str__().format(**locals(),**globals()))
-
-        # Process: Delete Field (Delete Field) (management)
-        WCB_standardized_keep_fields = arcpy.management.DeleteField(in_table=WCB_standardized.__str__().format(**locals(),**globals()), 
-                                                                    drop_field=["PROJECTID_USER", 
-                                                                                "AGENCY", 
-                                                                                "ORG_ADMIN_p", 
-                                                                                "PROJECT_CONTACT", 
-                                                                                "PROJECT_EMAIL", 
-                                                                                "ADMINISTERING_ORG", 
-                                                                                "PROJECT_NAME", 
-                                                                                "PROJECT_STATUS", 
-                                                                                "PROJECT_START", 
-                                                                                "PROJECT_END", 
-                                                                                "PRIMARY_FUNDING_SOURCE", 
-                                                                                "PRIMARY_FUNDING_ORG", 
-                                                                                "IMPLEMENTING_ORG", 
-                                                                                "LATITUDE", 
-                                                                                "LONGITUDE", 
-                                                                                "BatchID_p", 
-                                                                                "Val_Status_p", 
-                                                                                "Val_Message_p", 
-                                                                                "Val_RunDate_p", 
-                                                                                "Review_Status_p", 
-                                                                                "Review_Message_p", 
-                                                                                "Review_RunDate_p", 
-                                                                                "Dataload_Status_p", 
-                                                                                "Dataload_Msg_p", 
-                                                                                "TRMTID_USER", 
-                                                                                "PROJECTID", 
-                                                                                "PROJECTNAME_", 
-                                                                                "ORG_ADMIN_t", 
-                                                                                "PRIMARY_OWNERSHIP_GROUP", 
-                                                                                "PRIMARY_OBJECTIVE", 
-                                                                                "SECONDARY_OBJECTIVE", 
-                                                                                "TERTIARY_OBJECTIVE", 
-                                                                                "TREATMENT_STATUS", 
-                                                                                "COUNTY", 
-                                                                                "IN_WUI", 
-                                                                                "REGION", 
-                                                                                "TREATMENT_AREA", 
-                                                                                "TREATMENT_START", 
-                                                                                "TREATMENT_END", 
-                                                                                "RETREATMENT_DATE_EST", 
-                                                                                "TREATMENT_NAME", 
-                                                                                "BatchID", 
-                                                                                "Val_Status_t", 
-                                                                                "Val_Message_t", 
-                                                                                "Val_RunDate_t", 
-                                                                                "Review_Status_t", 
-                                                                                "Review_Message_t", 
-                                                                                "Review_RunDate_t", 
-                                                                                "Dataload_Status_t", 
-                                                                                "Dataload_Msg_t", 
-                                                                                "ACTIVID_USER", 
-                                                                                "TREATMENTID_", 
-                                                                                "ORG_ADMIN_a", 
-                                                                                "ACTIVITY_DESCRIPTION", 
-                                                                                "ACTIVITY_CAT", 
-                                                                                "BROAD_VEGETATION_TYPE", 
-                                                                                "BVT_USERD", 
-                                                                                "ACTIVITY_STATUS", 
-                                                                                "ACTIVITY_QUANTITY", 
-                                                                                "ACTIVITY_UOM", 
-                                                                                "ACTIVITY_START", 
-                                                                                "ACTIVITY_END", 
-                                                                                "ADMIN_ORG_NAME", 
-                                                                                "IMPLEM_ORG_NAME", 
-                                                                                "PRIMARY_FUND_SRC_NAME", 
-                                                                                "PRIMARY_FUND_ORG_NAME", 
-                                                                                "SECONDARY_FUND_SRC_NAME", 
-                                                                                "SECONDARY_FUND_ORG_NAME", 
-                                                                                "TERTIARY_FUND_SRC_NAME", 
-                                                                                "TERTIARY_FUND_ORG_NAME", 
-                                                                                "ACTIVITY_PRCT", 
-                                                                                "RESIDUE_FATE", 
-                                                                                "RESIDUE_FATE_QUANTITY", 
-                                                                                "RESIDUE_FATE_UNITS", 
-                                                                                "ACTIVITY_NAME", 
-                                                                                "VAL_STATUS_a", 
-                                                                                "VAL_MSG_a", 
-                                                                                "VAL_RUNDATE_a", 
-                                                                                "REVIEW_STATUS_a", 
-                                                                                "REVIEW_MSG_a", 
-                                                                                "REVIEW_RUNDATE_a", 
-                                                                                "DATALOAD_STATUS_a", 
-                                                                                "DATALOAD_MSG_a", 
-                                                                                "Source", 
-                                                                                "Year", 
-                                                                                "Year_txt", 
-                                                                                "Act_Code", 
-                                                                                "Crosswalk", 
-                                                                                "Federal_FY", 
-                                                                                "State_FY"], 
-                                                                            method="KEEP_FIELDS")[0]
+        
+        WCB_standardized_keep_fields = KeepFields(WCB_standardized.__str__().format(**locals(),**globals()))
 
         # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
-        WCB_w_domains = AssignDomains(in_table=WCB_standardized_keep_fields)[0]
+        print("Executing Step 30/34 : AssignDomains to standardized...")
+        WCB_w_domains = AssignDomains(in_table=WCB_standardized_keep_fields)
 
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
+<<<<<<< HEAD
+        enrich_polygons(enrich_out=WCB_enriched_scratch, 
+=======
+        print("Executing Step 31/34 : Enrich Polygons...")
         aEnrichmentsPolygon1(enrich_out=WCB_enriched_scratch, 
+>>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
                              enrich_in=WCB_w_domains)
 
         # Process: Select Layer By Attribute (3) (Select Layer By Attribute) (management)
+        print("Executing Step 32/34 : Select Layer by Attribute...")
         WCB_enriched_scratch_select = arcpy.management.SelectLayerByAttribute(in_layer_or_view=WCB_enriched_scratch, 
                                                                                          where_clause="ACTIVITY_DESCRIPTION <> 'NOT_DEFINED'")
 
         # Process: Copy Features (3) (Copy Features) (management)
+        print("Executing Step 33/34 : Copy Features...")
         arcpy.management.CopyFeatures(in_features=WCB_enriched_scratch_select, 
                                       out_feature_class=WCB_enriched)
 
         # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
-        WFR_TF_Template_4_ = AssignDomains(in_table=WCB_enriched)[0]
+        print("Executing Step 34/34 : AssignDomains to enriched...")
+        WFR_TF_Template_4_ = AssignDomains(in_table=WCB_enriched)
+
+        #delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
 
 if __name__ == '__main__':
     runner(workspace,scratch_workspace,WCB, '*argv[1:]')

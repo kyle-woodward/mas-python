@@ -1,9 +1,9 @@
 """
 """
 import arcpy
-from scripts._1b_add_fields import AddFields2
+from scripts._1b_add_fields import AddFields
 from scripts._2b_assign_domains import AssignDomains
-from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
+from scripts._7a_enrichments_polygon import enrich_polygons
 from scripts.utils import runner, init_gdb
 from sys import argv
 import os
@@ -26,6 +26,7 @@ def DOC6(DOC_Ag_Standardized,
 
     with arcpy.EnvManager(qualifiedFieldNames=False, transferDomains=False, transferGDBAttributeProperties=False): 
         # Process: Dissolve (Dissolve) (management)
+        print("step 1/24  dissolve...")
         arcpy.management.Dissolve(in_features=DOC_Ag_OG, 
                                   out_feature_class=DOC_Ag_OG_Dissolve, 
                                   dissolve_field=["ACRES", 
@@ -36,113 +37,146 @@ def DOC6(DOC_Ag_Standardized,
                                                   "PROJECT", 
                                                   "PROVIDER", 
                                                   "Grant_Nm", 
-                                                  "ClosingDat"])
+                                                  "ClosingDat"])#[0]
 
         # Process: Repair Geometry (Repair Geometry) (management)
-        DOC_Repaired_Geometry = arcpy.management.RepairGeometry(in_features=DOC_Ag_OG_Dissolve)
+        print("step 2/24  repair geometry...")
+        DOC_Repaired_Geometry = arcpy.management.RepairGeometry(in_features=DOC_Ag_OG_Dissolve)#[0]
 
         # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
+<<<<<<< HEAD
+        DOC_w_Fields = AddFields(Input_Table=DOC_Repaired_Geometry)
+=======
+        print("step 3/24  add fields...")
         DOC_w_Fields = AddFields2(Input_Table=DOC_Repaired_Geometry)
+>>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
 
         # Process: Calculate Project ID (Calculate Field) (management)
+        print("step 4/24  calculate field...")
         DOC_calc_proj_id = arcpy.management.CalculateField(in_table=DOC_w_Fields, 
                                                                   field="PROJECTID_USER", 
-                                                                  expression="!Grant_Nm!")
+                                                                  expression="!Grant_Nm!")#[0]
 
         # Process: Calculate Agency (Calculate Field) (management)
+        print("step 5/24  calculate field...")
         DOC_calc_agency = arcpy.management.CalculateField(in_table=DOC_calc_proj_id, 
                                                                   field="AGENCY", 
-                                                                  expression="\"CNRA\"")
+                                                                  expression="\"CNRA\"")#[0]
 
         # Process: Calculate Administering Org (Calculate Field) (management)
+        print("step 6/24  calculate field...")
         DOC_calc_admin_org = arcpy.management.CalculateField(in_table=DOC_calc_agency, 
                                                                  field="ADMINISTERING_ORG", 
-                                                                 expression="\"DOC\"")
+                                                                 expression="\"DOC\"")#[0]
 
         # Process: Calculate Project Name (Calculate Field) (management)
+        print("step 7/24  calculate field...")
         DOC_calc_proj_name = arcpy.management.CalculateField(in_table=DOC_calc_admin_org, 
                                                                  field="PROJECT_NAME", 
-                                                                 expression="!PROJECT!")
+                                                                 expression="!PROJECT!")#[0]
 
         # Process: Calculate Implementing Org (Calculate Field) (management)
+        print("step 8/24  calculate field...")
         DOC_calc_imp_org = arcpy.management.CalculateField(in_table=DOC_calc_proj_name, 
                                                                   field="IMPLEMENTING_ORG", 
-                                                                  expression="!HOLDER!")
+                                                                  expression="!HOLDER!")#[0]
 
         # Process: Calculate Treatment ID (Calculate Field) (management)
+        print("step 9/24  calculate field...")
         DOC_calc_treat_id = arcpy.management.CalculateField(in_table=DOC_calc_imp_org, 
                                                                   field="TRMTID_USER", 
-                                                                  expression="!Grant_Nm! + '-' + !PROJECT![:12]+'-'+!PRIMARY_OWNERSHIP_GROUP![:11]+'-'+!IN_WUI![:3]")
+                                                                  expression="!Grant_Nm! + '-' + !PROJECT![:12]")#+'-'+!PRIMARY_OWNERSHIP_GROUP![:11]+'-'+!IN_WUI![:3]")#[0]
 
         # Process: Calculate BVT (Calculate Field) (management)
+        print("step 10/24  calculate field...")
         DOC_calc_bvt = arcpy.management.CalculateField(in_table=DOC_calc_treat_id, 
                                                                   field="BVT_USERD", 
-                                                                  expression="\"NO\"")
+                                                                  expression="\"NO\"")#[0]
 
         # Process: Calculate Activity Status (Calculate Field) (management)
+        print("step 11/24  calculate field...")
         DOC_calc_act_stat = arcpy.management.CalculateField(in_table=DOC_calc_bvt, 
                                                                   field="ACTIVITY_STATUS", 
-                                                                  expression="\"ACTIVE\"")
+                                                                  expression="\"ACTIVE\"")#[0]
 
         # Process: Calculate Activity Quantity (Calculate Field) (management)
+        print("step 12/24  calculate field...")
         DOC_calc_act_quant = arcpy.management.CalculateField(in_table=DOC_calc_act_stat, 
                                                               field="ACTIVITY_QUANTITY", 
-                                                              expression="!ACRES!")
+                                                              expression="!ACRES!")#[0]
 
         # Process: Calculate UOM (Calculate Field) (management)
+        print("step 13/24  calculate field...")
         DOC_calc_uom = arcpy.management.CalculateField(in_table=DOC_calc_act_quant, 
                                                                  field="ACTIVITY_UOM", 
-                                                                 expression="\"AC\"")
+                                                                 expression="\"AC\"")#[0]
 
         # Process: Calculate Activity End (Calculate Field) (management)
+        print("step 14/24  calculate field...")
         DOC_calc_act_end = arcpy.management.CalculateField(in_table=DOC_calc_uom, 
                                                                   field="ACTIVITY_END", 
-                                                                  expression="!ClosingDat!")
+                                                                  expression="!ClosingDat!")#[0]
         
         # Process: Calculate Primary Funding Org (Calculate Field) (management)
+        print("step 15/24  calculate field...")
         DOC_calc_prim_fund_org = arcpy.management.CalculateField(in_table=DOC_calc_act_end, 
                                                                  field="PRIMARY_FUND_ORG_NAME", 
-                                                                 expression="!PROVIDER!")
+                                                                 expression="!PROVIDER!")#[0]
 
         # Process: Calculate Primary Funding Source (Calculate Field) (management)
+        print("step 16/24  calculate field...")
         DOC_calc_prim_fund_src = arcpy.management.CalculateField(in_table=DOC_calc_prim_fund_org, 
                                                                  field="PRIMARY_FUND_SRC_NAME", 
-                                                                 expression="!FUNDER1!")
+                                                                 expression="!FUNDER1!")#[0]
 
         # Process: Calculate SecondaryFunding Src Name (Calculate Field) (management)
+        print("step 17/24  calculate field...")
         DOC_calc_sec_fund_src_name = arcpy.management.CalculateField(in_table=DOC_calc_prim_fund_src, 
                                                                  field="SECONDARY_FUND_SRC_NAME", 
-                                                                 expression="!FUNDER2!")
+                                                                 expression="!FUNDER2!")#[0]
 
         # Process: Calculate Tertiary Funding Src Name (Calculate Field) (management)
+        print("step 18/24  calculate field...")
         DOC_calc_tert_fund_src_name = arcpy.management.CalculateField(in_table=DOC_calc_sec_fund_src_name, 
                                                                   field="TERTIARY_FUND_SRC_NAME", 
-                                                                  expression="!FUNDER3!")
+                                                                  expression="!FUNDER3!")#[0]
 
         # Process: Calculate Crosswalk (Calculate Field) (management)
+        print("step 19/24  calculate field...")
         DOC_calc_xwalk = arcpy.management.CalculateField(in_table=DOC_calc_tert_fund_src_name, 
                                                                   field="Crosswalk", 
-                                                                  expression="\"EASEMENT\"")
+                                                                  expression="\"EASEMENT\"")#[0]
 
         # Process: Calculate Source (Calculate Field) (management)
+        print("step 20/24  calculate field...")
         DOC_calc_src = arcpy.management.CalculateField(in_table=DOC_calc_xwalk, 
                                                                   field="Source", 
-                                                                  expression="\"DOC_Ag_easements_Range2022\"")
+                                                                  expression="\"DOC_Ag_easements_Range2022\"")#[0]
 
         # Process: Copy Features (Copy Features) (management)
+        print("step 21/24  copy features...")
         arcpy.management.CopyFeatures(in_features=DOC_calc_src, 
-                                      out_feature_class=DOC_Ag_Standardized.__str__().format(**locals(),**globals()))
+                                      out_feature_class=DOC_Ag_Standardized.__str__().format(**locals(),**globals()))#[0]
 
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
+<<<<<<< HEAD
+        enrich_polygons(enrich_out=DOC_Summarized_Polygons, 
+=======
+        print("step 22/24  enrich polygons...")
         aEnrichmentsPolygon1(enrich_out=DOC_Summarized_Polygons, 
+>>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
                              enrich_in=DOC_Ag_Standardized.__str__().format(**locals(),**globals()))
 
         # Process: Copy Features (2) (Copy Features) (management)
+        print("step 23/24  copy features...")
         arcpy.management.CopyFeatures(in_features=DOC_Summarized_Polygons, 
-                                      out_feature_class=DOC_Ag_enriched.__str__().format(**locals(),**globals()))
+                                      out_feature_class=DOC_Ag_enriched.__str__().format(**locals(),**globals()))#[0]
 
         # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
-        WFR_TF_Template_2_ = AssignDomains(in_table=DOC_Ag_enriched.__str__().format(**locals(),**globals()))[0]
+        print("step 24/24 assign domains...")
+        WFR_TF_Template_2_ = AssignDomains(in_table=DOC_Ag_enriched.__str__().format(**locals(),**globals()))
+
+        print("6aa complete...")
 
 if __name__ == '__main__':
     runner(workspace,scratch_workspace,DOC6, '*argv[1:]')

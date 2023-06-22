@@ -1,12 +1,16 @@
 #%%
 import arcpy
-from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
+from scripts._7a_enrichments_polygon import enrich_polygons
 from sys import argv
 from scripts.utils import init_gdb, runner
 import os
+import datetime
 original_gdb, workspace, scratch_workspace = init_gdb()
 
-enrich_out = os.path.join(workspace,'d_Enriched','OEIS_test123')
-enrich_in = os.path.join(workspace,'c_Standardized','OEIS_2020_2022_poly_standardized_20230201')
-aEnrichmentsPolygon1(enrich_out, enrich_in)
+# CalVTP_standardized_20220923="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\c_Standardized\\CalVTP_standardized_20220923"):  # 7a Enrichments Polygon
+
+enrich_out = os.path.join(workspace,'d_Enriched','testEnrichments_CalVTP_standardized_20220923')
+enrich_in = os.path.join(workspace,'c_Standardized','CalVTP_standardized_20220923')
+enrich_polygons(enrich_out, enrich_in)
+
 # %%
