@@ -4,10 +4,10 @@ from sys import argv
 from scripts.utils import init_gdb
 original_gdb, workspace, scratch_workspace = init_gdb()
 
-def KeepFields(input_table):
+def KeepFields(Keep_table):
         arcpy.env.overwriteOutput = True
         fields_kept = arcpy.management.DeleteField(
-                                        in_table=input_table, 
+                                        in_table=Keep_table, 
                                         drop_field=["PROJECTID_USER", "AGENCY", "ORG_ADMIN_p", 
                                                     "PROJECT_CONTACT", "PROJECT_EMAIL", "ADMINISTERING_ORG", 
                                                     "PROJECT_NAME", "PROJECT_STATUS", "PROJECT_START", 

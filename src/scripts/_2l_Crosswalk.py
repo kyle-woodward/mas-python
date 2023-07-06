@@ -11,84 +11,100 @@ from scripts.utils import init_gdb, runner
 
 original_gdb, workspace, scratch_workspace = init_gdb()
 
-def Crosswalk(Input_Table):  # 2l Crosswalk
+def Crosswalk(Crosswalk_Input):  # 2l Crosswalk
 
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
 
-    Fuels_Treatments_Piles_Crosswalk = os.path.join(workspace,'Fuels_Treatments_Piles_Crosswalk')
-
+    Crosswalk_Table = os.path.join(workspace,'Fuels_Treatments_Piles_Crosswalk')
+    print("   Calculating Crosswalking Activites...")
     # Process: Add Join (Add Join) (management)
-    add_join_w_xwalk = arcpy.management.AddJoin(in_layer_or_view=Input_Table.__str__().format(**locals(),**globals()), 
+    print("     step 1/10 add join")
+    add_join_w_xwalk = arcpy.management.AddJoin(in_layer_or_view=Crosswalk_Input.__str__().format(**locals(),**globals()), 
                                                       in_field="Crosswalk", 
-                                                      join_table=Fuels_Treatments_Piles_Crosswalk, 
+                                                      join_table=Crosswalk_Table, 
                                                       join_field="Original_Activity", 
                                                       join_type="KEEP_COMMON", 
                                                       index_join_fields="INDEX_JOIN_FIELDS")
 
     # Process: Calculate Activity Description (Calculate Field) (management)
+    print("     step 2/10 calculate activities")
     xwalk_activity_description = arcpy.management.CalculateField(in_table=add_join_w_xwalk, 
                                                              field="ACTIVITY_DESCRIPTION", 
                                                              expression="!Fuels_Treatments_Piles_Crosswalk.Activity!")
 
     # Process: Calculate Residue Fate (Calculate Field) (management)
+    print("     step 3/10 calculate residue fate field")
     xwalk_residue_fate = arcpy.management.CalculateField(in_table=xwalk_activity_description, 
                                                                     field="RESIDUE_FATE", 
                                                                     expression="!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!")
 
     # Process: Calculate Counts Towards MAS (Calculate Field) (management)
+    print("     step 4/10 Counts Towards MAS 1")
     xwalk_counts_to_mas = arcpy.management.CalculateField(in_table=xwalk_residue_fate, 
                                                              field="COUNTS_TO_MAS", 
                                                              expression="!Fuels_Treatments_Piles_Crosswalk.Counts_to_MAS!")
 
     # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
+    print("     step 5/10 select attribute by layer")
     select_tbd_objective = arcpy.management.SelectLayerByAttribute(in_layer_or_view=xwalk_counts_to_mas, 
-                                                                                     where_clause="PRIMARY_OBJECTIVE IS NULL Or PRIMARY_OBJECTIVE = 'TBD'")
+                                                                     where_clause="PRIMARY_OBJECTIVE IS NULL Or PRIMARY_OBJECTIVE = 'TBD'")
 
     # Process: Calculate Objective (Calculate Field) (management)
+    print('     step 6/10 Calculating Objective...')
     xwalk_primary_objective = arcpy.management.CalculateField(in_table=select_tbd_objective, 
                                                              field="PRIMARY_OBJECTIVE", 
-                                                             expression="!Fuels_Treatments_Piles_Crosswalk.Objective!")[0]
+                                                             expression="!Fuels_Treatments_Piles_Crosswalk.Objective!")
 
     # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
     clear_selection = arcpy.management.SelectLayerByAttribute(in_layer_or_view=xwalk_primary_objective, 
                                                                                          selection_type="CLEAR_SELECTION")
 
     # Process: Remove Join (2) (Remove Join) (management)
-    remove_join = arcpy.management.RemoveJoin(in_layer_or_view=clear_selection)[0]
+    remove_join = arcpy.management.RemoveJoin(in_layer_or_view=clear_selection)
 
     # Process: 2f Calculate Category (2f Calculate Category) (PC414CWIMillionAcres)
-    calc_category = Category(Input_Table=remove_join)#[0]
+    print("     step 7/10 calculate category")
+    calc_category = Category(Input_Table=remove_join)
 
     # Process: 2j Standardize Domains (2j Standardize Domains) (PC414CWIMillionAcres)
-    standardize_domains = StandardizeDomains(Input_Table=calc_category)#[0]
+    print("     step 8/10 standardize domains")
+    standardize_domains = StandardizeDomains(Input_Table=calc_category)
 
     # Process: Calculate Counts Towards MAS AC Only (Calculate Field) (management)
+    print("     step 9/10 Counts Towards MAS 2")
     calc_mas_acres = arcpy.management.CalculateField(in_table=standardize_domains, 
                                                              field="COUNTS_TO_MAS", 
                                                              expression="ifelse(!ACTIVITY_UOM!,!ACTIVITY_STATUS!,!Counts_to_MAS!)", 
                                                              code_block="""def ifelse(UOM, Status, Counts):
-    if UOM != \"AC\":
-        return \"NO\"
-    if Status == \"CANCELLED\":
-        return \"NO\"
-    else:
-        return Counts
-        """)[0]
+                                                                    if UOM != \"AC\":
+                                                                        return \"NO\"
+                                                                    if Status == \"CANCELLED\":
+                                                                        return \"NO\"
+                                                                    else:
+                                                                        return Counts
+                                                                        """)
 
     # Process: Calculate Counts Towards MAS AC Only (2) (Calculate Field) (management)
+    print("     step 10/10 Counts Towards MAS 3")
     calc_mas_acres_2 = arcpy.management.CalculateField(in_table=calc_mas_acres, 
                                                              field="COUNTS_TO_MAS", 
                                                              expression="ifelse(!Source!,!IMPLEMENTING_ORG!,!Counts_to_MAS!)", 
                                                              code_block="""def ifelse(Source, Org, Counts):
-    if Source == \"PIFIRS\" and Org not in [\"Camp Roberts\", \"California Department of Fish and Wildlife\", \"California State Parks\", \"US Department of Energy\", \"US Military\"]:
-        return \"NO\"
-    else:
-        return Counts
-        """)[0]
+                                                                if Source == \"PIFIRS\" and Org not in [\"Camp Roberts\", 
+                                                                \"California Department of Fish and Wildlife\", 
+                                                                \"California State Parks\", 
+                                                                \"US Department of Energy\", 
+                                                                \"US Military\"]:
+                                                                    return \"NO\"
+                                                                else:
+                                                                    return Counts
+                                                                    """)
 
     # Process: 2k Keep Fields (2k Keep Fields) (PC414CWIMillionAcres)
-    final_output_table = KeepFields(input_table=calc_mas_acres_2)#[0]
+    final_output_table = KeepFields(Keep_table=calc_mas_acres_2)
+
+    return final_output_table
 
 if __name__ == '__main__':
     runner(workspace,scratch_workspace,Crosswalk, '*argv[1:]')
