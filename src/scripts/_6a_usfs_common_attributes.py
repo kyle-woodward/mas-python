@@ -14,6 +14,9 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
     print(f'Start Time {time.ctime()}')
     arcpy.env.overwriteOutput = True
     
+    # START and END YEARS
+    startyear = 2020
+    endyear = 2025
 
     # define intermediary objects in scratch
     usfs_intermediate_scratch = os.path.join(scratch_workspace,'usfs_intermediate_scratch')
@@ -32,7 +35,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             invert_where_clause=""
             )
         
-        print("   Selecting Features...")
+        print("   step 1/8 Selecting Features...")
         # Process: Select Layer By Attribute Activity Code (Select Layer By Attribute) (management)
         usfs_select_activities, Count_3_ = arcpy.management.SelectLayerByAttribute(
             in_layer_or_view=usfs_CA, 
@@ -193,7 +196,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
         usfs_non_wildfire_after_1995 = arcpy.management.SelectLayerByAttribute(
             in_layer_or_view=usfs_non_wildfire_date_not_null, 
             selection_type="SUBSET_SELECTION", 
-            where_clause="DATE_COMPLETED > timestamp '1995-01-01 00:00:00' Or DATE_COMPLETED IS NULL", 
+            # where_clause="DATE_COMPLETED > timestamp '1995-01-01 00:00:00' Or DATE_COMPLETED IS NULL", 
+            where_clause="DATE_COMPLETED > timestamp '%d-01-01 00:00:00' Or DATE_COMPLETED IS NULL"%startyear,
             invert_where_clause=""
             )
         
@@ -203,7 +207,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             usfs_intermediate_scratch
             )
         
-        print("   Repairing Geometry...")
+        print("   step 2/8 Repairing Geometry...")
         # Process: Repair Geometry (Repair Geometry) (management)
         usfs_non_wildfire_after_1995_repaired_geom = arcpy.management.RepairGeometry(
             in_features=usfs_non_wildfire_after_1995_copy, 
@@ -211,26 +215,14 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             validation_method="ESRI"
             )
 
-        # Process: Dissolve (Dissolve) (management)
-        usfs_non_wildfire_after_1995_dissolved = arcpy.management.Dissolve(
-            in_features=usfs_non_wildfire_after_1995_repaired_geom, 
-            out_feature_class=usfs_intermediate_scratch_dissolved, 
-            dissolve_field=["SUID", "NEPA_SIGNED_DATE", "DATE_COMPLETED", 
-                            "NBR_UNITS_ACCOMPLISHED", "FACTS_ID", "UOM", 
-                            "ACTIVITY", "NEPA_PROJECT_NAME", "DATE_AWARDED", 
-                            "ACTIVITY_CODE", "NEPA_DOC_NBR", "WORKFORCE_CODE", 
-                            "NBR_UNITS_PLANNED", "ISWUI"], 
-            statistics_fields=[], 
-            multi_part="MULTI_PART", 
-            unsplit_lines="DISSOLVE_LINES", 
-            concatenation_separator=""
-            )
+        usfs_non_wildfire_after_1995_repaired_geom2 = arcpy.management.AlterField(
+            usfs_non_wildfire_after_1995_repaired_geom, 'TREATMENT_NAME', 'TREATMENT_NAME_FACTS')
 
-        print("   Adding Fields...")
+        print("   step 3/8 Adding Fields...")
         # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-        usfs_non_wildfire_after_1995_w_fields = AddFields(Input_Table=usfs_non_wildfire_after_1995_dissolved)
+        usfs_non_wildfire_after_1995_w_fields = AddFields(Input_Table=usfs_non_wildfire_after_1995_repaired_geom2)
 
-        print("   Transfering Attributes...")
+        print("   step 4/8 Transfering Attributes...")
         # Process: Calculate Project ID (Calculate Field) (management)
         usfs_non_wildfire_after_1995_calc_field_v1 = arcpy.management.CalculateField(
             in_table=usfs_non_wildfire_after_1995_w_fields, 
@@ -393,7 +385,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             enforce_domains="NO_ENFORCE_DOMAINS"
             )
 
-        print("   Calculating End Date...")
+        print("   step 5/8 Calculating End Date...")
         # Process: Calculate Activity End Date (Calculate Field) (management)
         usfs_non_wildfire_after_1995_calc_field_v14 = arcpy.management.CalculateField(
             in_table=usfs_non_wildfire_after_1995_calc_field_v13, 
@@ -405,7 +397,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
                                 return DateComp
                             elif DateComp == None:
                                 return DateAw""", 
-            field_type="TEXT", 
+            field_type="DATE", 
             enforce_domains="NO_ENFORCE_DOMAINS"
             )
 
@@ -424,7 +416,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             expression="!NEPA_SIGNED_DATE!", 
             expression_type="PYTHON3", 
             code_block="", 
-            field_type="TEXT", 
+            field_type="DATE", 
             enforce_domains="NO_ENFORCE_DOMAINS"
             )
 
@@ -436,9 +428,9 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             invert_where_clause=""
             )
 
-        print("   Calculating Status...")
+        print("   step 6/8 Calculating Status...")
         # Process: Calculate Status (Calculate Field) (management)
-        # Based on Today's Date.  Need to add Date formula
+    # To Do: Based on Today's Date.  Need to add Date formula
         usfs_non_wildfire_after_1995_calc_field_v16 = arcpy.management.CalculateField(
             in_table=usfs_non_wildfire_after_1995_clear_selection, 
             field="ACTIVITY_STATUS", 
@@ -460,6 +452,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Activity Quantity (3) (Calculate Field) (management)
+        print("   step 7/8 Activity Quantity...")
         usfs_non_wildfire_after_1995_calc_field_v17 = arcpy.management.CalculateField(
             in_table=usfs_non_wildfire_after_1995_calc_field_v16, 
             field="ACTIVITY_QUANTITY", 
@@ -486,6 +479,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             )
 
         # Process: Calculate Admin Org2 (Calculate Field) (management)
+        print("   step 8/8 Enter Field Values...")
         usfs_non_wildfire_after_1995_calc_field_v19 = arcpy.management.CalculateField(
             in_table=usfs_non_wildfire_after_1995_calc_field_v18, 
             field="ADMIN_ORG_NAME", 
@@ -558,7 +552,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             expression="Year($feature.ACTIVITY_END)", 
             expression_type="ARCADE", 
             code_block="", 
-            field_type="TEXT", 
+            field_type="LONG", 
             enforce_domains="NO_ENFORCE_DOMAINS"
             )
 
@@ -600,7 +594,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
            expression="!ACTIVITY_CODE!", 
            expression_type="PYTHON3",
            code_block="", 
-           field_type="TEXT", 
+           field_type="LONG", 
            enforce_domains="NO_ENFORCE_DOMAINS"
            )
 
@@ -613,12 +607,12 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
         # Process: Delete Field (Delete Field) (management)
         usfs_scratch_standardized_keep_fields = KeepFields(usfs_scratch_standardized)
 
-        print(f'Saving Output Standardized: {output_standardized}')
+        print(f'Saving Standardized Output: {output_standardized}')
         # Process: Select by Years (Select) (analysis)
         arcpy.analysis.Select(
             in_features=usfs_scratch_standardized_keep_fields, 
             out_feature_class=output_standardized, 
-            where_clause="Year >= 1995 And Year <= 2025"
+            where_clause="Year >= %d And Year <= %d"%(startyear, endyear)
             )
 
         # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
@@ -633,13 +627,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             enrich_out=output_enriched            
             )
         
-        print(f'Saving Output Enriched: {output_enriched}')
-        # output of enrichemnts function should be the output_enriched file not another scratch file, then we can delete all scratch files
-        # Process: Copy Features (Copy Features) (management)
-        # arcpy.management.CopyFeatures(
-        #     in_features=Veg_Summarized_Polygons2_3_, 
-        #     out_feature_class=output_enriched, 
-        #     )
+        print(f'Saving Enriched Output: {output_enriched}')
 
         arcpy.management.CalculateField(
             in_table=output_enriched, 

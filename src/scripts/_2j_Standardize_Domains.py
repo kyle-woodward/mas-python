@@ -100,7 +100,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Other':
         return 'OTHER'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Admin Org (Calculate Field) (management)
     update_administering_org = arcpy.management.CalculateField(in_table=update_org_admin_p, 
@@ -166,7 +166,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Other':
         return 'OTHER'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Project Status (Calculate Field) (management)
     update_project_status = arcpy.management.CalculateField(in_table=update_administering_org, 
@@ -188,7 +188,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Stat == 'Proposed':
         return 'PROPOSED'
     else:
-        return Stat""")[0]
+        return Stat""")
 
     # Process: Calculate Ord Data Steward (Calculate Field) (management)
     update_org_admin_p_2 = arcpy.management.CalculateField(in_table=update_project_status, 
@@ -254,7 +254,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Other':
         return 'OTHER'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Fund Source (Calculate Field) (management)
     update_primary_funding_source = arcpy.management.CalculateField(in_table=update_org_admin_p_2, 
@@ -284,7 +284,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Private':
         return 'PRIVATE'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Fund Org (Calculate Field) (management)
     update_primary_funding_org = arcpy.management.CalculateField(in_table=update_primary_funding_source, 
@@ -350,7 +350,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Other':
         return 'OTHER'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Treatment Data Steward (Calculate Field) (management)
     update_org_admin_t = arcpy.management.CalculateField(in_table=update_primary_funding_org, 
@@ -416,7 +416,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Other':
         return 'OTHER'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Ownership (Calculate Field) (management)
     update_primary_ownership_group = arcpy.management.CalculateField(in_table=update_org_admin_t, 
@@ -438,7 +438,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Own == 'Tribal':
         return 'TRIBAL'
     else:
-        return Own""")[0]
+        return Own""")
 
     # Process: Calculate Objective (Calculate Field) (management)
     update_primary_objective = arcpy.management.CalculateField(in_table=update_primary_ownership_group, 
@@ -529,7 +529,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif OBJ == None:
         return 'TBD'
     else:
-        return OBJ""")[0]
+        return OBJ""")
 
     # Process: Calculate Objective (2) (Calculate Field) (management)
     update_secondary_objective = arcpy.management.CalculateField(in_table=update_primary_objective, 
@@ -620,7 +620,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif OBJ == None:
         return None
     else:
-        return OBJ""")[0]
+        return OBJ""")
 
     # Process: Calculate Objective (3) (Calculate Field) (management)
     update_tertiary_objective = arcpy.management.CalculateField(in_table=update_secondary_objective, 
@@ -711,7 +711,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif OBJ == None:
         return None
     else:
-        return OBJ""")[0]
+        return OBJ""")
 
     # Process: Calculate Treatment Status (Calculate Field) (management)
     update_treatment_status = arcpy.management.CalculateField(in_table=update_tertiary_objective, 
@@ -733,7 +733,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Stat == 'Proposed':
         return 'PROPOSED'
     else:
-        return Stat""")[0]
+        return Stat""")
 
     # Process: Calculate County (Calculate Field) (management)
     update_county = arcpy.management.CalculateField(in_table=update_treatment_status, 
@@ -857,7 +857,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif County == 'Yuba' or County == 'YUBA':
         return 'YUB'
     else:
-        return County""")[0]
+        return County""")
 
     # Process: Calculate WUI (Calculate Field) (management)
     update_in_wui = arcpy.management.CalculateField(in_table=update_county, 
@@ -873,7 +873,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif WUI == 'Non-WUI (auto populated)':
         return 'NON-WUI_AUTO_POP'
     else:
-        return WUI""")[0]
+        return WUI""")
 
     # Process: Calculate Region (Calculate Field) (management)
     update_region = arcpy.management.CalculateField(in_table=update_in_wui, 
@@ -901,7 +901,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Region == 'SIERRA_CASCADE_INYO':
         return 'SIERRA_NEVADA'
     else:
-        return Region""")[0]
+        return Region""")
 
     # Process: Calculate Activity Data Steward (Calculate Field) (management)
     update_org_admin_a = arcpy.management.CalculateField(in_table=update_region, 
@@ -967,7 +967,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Other':
         return 'OTHER'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Activity Description (Calculate Field) (management)
     update_activity_description = arcpy.management.CalculateField(in_table=update_org_admin_a, 
@@ -1165,7 +1165,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif ACT == None:
         return \"TBD\"
     else:
-        return \"TBD\"""")[0]
+        return \"TBD\"""")
 
     # Process: Calculate Activity Category (Calculate Field) (management)
     update_activity_cat = arcpy.management.CalculateField(in_table=update_activity_description, 
@@ -1191,7 +1191,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Cat == 'Not Defined':
         return 'NOT_DEFINED'
     else:
-        return Cat""")[0]
+        return Cat""")
 
     # Process: Calculate BVT (Calculate Field) (management)
     update_bvt = arcpy.management.CalculateField(in_table=update_activity_cat, 
@@ -1235,7 +1235,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif VEG == \"Tree\":
         return \"FOREST\"
     else:
-        return VEG""")[0]
+        return VEG""")
 
     # Process: Calculate BVT ID (Calculate Field) (management)
     update_bvt_userd = arcpy.management.CalculateField(in_table=update_bvt, 
@@ -1248,7 +1248,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
         return 'NO'
     else:
         return YN
-        """)[0]
+        """)
 
     # Process: Calculate Activity Status (Calculate Field) (management)
     update_activity_status = arcpy.management.CalculateField(in_table=update_bvt_userd, 
@@ -1270,7 +1270,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Stat == 'Proposed':
         return 'PROPOSED'
     else:
-        return Stat""")[0]
+        return Stat""")
 
     # Process: Calculate Units (Calculate Field) (management)
     update_activity_uom = arcpy.management.CalculateField(in_table=update_activity_status, 
@@ -1316,7 +1316,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Units == \"Tons\":
         return \"TON\"
     else:
-        return Units""")[0]
+        return Units""")
 
     # Process: Calculate Activity Admin (Calculate Field) (management)
     update_admin_org_name = arcpy.management.CalculateField(in_table=update_activity_uom, 
@@ -1382,7 +1382,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Other':
         return 'OTHER'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Act Fund Source (Calculate Field) (management)
     update_primary_fund_src_name = arcpy.management.CalculateField(in_table=update_admin_org_name, 
@@ -1412,7 +1412,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Private':
         return 'PRIVATE'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Act Fund Org (Calculate Field) (management)
     update_primary_fund_org_name = arcpy.management.CalculateField(in_table=update_primary_fund_src_name, 
@@ -1478,7 +1478,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Other':
         return 'OTHER'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Act Fund Source (2) (Calculate Field) (management)
     update_secondary_fund_src_name = arcpy.management.CalculateField(in_table=update_primary_fund_org_name, 
@@ -1508,7 +1508,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Private':
         return 'PRIVATE'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Act Fund Org (2) (Calculate Field) (management)
     update_secondary_fund_src_name_2 = arcpy.management.CalculateField(in_table=update_secondary_fund_src_name, 
@@ -1574,7 +1574,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Other':
         return 'OTHER'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Act Fund Source (3) (Calculate Field) (management)
     update_tertiary_fund_src_name = arcpy.management.CalculateField(in_table=update_secondary_fund_src_name_2, 
@@ -1604,7 +1604,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Private':
         return 'PRIVATE'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Act Fund Org (3) (Calculate Field) (management)
     update_tertiary_fund_src_name_2 = arcpy.management.CalculateField(in_table=update_tertiary_fund_src_name, 
@@ -1670,7 +1670,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Org == 'Other':
         return 'OTHER'
     else:
-        return Org""")[0]
+        return Org""")
 
     # Process: Calculate Residue (Calculate Field) (management)
     update_residue_fate = arcpy.management.CalculateField(in_table=update_tertiary_fund_src_name_2, 
@@ -1708,7 +1708,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Fate == 'Unknown':
         return 'UNKNOWN'
     else:
-        return Fate""")[0]
+        return Fate""")
 
     # Process: Calculate Units (2) (Calculate Field) (management)
     update_residue_fate_units = arcpy.management.CalculateField(in_table=update_residue_fate, 
@@ -1728,7 +1728,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif UOM == 'Tons':
         return 'TON'
     else:
-        return UOM""")[0]
+        return UOM""")
 
     # Process: Calculate Geometry Type (Calculate Field) (management)
     update_trmt_geom = arcpy.management.CalculateField(in_table=update_residue_fate_units, 
@@ -1744,7 +1744,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     elif Geom == 'No Shape':
         return 'NO SHAPE'
     else:
-        return Geom""")[0]
+        return Geom""")
 
     # Process: Calculate Counts Towards (Calculate Field) (management)
     final_output = arcpy.management.CalculateField(in_table=update_trmt_geom, 
@@ -1757,7 +1757,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
         return 'NO'
     else:
         return YN
-        """)[0]
+        """)
 
     return final_output
 

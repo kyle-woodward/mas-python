@@ -156,20 +156,11 @@ def AddFields(Input_Table,alter_fields=False):  # 1b Add Fields
     return Assign_Domains_
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     runner(workspace,scratch_workspace,AddFields, '*argv[1:]')
     # # Global Environment settings
     # # run desired function with environment settings set by arcpy.EnvManager
     # # trying a one-line execution of the below.. might not be so easy
     # # runner(workspace,scratch_workspace,AddFields2)
-=======
-    # runner(workspace,scratch_workspace,AddFields2, '*argv[1:]')
-    # Global Environment settings
-    # run desired function with environment settings set by arcpy.EnvManager
-    # trying a one-line execution of the below.. might not be so easy
-    # runner(workspace,scratch_workspace,AddFields2)
->>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
-
     
     # Global Environment settings
     # to fix syntax errors in extent and outputCoordinateSystem args, wrap string values in triple quotes
@@ -183,4 +174,4 @@ if __name__ == '__main__':
     transferGDBAttributeProperties=True, 
     workspace=workspace):
         
-        AddFields2(Input_Table=os.path.join(workspace,"WFR_TF_Template"))
+        AddFields(Input_Table=os.path.join(workspace,"WFR_TF_Template"))
