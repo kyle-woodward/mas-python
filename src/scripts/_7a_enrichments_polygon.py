@@ -632,7 +632,6 @@ if __name__ == '__main__':
     # transferGDBAttributeProperties=True, 
     # workspace=workspace):
     #     enrich_polygons(*argv[1:])
-
     # runner(workspace,scratch_workspace,aEnrichmentsPolygon1, '*argv[1:]')
     # Global Environment settings
     with arcpy.EnvManager(
