@@ -1,8 +1,8 @@
 import arcpy
-from ._2d_calculate_activity import Activity
-from ._2f_calculate_category import Category
-from ._2e_calculate_objective import Objective
-from ._2g_calculate_residue_fate import Residue
+# from ._2d_calculate_activity import Activity
+# from ._2f_calculate_category import Category
+# from ._2e_calculate_objective import Objective
+# from ._2g_calculate_residue_fate import Residue
 from ._2h_calculate_year import Year
 from ._2k_keep_fields import KeepFields
 from ._2l_Crosswalk import Crosswalk
@@ -50,7 +50,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
         print('Executing Polygon Enrichments...')
         print("   Calculating Broad Vegetation Type...")
         # Process: Summarize Within (Summarize Within) (analysis)
-        print("     step 1/33 summarize veg within polygons")
+        print("     step 1/34 summarize veg within polygons")
         arcpy.analysis.SummarizeWithin(
                                     in_polygons=enrich_in, 
                                     in_sum_features=Veg_Layer, 
@@ -74,7 +74,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
 #     time_step_reference=None
 # )
         # Process: Summarize Attributes (Summarize Attributes) (gapro)
-        print("     step 2/33 summarize attributes")
+        print("     step 2/34 summarize attributes")
         arcpy.gapro.SummarizeAttributes(
                                         input_layer=WHR13NAME_Summary, 
                                         out_table=WHR13NAME_Summary_SummarizeAttributes, 
@@ -87,7 +87,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
 
         # print('   Performing Field Modifications...')
         # Process: Add Join (2) (Add Join) (management)
-        print("     step 3/33 add join")
+        print("     step 3/34 add join")
         WHR13NAME_Summary_SummarizeA = arcpy.management.AddJoin(
                                     in_layer_or_view=WHR13NAME_Summary_SummarizeAttributes, 
                                     in_field="MAX_Sum_Area_ACRES", 
@@ -98,48 +98,29 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                     )
 
         # Process: Table To Table (Table To Table) (conversion)
-        print("     step 4/33 convert table to table")
+        print("     step 4/34 convert table to table")
         WHR13NAME_Summary_temp = arcpy.conversion.TableToTable(
                             in_rows=WHR13NAME_Summary_SummarizeA, 
                             out_path=scratch_workspace, 
                             out_name="WHR13NAME_Summary_temp", 
                             where_clause="",
-                            # ideally want to chunk out field mapping string to reduce line length .. 
-                            # field_mapping="""Join_ID \"Join_ID\" true true false 4 Long 0 0,First,#,
-                            # WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,
-                            # WHR13NAME_Summary_SummarizeAttributes.Join_ID,-1,-1;
-                            # COUNT \"COUNT\" true true false 8 Double 0 0,First,#,
-                            # WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,
-                            # WHR13NAME_Summary_SummarizeAttributes.COUNT,-1,-1;
-                            # MAX_Sum_Area_ACRES \"MAX_Sum_Area_ACRES\" true true false 8 Double 0 0,
-                            # First,#,WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,
-                            # WHR13NAME_Summary_SummarizeAttributes.MAX_Sum_Area_ACRES,-1,-1;
-                            # OBJECTID \"OBJECTID\" false true false 4 Long 0 9,First,#,
-                            # WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,
-                            # WHR13NAME_Summary.OBJECTID,-1,-1;Join_ID \"Join ID\" true true false 4 Long 0 0,
-                            # First,#,WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,
-                            # WHR13NAME_Summary.Join_ID,-1,-1;WHR13NAME \"WHR13NAME\" true true false 255 Text 0 0,
-                            # First,#,WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,
-                            # WHR13NAME_Summary.WHR13NAME,0,255;
-                            # sum_Area_ACRES \"Summarized Area in ACRES\" true true false 8 Double 0 0,
-                            # First,#,WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,
-                            # WHR13NAME_Summary.sum_Area_ACRES,-1,-1;
-                            # Polygon_Count \"Count of Polygons\" true true false 4 Long 0 0,First,#,
-                            # WHR13NAME_Summary_SummarizeA:WHR13NAME_Summary_SummarizeA,WHR13NAME_Summary.Polygon_Count,-1,-1""",
                             config_keyword=""
                             )
 
         # Process: Delete Identical (Delete Identical) (management)
-        print("     step 5/33 delete identical")
+        print("     step 5/34 delete identical")
         WHR13NAME_Summary_temp_2_ = arcpy.management.DeleteIdentical(
                                 in_dataset=WHR13NAME_Summary_temp, 
                                 fields=["Join_ID", "MAX_Sum_Area_ACRES", "WHR13NAME"], 
                                 xy_tolerance="", 
                                 z_tolerance=0
                                 )
+        
+        Count1 = arcpy.management.GetCount(WHR13NAME_Summary_temp_2_)
+        print('{} has {} records'.format(WHR13NAME_Summary_temp_2_, Count1[0]))
 
         # Process: Add Join (3) (Add Join) (management)
-        print("     step 6/33 add join")
+        print("     step 6/34 add join")
         usfs_haz_fuels_treatments_re = arcpy.management.AddJoin(
                                     in_layer_or_view=Veg_Summarized_Polygons, 
                                     in_field="Join_ID", 
@@ -150,7 +131,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                     )
 
         # Process: Select Layer By BVT Not Null (Select Layer By Attribute) (management)
-        print("     step 7/33 select layer by attribute")
+        print("     step 7/34 select layer by attribute")
         Veg_Summarized_Polygons_Laye_3_, Count = arcpy.management.SelectLayerByAttribute(
                                             in_layer_or_view=usfs_haz_fuels_treatments_re, 
                                             selection_type="NEW_SELECTION", 
@@ -159,7 +140,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                             )
 
         # Process: Calculate BVT User Defined Yes (Calculate Field) (management)
-        print("     step 8/33 calculate user defined veg field yes")
+        print("     step 8/34 calculate user defined veg field yes")
         Updated_Input_Table_2_ = arcpy.management.CalculateField(
                             in_table=Veg_Summarized_Polygons_Laye_3_, 
                             field="BVT_USERD", 
@@ -171,7 +152,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                             )
 
         # Process: Switch Selection (Select Layer By Attribute) (management)
-        print("     step 9/33 select layer by attribute")
+        print("     step 9/34 select layer by attribute")
         Updated_Layer_Or_Table_View, Count_5_ = arcpy.management.SelectLayerByAttribute(
                                             in_layer_or_view=Updated_Input_Table_2_, 
                                             selection_type="SWITCH_SELECTION", 
@@ -180,7 +161,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                             )
 
         # Process: Calculate Veg (Calculate Field) (management)
-        print("     step 10/33 calculate veg domain code")
+        print("     step 10/34 calculate veg domain code")
         Veg_Summarized_Polygons_Laye_2_ = arcpy.management.CalculateField(
                                         in_table=Updated_Layer_Or_Table_View, 
                                         field="Veg_Summarized_Polygons.BROAD_VEGETATION_TYPE", 
@@ -218,7 +199,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                         )
 
         # Process: Calculate BVT User Defined No (Calculate Field) (management)
-        print("     step 11/33 calculate user defined veg field no")
+        print("     step 11/34 calculate user defined veg field no")
         Updated_Input_Table_4_ = arcpy.management.CalculateField(
                             in_table=Veg_Summarized_Polygons_Laye_2_, 
                             field="BVT_USERD", 
@@ -229,16 +210,20 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                             enforce_domains="NO_ENFORCE_DOMAINS"
                             )
 
+        # TODO ? Add Clear Selection ?
+
         # Process: Remove Join (Remove Join) (management)
-        print("     step 12/33 remove join")
+        print("     step 12/34 remove join")
         Layer_With_Join_Removed = arcpy.management.RemoveJoin(
                                 in_layer_or_view=Updated_Input_Table_4_, 
                                 join_name="WHR13NAME_Summary_temp"
                                 )
+        Count2 = arcpy.management.GetCount(Layer_With_Join_Removed)
+        print('{} has {} records'.format(Layer_With_Join_Removed, Count2[0]))
 
         print("   Calculating WUI...")
         # Process: Select Layer WUI Null (Select Layer By Attribute) (management)
-        print("     step 13/33 select layer by attribute")
+        print("     step 13/34 select layer by attribute")
         Veg_Summarized_Polygons_Laye_7_, Count_8_ = arcpy.management.SelectLayerByAttribute(
                                                 in_layer_or_view=Layer_With_Join_Removed, 
                                                 selection_type="NEW_SELECTION", 
@@ -246,7 +231,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                                 invert_where_clause="")
 
         # Process: Select Layer By WUI (Select Layer By Location) (management)
-        print("     step 14/33 select layer by WUI location")
+        print("     step 14/34 select layer by WUI location")
         Veg_Summarized_Polygons_Laye1_2_, Output_Layer_Names_2_, Count_2_ = arcpy.management.SelectLayerByLocation(
                                                                         in_layer=[Veg_Summarized_Polygons_Laye_7_], 
                                                                         overlap_type="INTERSECT", 
@@ -256,7 +241,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                                                         invert_spatial_relationship="NOT_INVERT")
 
         # Process: Calculate WUI Auto Yes (Calculate Field) (management)
-        print("     step 15/33 calculate WUI yes")
+        print("     step 15/34 calculate WUI yes")
         usfs_haz_fuels_treatments_re3 = arcpy.management.CalculateField(
                                     in_table=Veg_Summarized_Polygons_Laye1_2_, 
                                     field="IN_WUI", 
@@ -268,7 +253,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                     )
 
         # Process: Select Layer WUI Auto No (Select Layer By Attribute) (management)
-        print("     step 16/33 select layer by attribute")
+        print("     step 16/34 select layer by attribute")
         Veg_Summarized_Polygons_Laye_5_, Count_6_ = arcpy.management.SelectLayerByAttribute(
                                                 in_layer_or_view=usfs_haz_fuels_treatments_re3, 
                                                 selection_type="NEW_SELECTION", 
@@ -277,7 +262,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                                 )
 
         # Process: Calculate WUI No (Calculate Field) (management)
-        print("     step 17/33 calculate WUI no")
+        print("     step 17/34 calculate WUI no")
         usfs_haz_fuels_treatments_re3_2_ = arcpy.management.CalculateField(
                                         in_table=Veg_Summarized_Polygons_Laye_5_, 
                                         field="IN_WUI", 
@@ -289,17 +274,18 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                         )
 
         # Process: Clear Selection (Select Layer By Attribute) (management)
-        print("     step 18/33 clear selection")
+        print("     step 18/34 clear selection")
         Treatments_Merge3_California_5_, Count_4_ = arcpy.management.SelectLayerByAttribute(
                                                 in_layer_or_view=usfs_haz_fuels_treatments_re3_2_, 
                                                 selection_type="CLEAR_SELECTION", 
                                                 where_clause="", 
                                                 invert_where_clause=""
                                                 )
-
+        Count3 = arcpy.management.GetCount(Treatments_Merge3_California_5_)
+        print('{} has {} records'.format(Treatments_Merge3_California_5_, Count3[0]))
         
         # Process: Feature To Point (Feature To Point) (management)
-        print("     step 19/33 feature to point")
+        print("     step 19/34 feature to point")
         arcpy.management.FeatureToPoint(
                                         in_features=Treatments_Merge3_California_5_, 
                                         out_feature_class=Veg_Summarized_Centroids, 
@@ -308,35 +294,33 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
 
         print("   Calculating Ownership, Counties, and Regions...")
         # Process: Spatial Join (Spatial Join) (analysis)
-        print("     step 20/33 spatial join")
+        print("     step 20/34 spatial join")
         arcpy.analysis.SpatialJoin(
                                 target_features=Veg_Summarized_Centroids, 
                                 join_features=Ownership_Layer, 
                                 out_feature_class=Veg_Summarized_Join1_Own, 
                                 join_operation="JOIN_ONE_TO_ONE", 
                                 join_type="KEEP_ALL", 
-                                # field_mapping="YEAR \"YEAR\" true true false 4 Long 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,YEAR,-1,-1;ACRES \"ACRES\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,ACRES,-1,-1;ProjectID \"Project ID\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,ProjectID,0,50;ProjectNM \"Project Name\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,ProjectNM,0,100;Date \"Date\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,Date,-1,-1;Status \"Status\" true true false 25 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,Status,0,25;TreatmentID \"Treatment ID\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,TreatmentID,0,100;Agency_LEV \"Agency Level\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,Agency_LEV,0,50;Agncy_Name \"Agency Name\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,Agncy_Name,0,100;Source \"Source\" true true false 255 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,Source,0,255;Veg_Type \"Veg Type\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,Veg_Type,0,50;WUI \"WUI\" true true false 3 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,WUI,0,3;CPUC \"CPUC Tier\" true true false 6 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,CPUC,0,6;RCD \"RCD\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,RCD,0,150;FPD \"Fire Pro District\" true true false 155 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,FPD,0,155;Unit_Name \"Unit Name\" true true false 255 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,Unit_Name,0,255;ORIG_FID \"ORIG_FID\" true true false 4 Long 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Centroids,ORIG_FID,-1,-1;UNIT_NAME_1 \"UNIT_NAME\" true true false 80 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Ownership_Layer,UNIT_NAME,0,80;AGNCY_NAME_1 \"AGNCY_NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Ownership_Layer,AGNCY_NAME,0,100;AGNCY_LEV \"AGNCY_LEV\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Ownership_Layer,AGNCY_LEV,0,50;MNG_AGNCY \"MNG_AGNCY\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Ownership_Layer,MNG_AGNCY,0,100;MNG_AG_LEV \"MNG_AG_LEV\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Ownership_Layer,MNG_AG_LEV,0,50;MNG_AG_TYP \"MNG_AG_TYP\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Ownership_Layer,MNG_AG_TYP,0,50;SITE_NAME \"SITE_NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Ownership_Layer,SITE_NAME,0,100;LABEL_NAME \"LABEL_NAME\" true true false 255 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Ownership_Layer,LABEL_NAME,0,255;AGNCY_TYP \"AGNCY_TYP\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Ownership_Layer,AGNCY_TYP,0,50;COUNTY \"COUNTY\" true true false 35 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Ownership_Layer,COUNTY,0,35;Shape_Length \"Shape_Length\" false true true 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Ownership_Layer,Shape_Length,-1,-1;Shape_Area \"Shape_Area\" false true true 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Ownership_Layer,Shape_Area,-1,-1", 
                                 match_option="INTERSECT", 
                                 search_radius="", 
                                 distance_field_name=""
                                 )
 
         # Process: Spatial Join (2) (Spatial Join) (analysis)
-        print("     step 21/33 spatial join")
+        print("     step 21/34 spatial join")
         arcpy.analysis.SpatialJoin(
                                 target_features=Veg_Summarized_Join1_Own, 
                                 join_features=Regions_Layer, 
                                 out_feature_class=Veg_Summarized_Join2_RCD, 
                                 join_operation="JOIN_ONE_TO_ONE", 
                                 join_type="KEEP_ALL", 
-                                # field_mapping="Join_Count \"Join_Count\" true true false 0 Long 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,Join_Count,-1,-1;TARGET_FID \"TARGET_FID\" true true false 0 Long 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,TARGET_FID,-1,-1;YEAR \"YEAR\" true true false 4 Long 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,YEAR,-1,-1;ACRES \"ACRES\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,ACRES,-1,-1;ProjectID \"Project ID\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,ProjectID,0,50;ProjectNM \"Project Name\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,ProjectNM,0,100;Date \"Date\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,Date,-1,-1;Status \"Status\" true true false 25 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,Status,0,25;TreatmentID \"Treatment ID\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,TreatmentID,0,100;Agency_LEV \"Agency Level\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,Agency_LEV,0,50;Agncy_Name \"Agency Name\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,Agncy_Name,0,100;Source \"Source\" true true false 255 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,Source,0,255;Veg_Type \"Veg Type\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,Veg_Type,0,50;WUI \"WUI\" true true false 3 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,WUI,0,3;CPUC \"CPUC Tier\" true true false 6 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,CPUC,0,6;RCD \"RCD\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,RCD,0,150;FPD \"Fire Pro District\" true true false 155 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,FPD,0,155;Unit_Name \"Unit Name\" true true false 255 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,Unit_Name,0,255;ORIG_FID \"ORIG_FID\" true true false 4 Long 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,ORIG_FID,-1,-1;UNIT_NAME_1 \"UNIT_NAME\" true true false 80 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,UNIT_NAME_1,0,80;AGNCY_NAME_1 \"AGNCY_NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,AGNCY_NAME_1,0,100;AGNCY_LEV \"AGNCY_LEV\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,AGNCY_LEV,0,50;MNG_AGNCY \"MNG_AGNCY\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,MNG_AGNCY,0,100;MNG_AG_LEV \"MNG_AG_LEV\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,MNG_AG_LEV,0,50;MNG_AG_TYP \"MNG_AG_TYP\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,MNG_AG_TYP,0,50;SITE_NAME \"SITE_NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,SITE_NAME,0,100;LABEL_NAME \"LABEL_NAME\" true true false 255 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,LABEL_NAME,0,255;AGNCY_TYP \"AGNCY_TYP\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,AGNCY_TYP,0,50;COUNTY \"COUNTY\" true true false 35 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,COUNTY,0,35;Shape_Length \"Shape_Length\" false true true 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,Shape_Length,-1,-1;Shape_Area \"Shape_Area\" false true true 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Veg_Summarized_Join1_Own,Shape_Area,-1,-1;Shape_Leng \"Shape_Leng\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Regions_Layer,Shape_Leng,-1,-1;RFFC_tier1 \"RFFC_tier1\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Regions_Layer,RFFC_tier1,0,50;Shape_STAr \"Shape_STAr\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Regions_Layer,Shape_STAr,-1,-1;Shape_STLe \"Shape_STLe\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Regions_Layer,Shape_STLe,-1,-1;Shape_Length_1 \"Shape_Length\" false true true 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Regions_Layer,Shape_Length,-1,-1;Shape_Area_1 \"Shape_Area\" false true true 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\Regions_Layer,Shape_Area,-1,-1", 
                                 match_option="INTERSECT", 
                                 search_radius="", 
                                 distance_field_name=""
                                 )
 
         # Process: Add Join (19) (Add Join) (management)
-        print("     step 22/33 add join")
+        print("     step 22/34 add join")
         Veg_Summarized_Polygons_Laye2_2_ = arcpy.management.AddJoin(
                                         in_layer_or_view=Treatments_Merge3_California_5_, 
                                         in_field="OBJECTID", 
@@ -347,7 +331,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                         )
 
         # Process: Calculate Owner (Calculate Field) (management)
-        print("     step 23/33 calculate ownership field")
+        print("     step 23/34 calculate ownership field")
         Veg_Summarized_Polygons_Laye = arcpy.management.CalculateField(
                                     in_table=Veg_Summarized_Polygons_Laye2_2_, 
                                     field="Veg_Summarized_Polygons.PRIMARY_OWNERSHIP_GROUP", 
@@ -377,11 +361,11 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                     )
 
         # Process: Calculate County (Calculate Field) (management)
-        print("     step 24/33 calculate county field")
+        print("     step 24/34 calculate county field")
         Veg_Summarized_Polygons_Laye2_4_ = arcpy.management.CalculateField(
                                         in_table=Veg_Summarized_Polygons_Laye, 
                                         field="Veg_Summarized_Polygons.COUNTY", 
-                                        expression="ifelse(!Veg_Summarized_Join2_RCD.County!)", 
+                                        expression="ifelse(!Veg_Summarized_Join2_RCD.COUNTY!)", 
                                         expression_type="PYTHON3", 
                                         code_block="""def ifelse(CO):
                                             if CO == \"Alameda\":
@@ -507,7 +491,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                         )
 
         # Process: Calculate Region (Calculate Field) (management)
-        print("     step 25/33 calculate region field")
+        print("     step 25/34 calculate region field")
         Veg_Summarized_Polygons_Laye_6_ = arcpy.management.CalculateField(
                                         in_table=Veg_Summarized_Polygons_Laye2_4_, 
                                         field="Veg_Summarized_Polygons.REGION", 
@@ -529,22 +513,28 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                         )
 
         # Process: Remove Join (10) (Remove Join) (management)
-        print("     step 26/33 remove join")
+        print("     step 26/34 remove join")
         Veg_Summarized_Polygons_Laye2 = arcpy.management.RemoveJoin(
                                     in_layer_or_view=Veg_Summarized_Polygons_Laye_6_, 
                                     join_name="Veg_Summarized_Join2_RCD"
                                     )
+        
+        Count4 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye2)
+        print('{} has {} records'.format(Veg_Summarized_Polygons_Laye2, Count4[0]))
 
-        print("   Initiating Crosswalk...")
-        # Process: Crosswalk
-        crosswalk_table = Crosswalk(Crosswalk_Input=Veg_Summarized_Polygons_Laye2)
-        print("   Crosswalk Complete, Continuing Enrichment...")
-
-        print('     step 27/33 Calculating Years...')
+        print('     step 27/34 Calculating Years...')
         # Process: 2h Calculate Year (2h Calculate Year) (PC414CWIMillionAcres)
         Veg_Summarized_Polygons_Laye3_7_ = Year(Year_Input=crosswalk_table)
+        
+        print("   step 28/34 Initiating Crosswalk...")
+        # Process: Crosswalk
+        crosswalk_table = Crosswalk(Input_Table=Veg_Summarized_Polygons_Laye2)
+        print("   Crosswalk Complete, Continuing Enrichment...")
 
-        print("     step 28/33 Calculating Latitude and Longitude...")
+        Count5 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye3_7_)
+        print('{} has {} records'.format(Veg_Summarized_Polygons_Laye3_7_, Count5[0]))
+
+        print("     step 29/34 Calculating Latitude and Longitude...")
         # Process: Calculate Geometry Attributes (3) (Calculate Geometry Attributes) (management)
         Veg_Summarized_Polygons_Laye_4_ = arcpy.management.CalculateGeometryAttributes(
                                         in_features=Veg_Summarized_Polygons_Laye3_7_, 
@@ -556,7 +546,7 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                         )
 
         # Process: Calculate Geometry Attributes (4) (Calculate Geometry Attributes) (management)
-        print("     step 29/33 calculate treatment acres")
+        print("     step 30/34 calculate treatment acres")
         Veg_Summarized_Polygons_Laye_8_ = arcpy.management.CalculateGeometryAttributes(
                                         in_features=Veg_Summarized_Polygons_Laye_4_, 
                                         geometry_property=[["TREATMENT_AREA", "AREA"]], 
@@ -567,11 +557,11 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                         )
 
         # # Process: Keep Fields (Delete Field) (management)
-        print("     step 30/33 removing unnecessary fields")
+        print("     step 31/34 removing unnecessary fields")
         Veg_Summarized_Polygons_Laye_11_ = KeepFields(Veg_Summarized_Polygons_Laye_8_)
 
         # Process: Delete Identical (Delete Identical) (management)
-        print("     step 31/33 delete identical")
+        print("     step 32/34 delete identical")
         Veg_Summarized_Polygons_Laye_12_ = arcpy.management.DeleteIdentical(
                                 in_dataset=Veg_Summarized_Polygons_Laye_11_, 
                                 fields=["PROJECTID_USER", "AGENCY", "ORG_ADMIN_p", 
@@ -604,15 +594,21 @@ def enrich_polygons(enrich_out, enrich_in, delete_scratch=False):  # 7a Enrichme
                                 z_tolerance=0
                                 )        
         
+        Count6 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye_12_)
+        print('{} has {} records'.format(Veg_Summarized_Polygons_Laye_12_, Count6[0]))
+
         # Process: Select (Select) (analysis)
-        print("     step 32/33 delete if County is Null")
+        print("     step 33/34 delete if County is Null")
         Veg_Summarized_Polygons_Laye_13_ = arcpy.analysis.Select(
             in_features=Veg_Summarized_Polygons_Laye_12_, 
             out_feature_class=enrich_out, 
             where_clause="County IS NOT NULL"
             )
         
-        print("     step 33/33 delete scratch files")
+        Count7 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye_13_)
+        print('{} has {} records'.format(Veg_Summarized_Polygons_Laye_13_, Count7[0]))
+
+        print("     step 34/34 delete scratch files")
         if delete_scratch:
             # print('Deleting Scratch Files')
             delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')

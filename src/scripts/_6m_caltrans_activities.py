@@ -12,365 +12,404 @@ import time
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 # 6m CalTrans_Activities 20221123
-def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_standardized, output_points_enriched, output_lines_enriched):  
+# def CalTrans(input_pts, input_polys, output_lines_standardized, output_points_standardized, output_points_enriched, output_lines_enriched):  
+def CalTrans(input_polys21, input_polys22, input_table21, input_table22, output_lines_standardized, output_lines_enriched):  
     start = time.time()
     print(f'Start Time {time.ctime()}')
     arcpy.env.overwriteOutput = True
 
     arcpy.ImportToolbox(r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Data Management Tools.tbx")
+    
+    # define intermediary objects in scratch
+    CalTrans21_scratch = os.path.join(scratch_workspace,'CalTrans21_scratch')
+    CalTrans22_scratch = os.path.join(scratch_workspace,'CalTrans22_scratch')
 
-    ### BEGIN POINTS WORKFLOW
-    print('Performing Points Standardization')
-    # Process: Feature To Point (Feature To Point) (management)
-    #TODO Revisit whether we should stay with multi-point features
-    #TODO Verify joined input Treatments and Activities
-    caltrans_FeatureToPoint = os.path.join(scratch_workspace, "caltrans_FeatureToPoint")
-    arcpy.management.FeatureToPoint(in_features=input_pts, 
-                                    out_feature_class=caltrans_FeatureToPoint, 
-                                    point_location="CENTROID")
+    # ### BEGIN POINTS WORKFLOW
+    # print('Performing Points Standardization')
+    # # Process: Feature To Point (Feature To Point) (management)
+    # #TODO Revisit whether we should stay with multi-point features
+    # #TODO Verify joined input Treatments and Activities
+    # caltrans_FeatureToPoint = os.path.join(scratch_workspace, "caltrans_FeatureToPoint")
+    # arcpy.management.FeatureToPoint(in_features=input_pts, 
+    #                                 out_feature_class=caltrans_FeatureToPoint, 
+    #                                 point_location="CENTROID")
 
-    # Process: Alter Field County (Alter Field) (management)
-    caltrans_alterfield_v1 = arcpy.management.AlterField(in_table=caltrans_FeatureToPoint, 
-                                                         field="County", 
-                                                         new_field_name="County_", 
-                                                         new_field_alias="", 
-                                                         field_type="", 
-                                                         #field_length=25, 
-                                                         #field_is_nullable="NULLABLE", 
-                                                         clear_field_alias="DO_NOT_CLEAR")
+    # # Process: Alter Field County (Alter Field) (management)
+    # caltrans_alterfield_v1 = arcpy.management.AlterField(in_table=caltrans_FeatureToPoint, 
+    #                                                      field="County", 
+    #                                                      new_field_name="County_", 
+    #                                                      new_field_alias="", 
+    #                                                      field_type="", 
+    #                                                      #field_length=25, 
+    #                                                      #field_is_nullable="NULLABLE", 
+    #                                                      clear_field_alias="DO_NOT_CLEAR")
 
-    # Process: Alter Field Activity Description (Alter Field) (management)
-    caltrans_alterfield_v2 = arcpy.management.AlterField(in_table=caltrans_alterfield_v1, 
-                                                         field="Activity_Description", 
-                                                         new_field_name="Activity_Description_", 
-                                                         new_field_alias="", 
-                                                         field_type="", 
-                                                         #field_length=70, 
-                                                         #field_is_nullable="NON_NULLABLE", 
-                                                         clear_field_alias="DO_NOT_CLEAR")
+    # # Process: Alter Field Activity Description (Alter Field) (management)
+    # caltrans_alterfield_v2 = arcpy.management.AlterField(in_table=caltrans_alterfield_v1, 
+    #                                                      field="Activity_Description", 
+    #                                                      new_field_name="Activity_Description_", 
+    #                                                      new_field_alias="", 
+    #                                                      field_type="", 
+    #                                                      #field_length=70, 
+    #                                                      #field_is_nullable="NON_NULLABLE", 
+    #                                                      clear_field_alias="DO_NOT_CLEAR")
 
-    # Process: Alter Field Veg (Alter Field) (management)
-    caltrans_alterfield_v3 = arcpy.management.AlterField(in_table=caltrans_alterfield_v2, 
-                                                       field="Broad_Vegetation_Type", 
-                                                       new_field_name="BVT", 
-                                                       new_field_alias="", 
-                                                       field_type="", 
-                                                       #field_length=50, 
-                                                       #field_is_nullable="NON_NULLABLE", 
-                                                       clear_field_alias="DO_NOT_CLEAR")
+    # # Process: Alter Field Veg (Alter Field) (management)
+    # caltrans_alterfield_v3 = arcpy.management.AlterField(in_table=caltrans_alterfield_v2, 
+    #                                                    field="Broad_Vegetation_Type", 
+    #                                                    new_field_name="BVT", 
+    #                                                    new_field_alias="", 
+    #                                                    field_type="", 
+    #                                                    #field_length=50, 
+    #                                                    #field_is_nullable="NON_NULLABLE", 
+    #                                                    clear_field_alias="DO_NOT_CLEAR")
 
-    # Process: Alter Field Activity Status (Alter Field) (management)
-    caltrans_alterfield_v4 = arcpy.management.AlterField(in_table=caltrans_alterfield_v3, 
-                                                          field="Activity_Status", 
-                                                          new_field_name="Act_Status", 
-                                                          new_field_alias="", 
-                                                          field_type="", 
-                                                          #field_length=25, 
-                                                          #field_is_nullable="NON_NULLABLE", 
-                                                          clear_field_alias="DO_NOT_CLEAR")
+    # # Process: Alter Field Activity Status (Alter Field) (management)
+    # caltrans_alterfield_v4 = arcpy.management.AlterField(in_table=caltrans_alterfield_v3, 
+    #                                                       field="Activity_Status", 
+    #                                                       new_field_name="Act_Status", 
+    #                                                       new_field_alias="", 
+    #                                                       field_type="", 
+    #                                                       #field_length=25, 
+    #                                                       #field_is_nullable="NON_NULLABLE", 
+    #                                                       clear_field_alias="DO_NOT_CLEAR")
 
-    # Process: Alter Activity Quantity (Alter Field) (management)
-    caltrans_alterfield_v5 = arcpy.management.AlterField(in_table=caltrans_alterfield_v4, 
-                                                         field="Activity_Quantity", 
-                                                         new_field_name="Production_Quantity", 
-                                                         new_field_alias="", 
-                                                         field_type="", 
-                                                         #field_length=8, 
-                                                         #field_is_nullable="NON_NULLABLE", 
-                                                         clear_field_alias="DO_NOT_CLEAR")
+    # # Process: Alter Activity Quantity (Alter Field) (management)
+    # caltrans_alterfield_v5 = arcpy.management.AlterField(in_table=caltrans_alterfield_v4, 
+    #                                                      field="Activity_Quantity", 
+    #                                                      new_field_name="Production_Quantity", 
+    #                                                      new_field_alias="", 
+    #                                                      field_type="", 
+    #                                                      #field_length=8, 
+    #                                                      #field_is_nullable="NON_NULLABLE", 
+    #                                                      clear_field_alias="DO_NOT_CLEAR")
 
-    # Process: Alter Field Residue Fate (Alter Field) (management)
-    caltrans_alterfield_v6 = arcpy.management.AlterField(in_table=caltrans_alterfield_v5, 
-                                                       field="Residue_Fate", 
-                                                       new_field_name="Fate", 
-                                                       new_field_alias="", 
-                                                       field_type="", 
-                                                       #field_length=35, 
-                                                       #field_is_nullable="NON_NULLABLE", 
-                                                       clear_field_alias="DO_NOT_CLEAR")
+    # # Process: Alter Field Residue Fate (Alter Field) (management)
+    # caltrans_alterfield_v6 = arcpy.management.AlterField(in_table=caltrans_alterfield_v5, 
+    #                                                    field="Residue_Fate", 
+    #                                                    new_field_name="Fate", 
+    #                                                    new_field_alias="", 
+    #                                                    field_type="", 
+    #                                                    #field_length=35, 
+    #                                                    #field_is_nullable="NON_NULLABLE", 
+    #                                                    clear_field_alias="DO_NOT_CLEAR")
 
-    # Process: Alter Field Fate Units (Alter Field) (management)
-    caltrans_alterfield_v7 = arcpy.management.AlterField(in_table=caltrans_alterfield_v6, 
-                                                          field="Residue_Fate_Units", 
-                                                          new_field_name="FateUnits", 
-                                                          new_field_alias="", 
-                                                          field_type="", 
-                                                          #field_length=5, 
-                                                          #field_is_nullable="NON_NULLABLE", 
-                                                          clear_field_alias="DO_NOT_CLEAR")
+    # # Process: Alter Field Fate Units (Alter Field) (management)
+    # caltrans_alterfield_v7 = arcpy.management.AlterField(in_table=caltrans_alterfield_v6, 
+    #                                                       field="Residue_Fate_Units", 
+    #                                                       new_field_name="FateUnits", 
+    #                                                       new_field_alias="", 
+    #                                                       field_type="", 
+    #                                                       #field_length=5, 
+    #                                                       #field_is_nullable="NON_NULLABLE", 
+    #                                                       clear_field_alias="DO_NOT_CLEAR")
 
-    # Process: Alter Residue Quantity (Alter Field) (management)
-    caltrans_alterfield_v8 = arcpy.management.AlterField(in_table=caltrans_alterfield_v7, 
-                                                       field="Residue_Fate_Quantity", 
-                                                       new_field_name="FateQuantity", 
-                                                       new_field_alias="", 
-                                                       field_type="", 
-                                                       #field_length=8, 
-                                                       #field_is_nullable="NON_NULLABLE", 
-                                                       clear_field_alias="DO_NOT_CLEAR")
+    # # Process: Alter Residue Quantity (Alter Field) (management)
+    # caltrans_alterfield_v8 = arcpy.management.AlterField(in_table=caltrans_alterfield_v7, 
+    #                                                    field="Residue_Fate_Quantity", 
+    #                                                    new_field_name="FateQuantity", 
+    #                                                    new_field_alias="", 
+    #                                                    field_type="", 
+    #                                                    #field_length=8, 
+    #                                                    #field_is_nullable="NON_NULLABLE", 
+    #                                                    clear_field_alias="DO_NOT_CLEAR")
 
-    # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
-    caltrans_addfields = AddFields(Input_Table=caltrans_alterfield_v8)
+    # # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
+    # caltrans_addfields = AddFields(Input_Table=caltrans_alterfield_v8)
 
-    # Process: Calculate Project ID (Calculate Field) (management)
-    caltrans_calc_field_v1 = arcpy.management.CalculateField(in_table=caltrans_addfields, 
-                                                             field="PROJECTID_USER", 
-                                                             expression="!HighwayID!", 
-                                                             expression_type="PYTHON3", 
-                                                             code_block="", 
-                                                             field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Project ID (Calculate Field) (management)
+    # caltrans_calc_field_v1 = arcpy.management.CalculateField(in_table=caltrans_addfields, 
+    #                                                          field="PROJECTID_USER", 
+    #                                                          expression="!HighwayID!", 
+    #                                                          expression_type="PYTHON3", 
+    #                                                          code_block="", 
+    #                                                          field_type="TEXT", 
+    #                                                          enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Agency (Calculate Field) (management)
-    caltrans_calc_field_v2 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v1, 
-                                                             field="AGENCY", 
-                                                             expression="\"CALSTA\"", 
-                                                             expression_type="PYTHON3", 
-                                                             code_block="", 
-                                                             field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Agency (Calculate Field) (management)
+    # caltrans_calc_field_v2 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v1, 
+    #                                                          field="AGENCY", 
+    #                                                          expression="\"CALSTA\"", 
+    #                                                          expression_type="PYTHON3", 
+    #                                                          code_block="", 
+    #                                                          field_type="TEXT", 
+    #                                                          enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Org Data Steward (Calculate Field) (management)
-    caltrans_calc_field_v3 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v2, 
-                                                            field="ORG_ADMIN_p", 
-                                                            expression="\"CALTRANS\"", 
-                                                            expression_type="PYTHON3", 
-                                                            code_block="", 
-                                                            field_type="TEXT", 
-                                                            enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Org Data Steward (Calculate Field) (management)
+    # caltrans_calc_field_v3 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v2, 
+    #                                                         field="ORG_ADMIN_p", 
+    #                                                         expression="\"CALTRANS\"", 
+    #                                                         expression_type="PYTHON3", 
+    #                                                         code_block="", 
+    #                                                         field_type="TEXT", 
+    #                                                         enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Project Contact (Calculate Field) (management)
-    caltrans_calc_field_v4 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v3, 
-                                                             field="PROJECT_CONTACT", 
-                                                             expression="\"Division of Maintenance\"", 
-                                                             expression_type="PYTHON3", 
-                                                             code_block="", 
-                                                             field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Project Contact (Calculate Field) (management)
+    # caltrans_calc_field_v4 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v3, 
+    #                                                          field="PROJECT_CONTACT", 
+    #                                                          expression="\"Division of Maintenance\"", 
+    #                                                          expression_type="PYTHON3", 
+    #                                                          code_block="", 
+    #                                                          field_type="TEXT", 
+    #                                                          enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Email (Calculate Field) (management)
-    caltrans_calc_field_v5 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v4, 
-                                                          field="PROJECT_EMAIL", 
-                                                          expression="\"andrew.lozano@dot.ca.gov\"", 
-                                                          expression_type="PYTHON3", 
-                                                          code_block="", 
-                                                          field_type="TEXT", 
-                                                          enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Email (Calculate Field) (management)
+    # caltrans_calc_field_v5 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v4, 
+    #                                                       field="PROJECT_EMAIL", 
+    #                                                       expression="\"andrew.lozano@dot.ca.gov\"", 
+    #                                                       expression_type="PYTHON3", 
+    #                                                       code_block="", 
+    #                                                       field_type="TEXT", 
+    #                                                       enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Admin Org (Calculate Field) (management)
-    caltrans_calc_field_v6 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v5, 
-                                                           field="ADMINISTERING_ORG", 
-                                                           expression="\"CALTRANS\"", 
-                                                           expression_type="PYTHON3", 
-                                                           code_block="", 
-                                                           field_type="TEXT", 
-                                                           enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Admin Org (Calculate Field) (management)
+    # caltrans_calc_field_v6 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v5, 
+    #                                                        field="ADMINISTERING_ORG", 
+    #                                                        expression="\"CALTRANS\"", 
+    #                                                        expression_type="PYTHON3", 
+    #                                                        code_block="", 
+    #                                                        field_type="TEXT", 
+    #                                                        enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Primary Funding Source (Calculate Field) (management)
-    caltrans_calc_field_v7 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v6, 
-                                                             field="PRIMARY_FUNDING_SOURCE", 
-                                                             expression="\"GENERAL_FUND\"", 
-                                                             expression_type="PYTHON3", 
-                                                             code_block="", 
-                                                             field_type="TEXT", 
-                                                             enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Primary Funding Source (Calculate Field) (management)
+    # caltrans_calc_field_v7 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v6, 
+    #                                                          field="PRIMARY_FUNDING_SOURCE", 
+    #                                                          expression="\"GENERAL_FUND\"", 
+    #                                                          expression_type="PYTHON3", 
+    #                                                          code_block="", 
+    #                                                          field_type="TEXT", 
+    #                                                          enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Primary Funding Org (Calculate Field) (management)
-    caltrans_calc_field_v8 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v7, 
-                                                              field="PRIMARY_FUNDING_ORG", 
-                                                              expression="\"CALTRANS\"", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="", 
-                                                              field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")
-
-    # Process: Calculate Treatment ID (Calculate Field) (management)
-    # Updated_Input_Table_45_ = arcpy.management.CalculateField(in_table=caltrans_calc_field_v8, 
-    #                                                           field="TRMTID_USER", 
-    #                                                           expression="!IMMS_Unit_ID!", #+'-'+!COUNTY!+'-'+!REGION!+'-'+!IN_WUI!", 
+    # # Process: Calculate Primary Funding Org (Calculate Field) (management)
+    # caltrans_calc_field_v8 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v7, 
+    #                                                           field="PRIMARY_FUNDING_ORG", 
+    #                                                           expression="\"CALTRANS\"", 
     #                                                           expression_type="PYTHON3", 
     #                                                           code_block="", 
     #                                                           field_type="TEXT", 
     #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate WUI (Calculate Field) (management)
-    caltrans_calc_field_v9 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v8, 
-                                                              field="IN_WUI", 
-                                                              expression="ifelse(!WUI!)", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="""def ifelse(WUI):
-                                                                    if WUI == \"Yes\":
-                                                                        return \"WUI_USER_DEFINED\"
-                                                                    elif WUI == \"No\":
-                                                                        return \"NON-WUI_USER_DEFINED\"
-                                                                    else:
-                                                                        return WUI""", field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS"
-                                                                    )
+    # # Process: Calculate Treatment ID (Calculate Field) (management)
+    # # Updated_Input_Table_45_ = arcpy.management.CalculateField(in_table=caltrans_calc_field_v8, 
+    # #                                                           field="TRMTID_USER", 
+    # #                                                           expression="!IMMS_Unit_ID!", #+'-'+!COUNTY!+'-'+!REGION!+'-'+!IN_WUI!", 
+    # #                                                           expression_type="PYTHON3", 
+    # #                                                           code_block="", 
+    # #                                                           field_type="TEXT", 
+    # #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Treatment Area (Calculate Field) (management)
-    caltrans_calc_field_v10 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v9, 
-                                                              field="TREATMENT_AREA", 
-                                                              expression="ifelse(!Activity_Unit_of_Measure!, !Production_Quantity!)", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="""def ifelse(UOM, Q):
-                                                                    if UOM == \"ACRE\":
-                                                                        return Q
-                                                                    else:
-                                                                        return None""", field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate WUI (Calculate Field) (management)
+    # caltrans_calc_field_v9 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v8, 
+    #                                                           field="IN_WUI", 
+    #                                                           expression="ifelse(!WUI!)", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="""def ifelse(WUI):
+    #                                                                 if WUI == \"Yes\":
+    #                                                                     return \"WUI_USER_DEFINED\"
+    #                                                                 elif WUI == \"No\":
+    #                                                                     return \"NON-WUI_USER_DEFINED\"
+    #                                                                 else:
+    #                                                                     return WUI""", field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS"
+    #                                                                 )
 
-    # Process: Calculate Activity ID (Calculate Field) (management)
-    caltrans_calc_field_v11 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v10, 
-                                                                   field="ACTIVID_USER", 
-                                                                   expression="!Work_Order_Number!", 
-                                                                   expression_type="PYTHON3", 
-                                                                   code_block="", 
-                                                                   field_type="TEXT", 
-                                                                   enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Treatment Area (Calculate Field) (management)
+    # caltrans_calc_field_v10 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v9, 
+    #                                                           field="TREATMENT_AREA", 
+    #                                                           expression="ifelse(!Activity_Unit_of_Measure!, !Production_Quantity!)", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="""def ifelse(UOM, Q):
+    #                                                                 if UOM == \"ACRE\":
+    #                                                                     return Q
+    #                                                                 else:
+    #                                                                     return None""", field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Implementing Org (Calculate Field) (management)
-    caltrans_calc_field_v12 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v11, 
-                                                              field="IMPLEMENTING_ORG", 
-                                                              expression="!IMMS_Unit_ID!", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="", 
-                                                              field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Activity ID (Calculate Field) (management)
+    # caltrans_calc_field_v11 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v10, 
+    #                                                                field="ACTIVID_USER", 
+    #                                                                expression="!Work_Order_Number!", 
+    #                                                                expression_type="PYTHON3", 
+    #                                                                code_block="", 
+    #                                                                field_type="TEXT", 
+    #                                                                enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Activity UOM (Calculate Field) (management)
-    caltrans_calc_field_v13 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v12, 
-                                                              field="ACTIVITY_UOM", 
-                                                              expression="ifelse(!Activity_Unit_of_Measure!)", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="""def ifelse(Unit):
-                                                                            if Unit == 'ACRE':
-                                                                                return 'AC'
-                                                                            else:
-                                                                                return Unit""", 
-                                                              field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Implementing Org (Calculate Field) (management)
+    # caltrans_calc_field_v12 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v11, 
+    #                                                           field="IMPLEMENTING_ORG", 
+    #                                                           expression="!IMMS_Unit_ID!", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="", 
+    #                                                           field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Activity Quantity (Calculate Field) (management)
-    caltrans_calc_field_v14 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v13, 
-                                                              field="ACTIVITY_QUANTITY", 
-                                                              expression="!Production_Quantity!", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="", 
-                                                              field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Activity UOM (Calculate Field) (management)
+    # caltrans_calc_field_v13 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v12, 
+    #                                                           field="ACTIVITY_UOM", 
+    #                                                           expression="ifelse(!Activity_Unit_of_Measure!)", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="""def ifelse(Unit):
+    #                                                                         if Unit == 'ACRE':
+    #                                                                             return 'AC'
+    #                                                                         else:
+    #                                                                             return Unit""", 
+    #                                                           field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Status (Calculate Field) (management)
-    caltrans_calc_field_v15 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v14, 
-                                                              field="ACTIVITY_STATUS", 
-                                                              expression="ifelse(!Act_Status!)", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="""def ifelse(Status):
-                                                                        if Status == \"Complete\":
-                                                                            return \"COMPLETE\"
-                                                                        else:
-                                                                            return Status""", field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Activity Quantity (Calculate Field) (management)
+    # caltrans_calc_field_v14 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v13, 
+    #                                                           field="ACTIVITY_QUANTITY", 
+    #                                                           expression="!Production_Quantity!", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="", 
+    #                                                           field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Activity Start (Calculate Field) (management)
-    caltrans_calc_field_v16 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v15, 
-                                                              field="ACTIVITY_START", 
-                                                              expression="!Start!", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="", 
-                                                              field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Status (Calculate Field) (management)
+    # caltrans_calc_field_v15 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v14, 
+    #                                                           field="ACTIVITY_STATUS", 
+    #                                                           expression="ifelse(!Act_Status!)", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="""def ifelse(Status):
+    #                                                                     if Status == \"Complete\":
+    #                                                                         return \"COMPLETE\"
+    #                                                                     else:
+    #                                                                         return Status""", field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Activity End (Calculate Field) (management)
-    caltrans_calc_field_v17 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v16, 
-                                                              field="ACTIVITY_END", 
-                                                              expression="!End_!", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="", 
-                                                              field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Activity Start (Calculate Field) (management)
+    # caltrans_calc_field_v16 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v15, 
+    #                                                           field="ACTIVITY_START", 
+    #                                                           expression="!Start!", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="", 
+    #                                                           field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Source (Calculate Field) (management)
-    caltrans_calc_field_v18 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v17, 
-                                                              field="Source", 
-                                                              expression="\"CALTRANS\"", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="", 
-                                                              field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Activity End (Calculate Field) (management)
+    # caltrans_calc_field_v17 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v16, 
+    #                                                           field="ACTIVITY_END", 
+    #                                                           expression="!End_!", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="", 
+    #                                                           field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Crosswalk (Calculate Field) (management)
-    caltrans_calc_field_v19 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v18, 
-                                                              field="Crosswalk", 
-                                                              expression="!Activity_Description_!", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="", 
-                                                              field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: Calculate Source (Calculate Field) (management)
+    # caltrans_calc_field_v18 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v17, 
+    #                                                           field="Source", 
+    #                                                           expression="\"CALTRANS\"", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="", 
+    #                                                           field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Calculate Geometry Attributes (Calculate Geometry Attributes) (management)
-    # CalTrans_pts_Copy_7_ = arcpy.management.CalculateGeometryAttributes(in_features=caltrans_calc_field_v19, 
-    #                                                                     geometry_property=[["LATITUDE", "POINT_Y"], ["LONGITUDE", "POINT_X"]], 
-    #                                                                     length_unit="", 
-    #                                                                     area_unit="", 
-    #                                                                     coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
-    #                                                                     coordinate_format="DD")
+    # # Process: Calculate Crosswalk (Calculate Field) (management)
+    # caltrans_calc_field_v19 = arcpy.management.CalculateField(in_table=caltrans_calc_field_v18, 
+    #                                                           field="Crosswalk", 
+    #                                                           expression="!Activity_Description_!", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="", 
+    #                                                           field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
 
-    # Process: Delete Field (3) (Delete Field) (management)
-    caltrans_keepfields = KeepFields(caltrans_calc_field_v1)
+    # # Process: Calculate Geometry Attributes (Calculate Geometry Attributes) (management)
+    # # CalTrans_pts_Copy_7_ = arcpy.management.CalculateGeometryAttributes(in_features=caltrans_calc_field_v19, 
+    # #                                                                     geometry_property=[["LATITUDE", "POINT_Y"], ["LONGITUDE", "POINT_X"]], 
+    # #                                                                     length_unit="", 
+    # #                                                                     area_unit="", 
+    # #                                                                     coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
+    # #                                                                     coordinate_format="DD")
 
-    print(f'Saving Output Points Standardized: {output_points_standardized}')
-    # Process: Copy Features (Copy Features) (management)
-    arcpy.management.CopyFeatures(in_features=caltrans_keepfields, 
-                                  out_feature_class=output_points_standardized, 
-                                  config_keyword="", 
-                                  spatial_grid_1=None, 
-                                  spatial_grid_2=None, 
-                                  spatial_grid_3=None)
+    # # Process: Delete Field (3) (Delete Field) (management)
+    # caltrans_keepfields = KeepFields(caltrans_calc_field_v1)
 
-    # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
-    caltrans_assigndomains = AssignDomains(in_table=output_points_standardized)
-
-    print('Performing Points Enrichments')
-    # Process: 7b Enrichments pts (7b Enrichments pts) (PC414CWIMillionAcres)
-    # Pts_enrichment_Veg2 = os.path.join(scratch_workspace, "Pts_enrichment_Veg2")
-    enrich_points(enrich_pts_out=output_points_enriched, 
-                       enrich_pts_in=caltrans_assigndomains,
-                       delete_scratch=True) # need to delete scratch here because we call enrich_points again for Line Enrichments and we'll catch a 'dataset already exists' error
-
-    # Process: Copy Features (5) (Copy Features) (management)
-    # arcpy.management.CopyFeatures(in_features=Pts_enrichment_Veg2, 
-    #                               out_feature_class=output_points_enriched, 
+    # print(f'Saving Output Points Standardized: {output_points_standardized}')
+    # # Process: Copy Features (Copy Features) (management)
+    # arcpy.management.CopyFeatures(in_features=caltrans_keepfields, 
+    #                               out_feature_class=output_points_standardized, 
     #                               config_keyword="", 
     #                               spatial_grid_1=None, 
     #                               spatial_grid_2=None, 
     #                               spatial_grid_3=None)
 
-    # Process: Calculate Owner State (Calculate Field) (management)
-    caltrans_enriched_calc_field_v1 = arcpy.management.CalculateField(in_table=output_points_enriched, 
-                                                              field="PRIMARY_OWNERSHIP_GROUP", 
-                                                              expression="\"STATE\"", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="", 
-                                                              field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")
+    # # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
+    # caltrans_assigndomains = AssignDomains(in_table=output_points_standardized)
 
-        # Process: Calculate Treatment ID (Calculate Field) (management)
-    caltrans_enriched_calc_field_v2 = arcpy.management.CalculateField(in_table=caltrans_enriched_calc_field_v1, 
-                                                              field="TREATMENT_ID_USER", 
-                                                              expression="!PROJECTID_USER!+'-'+!COUNTY![:8]+'-'+!REGION![:3]+'-'+!IN_WUI![:3]", 
-                                                              expression_type="PYTHON3", 
-                                                              code_block="", 
-                                                              field_type="TEXT", 
-                                                              enforce_domains="NO_ENFORCE_DOMAINS")
+    # print('Performing Points Enrichments')
+    # # Process: 7b Enrichments pts (7b Enrichments pts) (PC414CWIMillionAcres)
+    # # Pts_enrichment_Veg2 = os.path.join(scratch_workspace, "Pts_enrichment_Veg2")
+    # enrich_points(enrich_pts_out=output_points_enriched, 
+    #                    enrich_pts_in=caltrans_assigndomains,
+    #                    delete_scratch=True) # need to delete scratch here because we call enrich_points again for Line Enrichments and we'll catch a 'dataset already exists' error
 
-    # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
-    # caltrans_enriched_assigndomains = 
-    AssignDomains(in_table=caltrans_enriched_calc_field_v2)
+    # # Process: Copy Features (5) (Copy Features) (management)
+    # # arcpy.management.CopyFeatures(in_features=Pts_enrichment_Veg2, 
+    # #                               out_feature_class=output_points_enriched, 
+    # #                               config_keyword="", 
+    # #                               spatial_grid_1=None, 
+    # #                               spatial_grid_2=None, 
+    # #                               spatial_grid_3=None)
+
+    # # Process: Calculate Owner State (Calculate Field) (management)
+    # caltrans_enriched_calc_field_v1 = arcpy.management.CalculateField(in_table=output_points_enriched, 
+    #                                                           field="PRIMARY_OWNERSHIP_GROUP", 
+    #                                                           expression="\"STATE\"", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="", 
+    #                                                           field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
+
+    #     # Process: Calculate Treatment ID (Calculate Field) (management)
+    # caltrans_enriched_calc_field_v2 = arcpy.management.CalculateField(in_table=caltrans_enriched_calc_field_v1, 
+    #                                                           field="TREATMENT_ID_USER", 
+    #                                                           expression="!PROJECTID_USER!+'-'+!COUNTY![:8]+'-'+!REGION![:3]+'-'+!IN_WUI![:3]", 
+    #                                                           expression_type="PYTHON3", 
+    #                                                           code_block="", 
+    #                                                           field_type="TEXT", 
+    #                                                           enforce_domains="NO_ENFORCE_DOMAINS")
+
+    # # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
+    # # caltrans_enriched_assigndomains = 
+    # AssignDomains(in_table=caltrans_enriched_calc_field_v2)
 
 
 
     ### BEGIN POLYLINE WORKFLOW
+    # Process: Add Join (2) (Add Join) (management)
+    print("     step 3/33 add join")
+    input_table21_join = arcpy.management.AddJoin(
+                                    in_layer_or_view=input_polys21, 
+                                    in_field="HIghwayID", 
+                                    join_table=input_table21, 
+                                    join_field="HIghwayID", 
+                                    join_type="KEEP_ALL", 
+                                    index_join_fields="INDEX_JOIN_FIELDS"
+                                    )
+    
+    # Process: Copy Features (Copy Features) (management)
+    input_table21_join_copy = arcpy.management.CopyFeatures(
+            input_table21_join, 
+            CalTrans21_scratch
+            )
+
+    input_table22_join = arcpy.management.AddJoin(
+                                    in_layer_or_view=input_polys22, 
+                                    in_field="HIghwayID", 
+                                    join_table=input_table22, 
+                                    join_field="HIghwayID", 
+                                    join_type="KEEP_ALL", 
+                                    index_join_fields="INDEX_JOIN_FIELDS"
+                                    )
+    
+    # Process: Copy Features (2) (Copy Features) (management)
+    input_table22_join_copy = arcpy.management.CopyFeatures(
+            input_table22_join, 
+            CalTrans22_scratch
+            )
+
+    print('Appending Lines')
+
     print('Performing Line Standardization')
     # Process: Copy Features (2) (Copy Features) (management)
     caltrans_poly_copy = os.path.join(scratch_workspace, "CalTrans_pts_Copy")

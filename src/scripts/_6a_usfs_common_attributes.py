@@ -215,6 +215,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             validation_method="ESRI"
             )
 
+        # Process: Alter Field Treatment Name
         usfs_non_wildfire_after_1995_repaired_geom2 = arcpy.management.AlterField(
             usfs_non_wildfire_after_1995_repaired_geom, 'TREATMENT_NAME', 'TREATMENT_NAME_FACTS')
 
@@ -255,10 +256,32 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             field_type="TEXT", 
             enforce_domains="NO_ENFORCE_DOMAINS"
             )
+        
+        # Process: Calculate Data Steward 2 (Calculate Field) (management)
+        usfs_non_wildfire_after_1995_calc_field_v3a = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v3, 
+            field="ORG_ADMIN_t", 
+            expression="\"USFS\"", 
+            expression_type="PYTHON3", 
+            code_block="", 
+            field_type="TEXT", 
+            enforce_domains="NO_ENFORCE_DOMAINS"
+            )
+
+        # Process: Calculate Data Steward 3 (Calculate Field) (management)
+        usfs_non_wildfire_after_1995_calc_field_v3b = arcpy.management.CalculateField(
+            in_table=usfs_non_wildfire_after_1995_calc_field_v3a, 
+            field="ORG_ADMIN_a", 
+            expression="\"USFS\"", 
+            expression_type="PYTHON3", 
+            code_block="", 
+            field_type="TEXT", 
+            enforce_domains="NO_ENFORCE_DOMAINS"
+            )
 
         # Process: Calculate Project Contact (Calculate Field) (management)
         usfs_non_wildfire_after_1995_calc_field_v4 = arcpy.management.CalculateField(
-            in_table=usfs_non_wildfire_after_1995_calc_field_v3, 
+            in_table=usfs_non_wildfire_after_1995_calc_field_v3b, 
             field="PROJECT_CONTACT", 
             expression="\"Tawndria Melville\"", 
             expression_type="PYTHON3", 
@@ -335,20 +358,9 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
 
         # Process: Calculate Treatment ID (Calculate Field) (management) after enrichment
         
-        # Process: Calculate Data Steward 2 (Calculate Field) (management)
-        usfs_non_wildfire_after_1995_calc_field_v10 = arcpy.management.CalculateField(
-            in_table=usfs_non_wildfire_after_1995_calc_field_v9, 
-            field="ORG_ADMIN_t", 
-            expression="\"USFS\"", 
-            expression_type="PYTHON3", 
-            code_block="", 
-            field_type="TEXT", 
-            enforce_domains="NO_ENFORCE_DOMAINS"
-            )
-
         # Process: Calculate Activity User ID (Calculate Field) (management)
         usfs_non_wildfire_after_1995_calc_field_v11 = arcpy.management.CalculateField(
-            in_table=usfs_non_wildfire_after_1995_calc_field_v10, 
+            in_table=usfs_non_wildfire_after_1995_calc_field_v9, 
             field="ACTIVID_USER", 
             expression="!SUID!", 
             expression_type="PYTHON3", 
@@ -430,7 +442,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
 
         print("   step 6/8 Calculating Status...")
         # Process: Calculate Status (Calculate Field) (management)
-    # To Do: Based on Today's Date.  Need to add Date formula
+        # TODO: Based on Today's Date.  Need to add Date formula
         usfs_non_wildfire_after_1995_calc_field_v16 = arcpy.management.CalculateField(
             in_table=usfs_non_wildfire_after_1995_clear_selection, 
             field="ACTIVITY_STATUS", 
