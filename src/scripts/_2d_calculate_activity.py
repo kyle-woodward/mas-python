@@ -2,15 +2,21 @@ import arcpy
 from sys import argv
 import os
 from scripts.utils import init_gdb, runner
+
 original_gdb, workspace, scratch_workspace = init_gdb()
+
 
 def Activity(Input_Table):  # 2d Calculate Activity
     """Assign new values to ACTIVITY_DESCRIPTION field in the input table. Requires that Fuels_Treatments_Piles_Crosswalk table is already joined to the input table."""
     arcpy.env.overwriteOutput = True
 
-
     # Process: Calculate Activity (Calculate Field) (management)
-    activity_calculated = arcpy.management.CalculateField(in_table=Input_Table, field="ACTIVITY_DESCRIPTION", expression="ifelse(!Fuels_Treatments_Piles_Crosswalk.Activity!)", expression_type="PYTHON3", code_block="""def ifelse(ACT):
+    activity_calculated = arcpy.management.CalculateField(
+        in_table=Input_Table,
+        field="ACTIVITY_DESCRIPTION",
+        expression="ifelse(!Fuels_Treatments_Piles_Crosswalk.Activity!)",
+        expression_type="PYTHON3",
+        code_block="""def ifelse(ACT):
     if ACT in [\'AMW_AREA_RESTOR\', 
     \'BIOMASS_REMOVAL\', 
     \'BROADCAST_BURN\', 
@@ -192,21 +198,26 @@ def Activity(Input_Table):  # 2d Calculate Activity
     elif ACT == \"Not Defined\":
         return \"NOT_DEFINED\"
     else:
-        return \"TBD\"""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
+        return \"TBD\"""",
+        field_type="TEXT",
+        enforce_domains="NO_ENFORCE_DOMAINS",
+    )
 
     return activity_calculated
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # runner(workspace,scratch_workspace,Activity, '*argv[1:]')
     # Global Environment settings
-    #NOTE: For extent and output_coordinate_system, i had to wrap the whole string value in triple quotes to remove error
+    # NOTE: For extent and output_coordinate_system, i had to wrap the whole string value in triple quotes to remove error
     with arcpy.EnvManager(
-    extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 
-    outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
-    preserveGlobalIds=True, 
-    qualifiedFieldNames=False, 
-    scratchWorkspace=scratch_workspace, 
-    transferDomains=True, 
-    transferGDBAttributeProperties=True, 
-    workspace=workspace):
+        extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",
+        outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
+        preserveGlobalIds=True,
+        qualifiedFieldNames=False,
+        scratchWorkspace=scratch_workspace,
+        transferDomains=True,
+        transferGDBAttributeProperties=True,
+        workspace=workspace,
+    ):
         Activity(*argv[1:])
