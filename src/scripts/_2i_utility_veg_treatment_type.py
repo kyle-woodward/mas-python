@@ -12,8 +12,7 @@ def UtilityVegTreat(Input_Table):  # 2i Utilitiy Veg Treatment Type
     if ID == \"SDG&E\":
         return \"SDGE\"
     else:
-        return ID""")
-        ", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
+        return ID""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
    # Process: Calculate Treatment (Calculate Field) (management)
     Output_Table = arcpy.management.CalculateField(
@@ -43,7 +42,7 @@ def UtilityVegTreat(Input_Table):  # 2i Utilitiy Veg Treatment Type
         elif 'ult' in TY:
             return 'Other or multiple treatment types - see comment'
         else:
-            return TY"""), field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
+            return TY""", field_type="TEXT", enforce_domains="NO_ENFORCE_DOMAINS")
 
     return Output_Table
 
