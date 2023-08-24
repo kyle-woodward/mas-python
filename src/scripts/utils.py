@@ -21,7 +21,7 @@ def init_gdb():
 
     # make original gdb workspace and scratchWorkspace dynamic, not-hardcoded paths
     original_gdb = os.path.join(three_up,"PC414 CWI Million Acres.gdb")
-    workspace = os.path.join(three_up,versioned_gdb)
+    workspace = os.path.join(three_up,original_gdb)
     scratch_workspace = os.path.join(three_up,"scratch.gdb")
 
     for w in [workspace,scratch_workspace]:
@@ -200,16 +200,15 @@ def check_schema_lock(input):
         else:
             raise arcpy.ExecuteError(f'Cannot get exclusive schema lock for {input}. Either being edited or in use by another application or service.')
 
-def runner(workspace:str,scratch_workspace:str,func, arg):
-    with arcpy.EnvManager(
-    extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 
-    outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
-    preserveGlobalIds=True, 
-    qualifiedFieldNames=False, 
-    scratchWorkspace=scratch_workspace, 
-    transferDomains=True, 
-    transferGDBAttributeProperties=True, 
-    workspace=workspace):
-        func(arg)
-
-
+# def runner(workspace:str,scratch_workspace:str,func, arg):
+# 
+    # with envs = arcpy.EnvManager(
+    #     outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), 
+    #     cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), 
+    #     preserveGlobalIds=True, 
+    #     qualifiedFieldNames=False, 
+    #     scratchWorkspace=scratch_workspace, 
+    #     transferDomains=True, 
+    #     transferGDBAttributeProperties=True, 
+    #     workspace=workspace,
+    #     overwriteOutput = True)
