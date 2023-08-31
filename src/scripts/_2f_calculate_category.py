@@ -24,7 +24,8 @@ def Category(Input_Table):  # 2f Calculate Category
             "SP_PRODUCTS", "TRANSITION_HARVEST", "VARIABLE_RETEN_HARVEST"]:
                 return "TIMB_HARV"
             if Act in ["SALVG_HARVEST", 'SANI_HARVEST']:
-                return "SANI_SALVG"
+                # return "SANI_SALVG"
+                return "TIMB_HARV"
             if Act == "PEST_CNTRL" and Veg == "FOREST":
                 return "SANI_SALVG"
             if Act == "PEST_CNTRL" and Veg != "FOREST":

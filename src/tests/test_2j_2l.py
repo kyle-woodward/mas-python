@@ -1,7 +1,7 @@
 #%%
 # import arcpy
-from scripts._2l_Crosswalk import Crosswalk
-from scripts._2j_Standardize_Domains import StandardizeDomains
+from scripts._2l_crosswalk import Crosswalk
+from scripts._2j_standardize_domains import StandardizeDomains
 # from sys import argv
 from scripts.utils import init_gdb, check_exists
 import os
