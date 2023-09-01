@@ -139,7 +139,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     return \'DOC\'
                 elif Org == \'CA Department of Water Resources\':
                     return \'DWR\'
-                elif Org == \'US Fish and Wildlife Service\':
+                elif Org == \'US Fish and Wildlife Service\' or Org == \'U.S. Fish and Wildlife Service\':
                     return \'FWS\'
                 elif Org == \'Mountains Recreation and Conservation Authority\':
                     return \'MRCA\'
@@ -199,7 +199,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     return \'PLANNED\'
                 elif Stat == \'Proposed\':
                     return \'PROPOSED\'
-                elif Org == \'\' or Org == \' \':
+                elif Stat == \'\' or Stat == \' \':
                     return None
                 else:
                     return Stat""",

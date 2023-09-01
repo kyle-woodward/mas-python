@@ -6,7 +6,7 @@ import arcpy
 # from ._2g_calculate_residue_fate import Residue
 from ._2h_calculate_year import Year
 from ._2k_keep_fields import KeepFields
-from ._2l_Crosswalk import Crosswalk
+from ._2l_crosswalk import Crosswalk
 from sys import argv
 from scripts.utils import init_gdb, delete_scratch_files, runner
 import os
@@ -41,14 +41,11 @@ def enrich_polygons(
         workspace=workspace,
     ):
         # define file paths to required input datasets (mostly from b_Reference featuredataset in original GDB)
-        Veg_Layer = os.path.join(workspace, "b_Reference", "Broad_Vegetation_Types")
-        WUI_Layer = os.path.join(workspace, "b_Reference", "WUI")
-        Ownership_Layer = os.path.join(
-            workspace, "b_Reference", "CALFIRE_Ownership_Update"
-        )
-        Regions_Layer = os.path.join(workspace, "b_Reference", "WFRTF_Regions")
-        # Crosswalk_Table = os.path.join(workspace,'Fuels_Treatments_Piles_Crosswalk')
-
+        Veg_Layer = os.path.join(workspace,'b_Reference','Broad_Vegetation_Types')
+        WUI_Layer = os.path.join(workspace,'b_Reference','WUI')
+        Ownership_Layer = os.path.join(workspace,'b_Reference','CALFIRE_Ownership_Update')
+        Regions_Layer = os.path.join(workspace,'b_Reference','WFRTF_Regions')
+        
         # define file paths to intermediary outputs in scratch gdb
         Veg_Summarized_Polygons = os.path.join(
             scratch_workspace, "Veg_Summarized_Polygons"
@@ -88,15 +85,7 @@ def enrich_polygons(
             add_group_percent="NO_PERCENT",
             out_group_table=WHR13NAME_Summary,
         )
-        # arcpy.gapro.SummarizeAttributes(
-        #     input_layer=r"C:\Users\sageg\source\repos\mas-python\scratch.gdb\WHR13NAME_Summary",
-        #     out_table=r"C:\Users\sageg\Documents\ArcGIS\Projects\PC414 CWI Million Acres\scratch.gdb\WHR13NAME_Summary_SummarizeAttributes",
-        #     fields="Join_ID",
-        #     summary_fields="sum_Area_ACRES MAX",
-        #     time_step_interval=None,
-        #     time_step_repeat=None,
-        #     time_step_reference=None
-        # )
+
         # Process: Summarize Attributes (Summarize Attributes) (gapro)
         print("     step 2/34 summarize attributes")
         arcpy.gapro.SummarizeAttributes(
@@ -140,8 +129,8 @@ def enrich_polygons(
             z_tolerance=0,
         )
 
-        Count1 = arcpy.management.GetCount(WHR13NAME_Summary_temp_2_)
-        print("{} has {} records".format(WHR13NAME_Summary_temp_2_, Count1[0]))
+        # Count1 = arcpy.management.GetCount(WHR13NAME_Summary_temp_2_)
+        # print("{} has {} records".format(WHR13NAME_Summary_temp_2_, Count1[0]))
 
         # Process: Add Join (3) (Add Join) (management)
         print("     step 6/34 add join")
@@ -239,15 +228,21 @@ def enrich_polygons(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # TODO ? Add Clear Selection ?
+        # Process: Switch Selection (Select Layer By Attribute) (management)
+        Updated_Input_Table_4a_ = arcpy.management.SelectLayerByAttribute(
+                                            in_layer_or_view=Updated_Input_Table_4_, 
+                                            selection_type="CLEAR_SELECTION", 
+                                            where_clause="", 
+                                            invert_where_clause=""
+                                            )
 
         # Process: Remove Join (Remove Join) (management)
         print("     step 12/34 remove join")
         Layer_With_Join_Removed = arcpy.management.RemoveJoin(
-            in_layer_or_view=Updated_Input_Table_4_, join_name="WHR13NAME_Summary_temp"
+            in_layer_or_view=Updated_Input_Table_4a_, join_name="WHR13NAME_Summary_temp"
         )
-        Count2 = arcpy.management.GetCount(Layer_With_Join_Removed)
-        print("{} has {} records".format(Layer_With_Join_Removed, Count2[0]))
+        # Count2 = arcpy.management.GetCount(Layer_With_Join_Removed)
+        # print("{} has {} records".format(Layer_With_Join_Removed, Count2[0]))
 
         print("   Calculating WUI...")
         # Process: Select Layer WUI Null (Select Layer By Attribute) (management)
@@ -315,18 +310,15 @@ def enrich_polygons(
 
         # Process: Clear Selection (Select Layer By Attribute) (management)
         print("     step 18/34 clear selection")
-        (
-            Treatments_Merge3_California_5_,
-            Count_4_,
-        ) = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=usfs_haz_fuels_treatments_re3_2_,
-            selection_type="CLEAR_SELECTION",
-            where_clause="",
-            invert_where_clause="",
+        Treatments_Merge3_California_5_, Count_4_ = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=usfs_haz_fuels_treatments_re3_2_, 
+            selection_type="CLEAR_SELECTION", 
+            where_clause="", 
+            invert_where_clause=""
         )
-        Count3 = arcpy.management.GetCount(Treatments_Merge3_California_5_)
-        print("{} has {} records".format(Treatments_Merge3_California_5_, Count3[0]))
-
+        # Count3 = arcpy.management.GetCount(Treatments_Merge3_California_5_)
+        # print('{} has {} records'.format(Treatments_Merge3_California_5_, Count3[0]))
+        
         # Process: Feature To Point (Feature To Point) (management)
         print("     step 19/34 feature to point")
         arcpy.management.FeatureToPoint(
@@ -408,7 +400,7 @@ def enrich_polygons(
         Veg_Summarized_Polygons_Laye2_4_ = arcpy.management.CalculateField(
             in_table=Veg_Summarized_Polygons_Laye,
             field="Veg_Summarized_Polygons.COUNTY",
-            expression="ifelse(!Veg_Summarized_Join2_RCD.COUNTY!)",
+            expression="ifelse(!Veg_Summarized_Join2_RCD.COUNTY_1!)",
             expression_type="PYTHON3",
             code_block="""def ifelse(CO):
                                             if CO == \"Alameda\":
@@ -562,20 +554,20 @@ def enrich_polygons(
             join_name="Veg_Summarized_Join2_RCD",
         )
 
-        Count4 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye2)
-        print("{} has {} records".format(Veg_Summarized_Polygons_Laye2, Count4[0]))
+        # Count4 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye2)
+        # print("{} has {} records".format(Veg_Summarized_Polygons_Laye2, Count4[0]))
 
         print("     step 27/34 Calculating Years...")
         # Process: 2h Calculate Year (2h Calculate Year) (PC414CWIMillionAcres)
-        Veg_Summarized_Polygons_Laye3_7_ = Year(Year_Input=crosswalk_table)
-
+        Veg_Summarized_Polygons_Laye3_7_ = Year(Year_Input=Veg_Summarized_Polygons_Laye2)
+        
         print("   step 28/34 Initiating Crosswalk...")
         # Process: Crosswalk
-        crosswalk_table = Crosswalk(Input_Table=Veg_Summarized_Polygons_Laye2)
+        crosswalk_table = Crosswalk(Input_Table=Veg_Summarized_Polygons_Laye3_7_)
         print("   Crosswalk Complete, Continuing Enrichment...")
 
-        Count5 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye3_7_)
-        print("{} has {} records".format(Veg_Summarized_Polygons_Laye3_7_, Count5[0]))
+        # Count5 = arcpy.management.GetCount(crosswalk_table)
+        # print('{} has {} records'.format(crosswalk_table, Count5[0]))
 
         print("     step 29/34 Calculating Latitude and Longitude...")
         # Process: Calculate Geometry Attributes (3) (Calculate Geometry Attributes) (management)
@@ -601,127 +593,26 @@ def enrich_polygons(
 
         # # Process: Keep Fields (Delete Field) (management)
         print("     step 31/34 removing unnecessary fields")
-        Veg_Summarized_Polygons_Laye_11_ = KeepFields(Veg_Summarized_Polygons_Laye_8_)
+        Veg_Summarized_Polygons_Laye_11_ = KeepFields(Veg_Summarized_Polygons_Laye_8_)       
+        
+        # Count6 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye_11_)
+        # print('{} has {} records'.format(Veg_Summarized_Polygons_Laye_11_, Count6[0]))
 
-        # Process: Delete Identical (Delete Identical) (management)
-        print("     step 32/34 delete identical")
-        Veg_Summarized_Polygons_Laye_12_ = arcpy.management.DeleteIdentical(
-            in_dataset=Veg_Summarized_Polygons_Laye_11_,
-            fields=[
-                "PROJECTID_USER",
-                "AGENCY",
-                "ORG_ADMIN_p",
-                "PROJECT_CONTACT",
-                "PROJECT_EMAIL",
-                "ADMINISTERING_ORG",
-                "PROJECT_NAME",
-                "PROJECT_STATUS",
-                "PROJECT_START",
-                "PROJECT_END",
-                "PRIMARY_FUNDING_SOURCE",
-                "PRIMARY_FUNDING_ORG",
-                "IMPLEMENTING_ORG",
-                "LATITUDE",
-                "LONGITUDE",
-                "BatchID_p",
-                "Val_Status_p",
-                "Val_Message_p",
-                "Val_RunDate_p",
-                "Review_Status_p",
-                "Review_Message_p",
-                "Review_RunDate_p",
-                "Dataload_Status_p",
-                "Dataload_Msg_p",
-                "TRMTID_USER",
-                "PROJECTID",
-                "PROJECTNAME_",
-                "ORG_ADMIN_t",
-                "PRIMARY_OWNERSHIP_GROUP",
-                "PRIMARY_OBJECTIVE",
-                "SECONDARY_OBJECTIVE",
-                "TERTIARY_OBJECTIVE",
-                "TREATMENT_STATUS",
-                "COUNTY",
-                "IN_WUI",
-                "REGION",
-                "TREATMENT_AREA",
-                "TREATMENT_START",
-                "TREATMENT_END",
-                "RETREATMENT_DATE_EST",
-                "TREATMENT_NAME",
-                "BatchID",
-                "Val_Status_t",
-                "Val_Message_t",
-                "Val_RunDate_t",
-                "Review_Status_t",
-                "Review_Message_t",
-                "Review_RunDate_t",
-                "Dataload_Status_t",
-                "Dataload_Msg_t",
-                "ACTIVID_USER",
-                "TREATMENTID_",
-                "ORG_ADMIN_a",
-                "ACTIVITY_DESCRIPTION",
-                "ACTIVITY_CAT",
-                "BROAD_VEGETATION_TYPE",
-                "BVT_USERD",
-                "ACTIVITY_STATUS",
-                "ACTIVITY_QUANTITY",
-                "ACTIVITY_UOM",
-                "ACTIVITY_START",
-                "ACTIVITY_END",
-                "ADMIN_ORG_NAME",
-                "IMPLEM_ORG_NAME",
-                "PRIMARY_FUND_SRC_NAME",
-                "PRIMARY_FUND_ORG_NAME",
-                "SECONDARY_FUND_SRC_NAME",
-                "SECONDARY_FUND_ORG_NAME",
-                "TERTIARY_FUND_SRC_NAME",
-                "TERTIARY_FUND_ORG_NAME",
-                "ACTIVITY_PRCT",
-                "RESIDUE_FATE",
-                "RESIDUE_FATE_QUANTITY",
-                "RESIDUE_FATE_UNITS",
-                "ACTIVITY_NAME",
-                "VAL_STATUS_a",
-                "VAL_MSG_a",
-                "VAL_RUNDATE_a",
-                "REVIEW_STATUS_a",
-                "REVIEW_MSG_a",
-                "REVIEW_RUNDATE_a",
-                "DATALOAD_STATUS_a",
-                "DATALOAD_MSG_a",
-                "Source",
-                "Year",
-                "Year_txt",
-                "Act_Code",
-                "Crosswalk",
-                "Federal_FY",
-                "State_FY",
-                "TRMT_GEOM",
-                "COUNTS_TO_MAS",
-            ],
-            xy_tolerance="",
-            z_tolerance=0,
-        )
-
-        Count6 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye_12_)
-        print("{} has {} records".format(Veg_Summarized_Polygons_Laye_12_, Count6[0]))
-
-        # Process: Select (Select) (analysis)
+        Process: Select (Select) (analysis)
         print("     step 33/34 delete if County is Null")
         Veg_Summarized_Polygons_Laye_13_ = arcpy.analysis.Select(
-            in_features=Veg_Summarized_Polygons_Laye_12_,
+            in_features=Veg_Summarized_Polygons_Laye_11_,
             out_feature_class=enrich_out,
             where_clause="County IS NOT NULL",
         )
 
-        Count7 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye_13_)
-        print("{} has {} records".format(Veg_Summarized_Polygons_Laye_13_, Count7[0]))
+        # Count7 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye_13_)
+        # print("{} has {} records".format(Veg_Summarized_Polygons_Laye_13_, Count7[0]))
 
         print("     step 34/34 delete scratch files")
+
         if delete_scratch:
-            # print('Deleting Scratch Files')
+            print('Deleting Scratch Files')
             delete_scratch_files(
                 gdb=scratch_workspace,
                 delete_fc="yes",
@@ -730,7 +621,6 @@ def enrich_polygons(
             )
 
         print("Enrich Polygons Complete...")
-
 
 if __name__ == "__main__":
     runner(workspace, scratch_workspace, enrich_polygons, "*argv[1:]")

@@ -3,6 +3,7 @@ from ._1b_add_fields import AddFields
 from ._2b_assign_domains import AssignDomains
 from ._7a_enrichments_polygon import enrich_polygons
 from ._2k_keep_fields import KeepFields
+# from ._2m_counts_to_mas import CountsToMAS
 from sys import argv
 from .utils import init_gdb, delete_scratch_files, runner
 import os
@@ -23,9 +24,6 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
     # define intermediary objects in scratch
     usfs_intermediate_scratch = os.path.join(
         scratch_workspace, "usfs_intermediate_scratch"
-    )
-    usfs_intermediate_scratch_dissolved = os.path.join(
-        scratch_workspace, "usfs_intermediate_scratch_dissolved"
     )
     usfs_scratch_standardized = os.path.join(
         scratch_workspace, "usfs_scratch_standardized"
@@ -328,22 +326,11 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Project Name (Calculate Field) (management)
-        # Updated_Input_Table_33_ = arcpy.management.CalculateField(
-        #     in_table=Updated_Input_Table_31_,
-        #     field="PROJECT_NAME",
-        #     expression="\"None\"", # "NONE"
-        #     expression_type="PYTHON3",
-        #     code_block="",
-        #     field_type="TEXT",
-        #     enforce_domains="NO_ENFORCE_DOMAINS"
-        #     )
-
         # Process: Calculate Fund Source (Calculate Field) (management)
         usfs_non_wildfire_after_1995_calc_field_v7 = arcpy.management.CalculateField(
             in_table=usfs_non_wildfire_after_1995_calc_field_v6,
             field="PRIMARY_FUNDING_SOURCE",
-            expression='"USFS"',
+            expression='"FEDERAL"',
             expression_type="PYTHON3",
             code_block="",
             field_type="TEXT",
@@ -416,18 +403,14 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
         print("   step 5/8 Calculating End Date...")
         # Process: Calculate Activity End Date (Calculate Field) (management)
         usfs_non_wildfire_after_1995_calc_field_v14 = arcpy.management.CalculateField(
-            in_table=usfs_non_wildfire_after_1995_calc_field_v13,
-            field="ACTIVITY_END",
-            expression="ifelse(!DATE_COMPLETED!, !DATE_AWARDED!)",
-            expression_type="PYTHON3",
-            code_block="""def ifelse(DateComp, DateAw):
-                            if DateComp != None:
-                                return DateComp
-                            elif DateComp == None:
-                                return DateAw""",
-            field_type="DATE",
-            enforce_domains="NO_ENFORCE_DOMAINS",
-        )
+            in_table=usfs_non_wildfire_after_1995_calc_field_v13, 
+            field="ACTIVITY_END", 
+            expression="!DATE_COMPLETED!", 
+            expression_type="PYTHON3", 
+            code_block="", 
+            field_type="DATE", 
+            enforce_domains="NO_ENFORCE_DOMAINS"
+            )
 
         # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
         usfs_non_wildfire_after_1995_selection = (
@@ -617,7 +600,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
                             elif Geom == \'P\':
                                 return \'POINT\'
                             else: 
-                                return Geom""",
+                                return \'POLYGON\'""", 
             field_type="TEXT",
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
@@ -653,13 +636,14 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
         # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
         usfs_standardized_w_domains = AssignDomains(in_table=output_standardized)
 
-        # print("Enriching Dataset")
+        print("Enriching Dataset")
         # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon) (PC414CWIMillionAcres)
         enrich_polygons(
-            enrich_in=usfs_standardized_w_domains, enrich_out=output_enriched
+            enrich_in=usfs_standardized_w_domains,
+            enrich_out=output_enriched            
         )
+        print(f'Saving Enriched Output: {output_enriched}')
 
-        print(f"Saving Enriched Output: {output_enriched}")
 
         arcpy.management.CalculateField(
             in_table=output_enriched,
