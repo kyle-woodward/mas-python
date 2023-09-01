@@ -7,17 +7,17 @@ from scripts.utils import init_gdb, runner
 
 original_gdb, workspace, scratch_workspace = init_gdb()
 
-def StandardizeDomains(Input_Table):  # 2j Standardize Domains
 
+def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
 
-
     # Process: Calculate Agency (Calculate Field) (management)
-    update_agency = arcpy.management.CalculateField(in_table=Input_Table, # .__str__().format(**locals(),**globals()), 
-                                                             field='AGENCY', 
-                                                             expression='ifelse(!AGENCY!)', 
-                                                             code_block="""def ifelse(Ag):
+    update_agency = arcpy.management.CalculateField(
+        in_table=Input_Table.__str__().format(**locals(), **globals()),
+        field="AGENCY",
+        expression="ifelse(!AGENCY!)",
+        code_block="""def ifelse(Ag):
                 if Ag == \'CA Environmental Protection Agency\':
                     return \'CALEPA\'
                 elif Ag == \'CA State Transportation Agency\':
@@ -36,13 +36,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     return None
                 else:
                     return Ag
-                    """)
+                    """,
+    )
 
     # Process: Calculate Project Data Steward (Calculate Field) (management)
-    update_org_admin_p = arcpy.management.CalculateField(in_table=update_agency, 
-                                                              field='ORG_ADMIN_p', 
-                                                              expression='ifelse(!ORG_ADMIN_p!)', 
-                                                              code_block="""def ifelse(Org):
+    update_org_admin_p = arcpy.management.CalculateField(
+        in_table=update_agency,
+        field="ORG_ADMIN_p",
+        expression="ifelse(!ORG_ADMIN_p!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Baldwin Hills Conservancy\':
                     return \'BHC\'
                 elif Org == \'Bureau of Indian Affairs\':
@@ -104,13 +106,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Admin Org (Calculate Field) (management)
-    update_administering_org = arcpy.management.CalculateField(in_table=update_org_admin_p, 
-                                                             field='ADMINISTERING_ORG', 
-                                                             expression='ifelse(!ADMINISTERING_ORG!)', 
-                                                             code_block="""def ifelse(Org):
+    update_administering_org = arcpy.management.CalculateField(
+        in_table=update_org_admin_p,
+        field="ADMINISTERING_ORG",
+        expression="ifelse(!ADMINISTERING_ORG!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Baldwin Hills Conservancy\':
                     return \'BHC\'
                 elif Org == \'Bureau of Indian Affairs\':
@@ -172,13 +176,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Project Status (Calculate Field) (management)
-    update_project_status = arcpy.management.CalculateField(in_table=update_administering_org, 
-                                                              field='PROJECT_STATUS', 
-                                                              expression='ifelse(!PROJECT_STATUS!)', 
-                                                              code_block="""def ifelse(Stat):
+    update_project_status = arcpy.management.CalculateField(
+        in_table=update_administering_org,
+        field="PROJECT_STATUS",
+        expression="ifelse(!PROJECT_STATUS!)",
+        code_block="""def ifelse(Stat):
                 if Stat == \'Active\':
                     return \'ACTIVE\'
                 elif Stat == \'Active*\':
@@ -196,13 +202,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Stat == \'\' or Stat == \' \':
                     return None
                 else:
-                    return Stat""")
+                    return Stat""",
+    )
 
     # Process: Calculate Ord Data Steward (Calculate Field) (management)
-    update_org_admin_p_2 = arcpy.management.CalculateField(in_table=update_project_status, 
-                                                              field='ORG_ADMIN_p', 
-                                                              expression='ifelse(!ORG_ADMIN_p!)', 
-                                                              code_block="""def ifelse(Org):
+    update_org_admin_p_2 = arcpy.management.CalculateField(
+        in_table=update_project_status,
+        field="ORG_ADMIN_p",
+        expression="ifelse(!ORG_ADMIN_p!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Baldwin Hills Conservancy\':
                     return \'BHC\'
                 elif Org == \'Bureau of Indian Affairs\':
@@ -264,13 +272,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Fund Source (Calculate Field) (management)
-    update_primary_funding_source = arcpy.management.CalculateField(in_table=update_org_admin_p_2, 
-                                                              field='PRIMARY_FUNDING_SOURCE', 
-                                                              expression='ifelse(!PRIMARY_FUNDING_SOURCE!)', 
-                                                              code_block="""def ifelse(Org):
+    update_primary_funding_source = arcpy.management.CalculateField(
+        in_table=update_org_admin_p_2,
+        field="PRIMARY_FUNDING_SOURCE",
+        expression="ifelse(!PRIMARY_FUNDING_SOURCE!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Greenhouse Gas Reduction Fund\':
                     return \'GHG_REDUC_FUND_GGRF\'
                 elif Org == \'Proposition 68 Bond Funds\':
@@ -296,13 +306,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Fund Org (Calculate Field) (management)
-    update_primary_funding_org = arcpy.management.CalculateField(in_table=update_primary_funding_source, 
-                                                              field='PRIMARY_FUNDING_ORG', 
-                                                              expression='ifelse(!PRIMARY_FUNDING_ORG!)', 
-                                                              code_block="""def ifelse(Org):
+    update_primary_funding_org = arcpy.management.CalculateField(
+        in_table=update_primary_funding_source,
+        field="PRIMARY_FUNDING_ORG",
+        expression="ifelse(!PRIMARY_FUNDING_ORG!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Baldwin Hills Conservancy\':
                     return \'BHC\'
                 elif Org == \'Bureau of Indian Affairs\':
@@ -364,13 +376,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Treatment Data Steward (Calculate Field) (management)
-    update_org_admin_t = arcpy.management.CalculateField(in_table=update_primary_funding_org, 
-                                                              field='ORG_ADMIN_t', 
-                                                              expression='ifelse(!ORG_ADMIN_t!)', 
-                                                              code_block="""def ifelse(Org):
+    update_org_admin_t = arcpy.management.CalculateField(
+        in_table=update_primary_funding_org,
+        field="ORG_ADMIN_t",
+        expression="ifelse(!ORG_ADMIN_t!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Baldwin Hills Conservancy\':
                     return \'BHC\'
                 elif Org == \'Bureau of Indian Affairs\':
@@ -432,13 +446,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Ownership (Calculate Field) (management)
-    update_primary_ownership_group = arcpy.management.CalculateField(in_table=update_org_admin_t, 
-                                                              field='PRIMARY_OWNERSHIP_GROUP', 
-                                                              expression='ifelse(!PRIMARY_OWNERSHIP_GROUP!)', 
-                                                              code_block="""def ifelse(Own):
+    update_primary_ownership_group = arcpy.management.CalculateField(
+        in_table=update_org_admin_t,
+        field="PRIMARY_OWNERSHIP_GROUP",
+        expression="ifelse(!PRIMARY_OWNERSHIP_GROUP!)",
+        code_block="""def ifelse(Own):
                 if Own == \'Federal\':
                     return \'FEDERAL\'
                 elif Own == \'Local\':
@@ -456,13 +472,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Own == \'\' or Own == \' \':
                     return None
                 else:
-                    return Own""")
+                    return Own""",
+    )
 
     # Process: Calculate Objective (Calculate Field) (management)
-    update_primary_objective = arcpy.management.CalculateField(in_table=update_primary_ownership_group, 
-                                                             field='PRIMARY_OBJECTIVE', 
-                                                             expression='ifelse(!PRIMARY_OBJECTIVE!)', 
-                                                             code_block="""def ifelse(OBJ):
+    update_primary_objective = arcpy.management.CalculateField(
+        in_table=update_primary_ownership_group,
+        field="PRIMARY_OBJECTIVE",
+        expression="ifelse(!PRIMARY_OBJECTIVE!)",
+        code_block="""def ifelse(OBJ):
                 if OBJ in ['BIOMASS_UTIL\', 
                 \'BURNED_AREA_RESTOR\', 
                 \'CARBON_STORAGE\', 
@@ -549,13 +567,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif OBJ == \'\' or OBJ == \' \':
                     return \'TBD\'
                 else:
-                    return OBJ""")
+                    return OBJ""",
+    )
 
     # Process: Calculate Objective (2) (Calculate Field) (management)
-    update_secondary_objective = arcpy.management.CalculateField(in_table=update_primary_objective, 
-                                                             field='SECONDARY_OBJECTIVE', 
-                                                             expression='ifelse(!SECONDARY_OBJECTIVE!)', 
-                                                             code_block="""def ifelse(OBJ):
+    update_secondary_objective = arcpy.management.CalculateField(
+        in_table=update_primary_objective,
+        field="SECONDARY_OBJECTIVE",
+        expression="ifelse(!SECONDARY_OBJECTIVE!)",
+        code_block="""def ifelse(OBJ):
                 if OBJ in ['BIOMASS_UTIL\', 
                 \'BURNED_AREA_RESTOR\', 
                 \'CARBON_STORAGE\', 
@@ -642,13 +662,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif OBJ == \'\' or OBJ == \' \':
                     return None
                 else:
-                    return OBJ""")
+                    return OBJ""",
+    )
 
     # Process: Calculate Objective (3) (Calculate Field) (management)
-    update_tertiary_objective = arcpy.management.CalculateField(in_table=update_secondary_objective, 
-                                                             field='TERTIARY_OBJECTIVE', 
-                                                             expression='ifelse(!TERTIARY_OBJECTIVE!)', 
-                                                             code_block="""def ifelse(OBJ):
+    update_tertiary_objective = arcpy.management.CalculateField(
+        in_table=update_secondary_objective,
+        field="TERTIARY_OBJECTIVE",
+        expression="ifelse(!TERTIARY_OBJECTIVE!)",
+        code_block="""def ifelse(OBJ):
                 if OBJ in ['BIOMASS_UTIL\', 
                 \'BURNED_AREA_RESTOR\', 
                 \'CARBON_STORAGE\', 
@@ -735,13 +757,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif OBJ == \'\' or OBJ == \' \':
                     return None
                 else:
-                    return OBJ""")
+                    return OBJ""",
+    )
 
     # Process: Calculate Treatment Status (Calculate Field) (management)
-    update_treatment_status = arcpy.management.CalculateField(in_table=update_tertiary_objective, 
-                                                              field='TREATMENT_STATUS', 
-                                                              expression='ifelse(!TREATMENT_STATUS!)', 
-                                                              code_block="""def ifelse(Stat):
+    update_treatment_status = arcpy.management.CalculateField(
+        in_table=update_tertiary_objective,
+        field="TREATMENT_STATUS",
+        expression="ifelse(!TREATMENT_STATUS!)",
+        code_block="""def ifelse(Stat):
                 if Stat == \'Active\':
                     return \'ACTIVE\'
                 elif Stat == \'Active*\':
@@ -759,13 +783,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Stat == \'\' or Stat == \' \':
                     return None
                 else:
-                    return Stat""")
+                    return Stat""",
+    )
 
     # Process: Calculate County (Calculate Field) (management)
-    update_county = arcpy.management.CalculateField(in_table=update_treatment_status, 
-                                                              field='COUNTY', 
-                                                              expression='ifelse(!COUNTY!)', 
-                                                              code_block="""def ifelse(County):
+    update_county = arcpy.management.CalculateField(
+        in_table=update_treatment_status,
+        field="COUNTY",
+        expression="ifelse(!COUNTY!)",
+        code_block="""def ifelse(County):
                 if County == \'Alameda\' or County == \'Alameda County\' or County == \'ALAMEDA\':
                     return \'ALA\'
                 elif County == \'Alpine\' or County == \'Alpine County\' or County == \'ALPINE\':
@@ -885,13 +911,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif County == \'\' or County == \' \':
                     return None
                 else:
-                    return County""")
+                    return County""",
+    )
 
     # Process: Calculate WUI (Calculate Field) (management)
-    update_in_wui = arcpy.management.CalculateField(in_table=update_county, 
-                                                              field='IN_WUI', 
-                                                              expression='ifelse(!IN_WUI!)', 
-                                                              code_block="""def ifelse(WUI):
+    update_in_wui = arcpy.management.CalculateField(
+        in_table=update_county,
+        field="IN_WUI",
+        expression="ifelse(!IN_WUI!)",
+        code_block="""def ifelse(WUI):
                 if WUI == \'WUI (user defined)\':
                     return \'WUI_USER_DEFINED\'
                 elif WUI == \'Yes\':
@@ -915,13 +943,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif WUI == \'\' or WUI == \' \':
                     return None
                 else:
-                    return WUI""")
+                    return WUI""",
+    )
 
     # Process: Calculate Region (Calculate Field) (management)
-    update_region = arcpy.management.CalculateField(in_table=update_in_wui, 
-                                                             field='REGION', 
-                                                             expression='ifelse(!REGION!)', 
-                                                             code_block="""def ifelse(Region):
+    update_region = arcpy.management.CalculateField(
+        in_table=update_in_wui,
+        field="REGION",
+        expression="ifelse(!REGION!)",
+        code_block="""def ifelse(Region):
                 if Region == \'Central Coast\':
                     return \'CENTRAL_COAST\'
                 elif Region == \'North Coast\':
@@ -945,13 +975,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Region == \'\' or Region == \' \':
                     return None
                 else:
-                    return Region""")
+                    return Region""",
+    )
 
     # Process: Calculate Activity Data Steward (Calculate Field) (management)
-    update_org_admin_a = arcpy.management.CalculateField(in_table=update_region, 
-                                                              field='ORG_ADMIN_a', 
-                                                              expression='ifelse(!ORG_ADMIN_a!)', 
-                                                              code_block="""def ifelse(Org):
+    update_org_admin_a = arcpy.management.CalculateField(
+        in_table=update_region,
+        field="ORG_ADMIN_a",
+        expression="ifelse(!ORG_ADMIN_a!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Baldwin Hills Conservancy\':
                     return \'BHC\'
                 elif Org == \'Bureau of Indian Affairs\':
@@ -1013,13 +1045,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Activity Description (Calculate Field) (management)
-    update_activity_description = arcpy.management.CalculateField(in_table=update_org_admin_a, 
-                                                              field='ACTIVITY_DESCRIPTION', 
-                                                              expression='ifelse(!ACTIVITY_DESCRIPTION!)', 
-                                                              code_block="""def ifelse(ACT):
+    update_activity_description = arcpy.management.CalculateField(
+        in_table=update_org_admin_a,
+        field="ACTIVITY_DESCRIPTION",
+        expression="ifelse(!ACTIVITY_DESCRIPTION!)",
+        code_block="""def ifelse(ACT):
                 if ACT in ['AMW_AREA_RESTOR', 
                 \'BIOMASS_REMOVAL\', 
                 \'BROADCAST_BURN\', 
@@ -1213,13 +1247,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Act == \'\' or Act == \' \':
                     return \'TBD\'
                 else:
-                    return \'TBD\'""")
+                    return \'TBD\'""",
+    )
 
     # Process: Calculate Activity Category (Calculate Field) (management)
-    update_activity_cat = arcpy.management.CalculateField(in_table=update_activity_description, 
-                                                          field='ACTIVITY_CAT', 
-                                                          expression='ifelse(!ACTIVITY_CAT!)', 
-                                                          code_block="""def ifelse(Cat):
+    update_activity_cat = arcpy.management.CalculateField(
+        in_table=update_activity_description,
+        field="ACTIVITY_CAT",
+        expression="ifelse(!ACTIVITY_CAT!)",
+        code_block="""def ifelse(Cat):
                 if Cat == \'Mechanical and Hand Fuels Reduction\':
                     return \'MECH_HFR\'
                 elif Cat == \'Beneficial Fire\':
@@ -1241,13 +1277,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Cat == \'\' or Cat == \' \':
                     return \'NOT_DEFINED\'
                 else:
-                    return Cat""")
+                    return Cat""",
+    )
 
     # Process: Calculate BVT (Calculate Field) (management)
-    update_bvt = arcpy.management.CalculateField(in_table=update_activity_cat, 
-                                                              field='BROAD_VEGETATION_TYPE', 
-                                                              expression='ifelse(!BROAD_VEGETATION_TYPE!)', 
-                                                              code_block="""def ifelse(VEG):
+    update_bvt = arcpy.management.CalculateField(
+        in_table=update_activity_cat,
+        field="BROAD_VEGETATION_TYPE",
+        expression="ifelse(!BROAD_VEGETATION_TYPE!)",
+        code_block="""def ifelse(VEG):
                 if VEG == \'Agriculture\':
                     return \'AGRICULTURE\'
                 elif VEG == \'Barren/Other\':
@@ -1287,13 +1325,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif VEG == \'\' or VEG == \' \':
                     return None
                 else:
-                    return VEG""")
+                    return VEG""",
+    )
 
     # Process: Calculate BVT ID (Calculate Field) (management)
-    update_bvt_userd = arcpy.management.CalculateField(in_table=update_bvt, 
-                                                              field='BVT_USERD', 
-                                                              expression='ifelse(!BVT_USERD!)', 
-                                                              code_block="""def ifelse(YN):
+    update_bvt_userd = arcpy.management.CalculateField(
+        in_table=update_bvt,
+        field="BVT_USERD",
+        expression="ifelse(!BVT_USERD!)",
+        code_block="""def ifelse(YN):
                 if YN == \'Yes\':
                     return \'YES\'
                 elif YN == \'No\':
@@ -1302,13 +1342,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     return None
                 else:
                     return YN
-                    """)
+                    """,
+    )
 
     # Process: Calculate Activity Status (Calculate Field) (management)
-    update_activity_status = arcpy.management.CalculateField(in_table=update_bvt_userd, 
-                                                             field='ACTIVITY_STATUS', 
-                                                             expression='ifelse(!ACTIVITY_STATUS!)', 
-                                                             code_block="""def ifelse(Stat):
+    update_activity_status = arcpy.management.CalculateField(
+        in_table=update_bvt_userd,
+        field="ACTIVITY_STATUS",
+        expression="ifelse(!ACTIVITY_STATUS!)",
+        code_block="""def ifelse(Stat):
                 if Stat == \'Active\':
                     return \'ACTIVE\'
                 elif Stat == \'Active*\':
@@ -1326,13 +1368,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Stat == \'\' or Stat == \' \':
                     return None
                 else:
-                    return Stat""")
+                    return Stat""",
+    )
 
     # Process: Calculate Units (Calculate Field) (management)
-    update_activity_uom = arcpy.management.CalculateField(in_table=update_activity_status, 
-                                                             field='ACTIVITY_UOM', 
-                                                             expression='ifelse(!ACTIVITY_UOM!)', 
-                                                             code_block="""def ifelse(Units):
+    update_activity_uom = arcpy.management.CalculateField(
+        in_table=update_activity_status,
+        field="ACTIVITY_UOM",
+        expression="ifelse(!ACTIVITY_UOM!)",
+        code_block="""def ifelse(Units):
                 if Units == \'acres\':
                     return \'AC\'
                 elif Units == \'ACRES\':
@@ -1374,13 +1418,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Units == \'\' or Units == \' \':
                     return None
                 else:
-                    return Units""")
+                    return Units""",
+    )
 
     # Process: Calculate Activity Admin (Calculate Field) (management)
-    update_admin_org_name = arcpy.management.CalculateField(in_table=update_activity_uom, 
-                                                              field='ADMIN_ORG_NAME', 
-                                                              expression='ifelse(!ADMIN_ORG_NAME!)', 
-                                                              code_block="""def ifelse(Org):
+    update_admin_org_name = arcpy.management.CalculateField(
+        in_table=update_activity_uom,
+        field="ADMIN_ORG_NAME",
+        expression="ifelse(!ADMIN_ORG_NAME!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Baldwin Hills Conservancy\':
                     return \'BHC\'
                 elif Org == \'Bureau of Indian Affairs\':
@@ -1442,13 +1488,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Act Fund Source (Calculate Field) (management)
-    update_primary_fund_src_name = arcpy.management.CalculateField(in_table=update_admin_org_name, 
-                                                              field='PRIMARY_FUND_SRC_NAME', 
-                                                              expression='ifelse(!PRIMARY_FUND_SRC_NAME!)', 
-                                                              code_block="""def ifelse(Org):
+    update_primary_fund_src_name = arcpy.management.CalculateField(
+        in_table=update_admin_org_name,
+        field="PRIMARY_FUND_SRC_NAME",
+        expression="ifelse(!PRIMARY_FUND_SRC_NAME!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Greenhouse Gas Reduction Fund\':
                     return \'GHG_REDUC_FUND_GGRF\'
                 elif Org == \'Proposition 68 Bond Funds\':
@@ -1474,13 +1522,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Act Fund Org (Calculate Field) (management)
-    update_primary_fund_org_name = arcpy.management.CalculateField(in_table=update_primary_fund_src_name, 
-                                                              field='PRIMARY_FUND_ORG_NAME', 
-                                                              expression='ifelse(!PRIMARY_FUND_ORG_NAME!)', 
-                                                              code_block="""def ifelse(Org):
+    update_primary_fund_org_name = arcpy.management.CalculateField(
+        in_table=update_primary_fund_src_name,
+        field="PRIMARY_FUND_ORG_NAME",
+        expression="ifelse(!PRIMARY_FUND_ORG_NAME!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Baldwin Hills Conservancy\':
                     return \'BHC\'
                 elif Org == \'Bureau of Indian Affairs\':
@@ -1542,13 +1592,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Act Fund Source (2) (Calculate Field) (management)
-    update_secondary_fund_src_name = arcpy.management.CalculateField(in_table=update_primary_fund_org_name, 
-                                                              field='SECONDARY_FUND_SRC_NAME', 
-                                                              expression='ifelse(!SECONDARY_FUND_SRC_NAME!)', 
-                                                              code_block="""def ifelse(Org):
+    update_secondary_fund_src_name = arcpy.management.CalculateField(
+        in_table=update_primary_fund_org_name,
+        field="SECONDARY_FUND_SRC_NAME",
+        expression="ifelse(!SECONDARY_FUND_SRC_NAME!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Greenhouse Gas Reduction Fund\':
                     return \'GHG_REDUC_FUND_GGRF\'
                 elif Org == \'Proposition 68 Bond Funds\':
@@ -1574,13 +1626,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Act Fund Org (2) (Calculate Field) (management)
-    update_secondary_fund_src_name_2 = arcpy.management.CalculateField(in_table=update_secondary_fund_src_name, 
-                                                              field='SECONDARY_FUND_SRC_NAME', 
-                                                              expression='ifelse(!SECONDARY_FUND_SRC_NAME!)', 
-                                                              code_block="""def ifelse(Org):
+    update_secondary_fund_src_name_2 = arcpy.management.CalculateField(
+        in_table=update_secondary_fund_src_name,
+        field="SECONDARY_FUND_SRC_NAME",
+        expression="ifelse(!SECONDARY_FUND_SRC_NAME!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Baldwin Hills Conservancy\':
                     return \'BHC\'
                 elif Org == \'Bureau of Indian Affairs\':
@@ -1642,13 +1696,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Act Fund Source (3) (Calculate Field) (management)
-    update_tertiary_fund_src_name = arcpy.management.CalculateField(in_table=update_secondary_fund_src_name_2, 
-                                                              field='TERTIARY_FUND_SRC_NAME', 
-                                                              expression='ifelse(!TERTIARY_FUND_SRC_NAME!)', 
-                                                              code_block="""def ifelse(Org):
+    update_tertiary_fund_src_name = arcpy.management.CalculateField(
+        in_table=update_secondary_fund_src_name_2,
+        field="TERTIARY_FUND_SRC_NAME",
+        expression="ifelse(!TERTIARY_FUND_SRC_NAME!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Greenhouse Gas Reduction Fund\':
                     return \'GHG_REDUC_FUND_GGRF\'
                 elif Org == \'Proposition 68 Bond Funds\':
@@ -1674,13 +1730,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Act Fund Org (3) (Calculate Field) (management)
-    update_tertiary_fund_src_name_2 = arcpy.management.CalculateField(in_table=update_tertiary_fund_src_name, 
-                                                              field='TERTIARY_FUND_ORG_NAME', 
-                                                              expression='ifelse(!TERTIARY_FUND_ORG_NAME!)', 
-                                                              code_block="""def ifelse(Org):
+    update_tertiary_fund_src_name_2 = arcpy.management.CalculateField(
+        in_table=update_tertiary_fund_src_name,
+        field="TERTIARY_FUND_ORG_NAME",
+        expression="ifelse(!TERTIARY_FUND_ORG_NAME!)",
+        code_block="""def ifelse(Org):
                 if Org == \'Baldwin Hills Conservancy\':
                     return \'BHC\'
                 elif Org == \'Bureau of Indian Affairs\':
@@ -1742,13 +1800,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""")
+                    return Org""",
+    )
 
     # Process: Calculate Residue (Calculate Field) (management)
-    update_residue_fate = arcpy.management.CalculateField(in_table=update_tertiary_fund_src_name_2, 
-                                                              field='RESIDUE_FATE', 
-                                                              expression='ifelse(!RESIDUE_FATE!)', 
-                                                              code_block="""def ifelse(Fate):
+    update_residue_fate = arcpy.management.CalculateField(
+        in_table=update_tertiary_fund_src_name_2,
+        field="RESIDUE_FATE",
+        expression="ifelse(!RESIDUE_FATE!)",
+        code_block="""def ifelse(Fate):
                 if Fate == \'Biochar or Other Pyrolysis\':
                     return \'BIOCHAR_PYROLYSIS\'
                 elif Fate == \'Broadcast Burn\':
@@ -1782,13 +1842,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Fate == \'\' or Fate == \' \':
                     return None
                 else:
-                    return Fate""")
+                    return Fate""",
+    )
 
     # Process: Calculate Units (2) (Calculate Field) (management)
-    update_residue_fate_units = arcpy.management.CalculateField(in_table=update_residue_fate, 
-                                                              field='RESIDUE_FATE_UNITS', 
-                                                              expression='ifelse(!RESIDUE_FATE_UNITS!)', 
-                                                              code_block="""def ifelse(UOM):
+    update_residue_fate_units = arcpy.management.CalculateField(
+        in_table=update_residue_fate,
+        field="RESIDUE_FATE_UNITS",
+        expression="ifelse(!RESIDUE_FATE_UNITS!)",
+        code_block="""def ifelse(UOM):
                 if UOM == \'Acres\':
                     return \'AC\'
                 elif UOM == \'Each\':
@@ -1804,13 +1866,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif UOM == \'\' or UOM == \' \':
                     return None
                 else:
-                    return UOM""")
+                    return UOM""",
+    )
 
     # Process: Calculate Geometry Type (Calculate Field) (management)
-    update_trmt_geom = arcpy.management.CalculateField(in_table=update_residue_fate_units, 
-                                                              field='TRMT_GEOM', 
-                                                              expression='ifelse(!TRMT_GEOM!)', 
-                                                              code_block="""def ifelse(Geom):
+    update_trmt_geom = arcpy.management.CalculateField(
+        in_table=update_residue_fate_units,
+        field="TRMT_GEOM",
+        expression="ifelse(!TRMT_GEOM!)",
+        code_block="""def ifelse(Geom):
                 if Geom == \'Point\':
                     return \'POINT\'
                 elif Geom == \'Line\':
@@ -1822,13 +1886,15 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                 elif Geom == \'\' or Geom == \' \':
                     return None
                 else:
-                    return Geom""")
+                    return Geom""",
+    )
 
     # Process: Calculate Counts Towards (Calculate Field) (management)
-    final_output = arcpy.management.CalculateField(in_table=update_trmt_geom, 
-                                                              field='COUNTS_TO_MAS', 
-                                                              expression='ifelse(!COUNTS_TO_MAS!)', 
-                                                              code_block="""def ifelse(YN):
+    final_output = arcpy.management.CalculateField(
+        in_table=update_trmt_geom,
+        field="COUNTS_TO_MAS",
+        expression="ifelse(!COUNTS_TO_MAS!)",
+        code_block="""def ifelse(YN):
                 if YN == \'Yes\':
                     return \'YES\'
                 elif YN == \'No\':
@@ -1837,14 +1903,16 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     return None
                 else:
                     return YN
-                    """)
+                    """,
+    )
 
     return final_output
 
-if __name__ == '__main__':
-        runner(workspace,scratch_workspace,StandardizeDomains, '*argv[1:]')
-    # Global Environment settings
-    # with arcpy.EnvManager(extent='-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS[\'GCS_WGS_1984\',DATUM[\'D_WGS_1984\',SPHEROID[\'WGS_1984\',6378137.0,298.257223563]],PRIMEM[\'Greenwich\',0.0],UNIT[\'Degree\',0.0174532925199433]]', outputCoordinateSystem='PROJCS[\'NAD_1983_California_Teale_Albers\',GEOGCS[\'GCS_North_American_1983\',DATUM[\'D_North_American_1983\',SPHEROID[\'GRS_1980\',6378137.0,298.257222101]],PRIMEM[\'Greenwich\',0.0],UNIT[\'Degree\',0.0174532925199433]],PROJECTION[\'Albers\'],PARAMETER[\'False_Easting\',0.0],PARAMETER[\'False_Northing\',-4000000.0],PARAMETER[\'Central_Meridian\',-120.0],PARAMETER[\'Standard_Parallel_1\',34.0],PARAMETER[\'Standard_Parallel_2\',40.5],PARAMETER[\'Latitude_Of_Origin\',0.0],UNIT[\'Meter\',1.0]]', preserveGlobalIds=True, 
-    #                       qualifiedFieldNames=False, scratchWorkspace='C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb', transferGDBAttributeProperties=True, 
-    #                       workspace='C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb'):
-    #     StandardizeDomains(*argv[1:])
+
+if __name__ == "__main__":
+    runner(workspace, scratch_workspace, StandardizeDomains, "*argv[1:]")
+# Global Environment settings
+# with arcpy.EnvManager(extent='-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS[\'GCS_WGS_1984\',DATUM[\'D_WGS_1984\',SPHEROID[\'WGS_1984\',6378137.0,298.257223563]],PRIMEM[\'Greenwich\',0.0],UNIT[\'Degree\',0.0174532925199433]]', outputCoordinateSystem='PROJCS[\'NAD_1983_California_Teale_Albers\',GEOGCS[\'GCS_North_American_1983\',DATUM[\'D_North_American_1983\',SPHEROID[\'GRS_1980\',6378137.0,298.257222101]],PRIMEM[\'Greenwich\',0.0],UNIT[\'Degree\',0.0174532925199433]],PROJECTION[\'Albers\'],PARAMETER[\'False_Easting\',0.0],PARAMETER[\'False_Northing\',-4000000.0],PARAMETER[\'Central_Meridian\',-120.0],PARAMETER[\'Standard_Parallel_1\',34.0],PARAMETER[\'Standard_Parallel_2\',40.5],PARAMETER[\'Latitude_Of_Origin\',0.0],UNIT[\'Meter\',1.0]]', preserveGlobalIds=True,
+#                       qualifiedFieldNames=False, scratchWorkspace='C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb', transferGDBAttributeProperties=True,
+#                       workspace='C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb'):
+#     StandardizeDomains(*argv[1:])
