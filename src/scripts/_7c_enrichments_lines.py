@@ -6,11 +6,11 @@ from sys import argv
 from .utils import init_gdb, delete_scratch_files, runner
 
 original_gdb, workspace, scratch_workspace = init_gdb()
-
+# TODO add print steps
 
 def enrich_lines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
     # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
+    arcpy.env.overwriteOutput = True
     # this was set to True by default which made fully qualified field names in the Joined output (e.g. 'line_to_pt_enriched_FIELDNAME') that didn't match field names in the expressions
     arcpy.env.qualifiedFieldNames = False
 
@@ -44,7 +44,7 @@ def enrich_lines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
         delete_scratch=False,
     )  # within 7c, we can set delete_scratch to false or true
 
-    print("Performing Field Modifications...")
+    print("Performing Field Modifications...") # TODO not quite the correct description
     # Process: Add Join (Add Join) (management)
     CalTrans_act_ln_standardized = arcpy.management.AddJoin(
         in_layer_or_view=line_fc,
@@ -239,7 +239,7 @@ def enrich_lines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
     # print('field names after all CalculateField operations\n',field_names,'\n')
 
     # Process: Delete Field (Delete Field) (management)
-    Line_Layer_Temp_CopyFeatures1_3_ = KeepFields(Veg_Summarized_Polygons_Laye3_7_)
+    # Line_Layer_Temp_CopyFeatures1_3_ = KeepFields(Veg_Summarized_Polygons_Laye3_7_)
 
     # field_names = [f.name for f in arcpy.ListFields(Line_Layer_Temp_CopyFeatures1_3_)]
     # print('field names after DeleteField\n',field_names,'\n')
@@ -275,16 +275,16 @@ def enrich_lines(line_fc, delete_scratch=False):  # 7c Enrichments Lines
 
     # Process: Append (Append) (management)
     Line_Enriched_Temp_CopyFeatures_append = arcpy.management.Append(
-        inputs=[Line_Layer_Temp_CopyFeatures1_3_],
+        inputs=[Veg_Summarized_Polygons_Laye3_7_],
         target=Line_Enriched_Temp_CopyFeatures,
         schema_type="NO_TEST",  # only field mismatch is Shape_Area which we don't care about
     )
 
-    if delete_scratch:
-        print("Deleting Scratch Files")
-        delete_scratch_files(
-            gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-        )
+    # if delete_scratch:
+    #     print("Deleting Scratch Files")
+    #     delete_scratch_files(
+    #         gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
+    #     )
 
     return Line_Enriched_Temp_CopyFeatures_append  # does this capture the object that has since been renamed or only the file path as defined by the variable ln469? # Line_Enriched_Temp_CopyFeatures
 

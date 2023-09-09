@@ -247,10 +247,7 @@ def enrich_polygons(
         print("   Calculating WUI...")
         # Process: Select Layer WUI Null (Select Layer By Attribute) (management)
         print("     step 13/34 select layer by attribute")
-        (
-            Veg_Summarized_Polygons_Laye_7_,
-            Count_8_,
-        ) = arcpy.management.SelectLayerByAttribute(
+        Veg_Summarized_Polygons_Laye_7_, Count_8_, = arcpy.management.SelectLayerByAttribute(
             in_layer_or_view=Layer_With_Join_Removed,
             selection_type="NEW_SELECTION",
             where_clause="IN_WUI IS NULL Or IN_WUI = ''",
@@ -259,11 +256,7 @@ def enrich_polygons(
 
         # Process: Select Layer By WUI (Select Layer By Location) (management)
         print("     step 14/34 select layer by WUI location")
-        (
-            Veg_Summarized_Polygons_Laye1_2_,
-            Output_Layer_Names_2_,
-            Count_2_,
-        ) = arcpy.management.SelectLayerByLocation(
+        Veg_Summarized_Polygons_Laye1_2_, Output_Layer_Names_2_, Count_2_, = arcpy.management.SelectLayerByLocation(
             in_layer=[Veg_Summarized_Polygons_Laye_7_],
             overlap_type="INTERSECT",
             select_features=WUI_Layer,
@@ -286,10 +279,7 @@ def enrich_polygons(
 
         # Process: Select Layer WUI Auto No (Select Layer By Attribute) (management)
         print("     step 16/34 select layer by attribute")
-        (
-            Veg_Summarized_Polygons_Laye_5_,
-            Count_6_,
-        ) = arcpy.management.SelectLayerByAttribute(
+        Veg_Summarized_Polygons_Laye_5_, Count_6_, = arcpy.management.SelectLayerByAttribute(
             in_layer_or_view=usfs_haz_fuels_treatments_re3,
             selection_type="NEW_SELECTION",
             where_clause="IN_WUI IS NULL Or IN_WUI = ''",

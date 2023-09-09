@@ -50,12 +50,12 @@ def Crosswalk(Input_Table):  # 2l Crosswalk
     # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
     print("     step 4/8 select attribute by layer")
     select_tbd_objective = arcpy.management.SelectLayerByAttribute(
-        in_layer_or_view=xwalk_counts_to_mas,
+        in_layer_or_view=xwalk_residue_fate,
         where_clause="PRIMARY_OBJECTIVE IS NULL Or PRIMARY_OBJECTIVE = 'TBD'",
     )
 
     # Process: Calculate Objective (Calculate Field) (management)
-    print("     step 5/8 Calculating Objective...")
+    print("     step 5/8 calculating objective...")
     xwalk_primary_objective = arcpy.management.CalculateField(
         in_table=select_tbd_objective,
         field="PRIMARY_OBJECTIVE",
