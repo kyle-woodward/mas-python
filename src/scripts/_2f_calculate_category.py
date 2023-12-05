@@ -16,7 +16,7 @@ def Category(Input_Table):  # 2f Calculate Category
         expression="ifelse(!ACTIVITY_DESCRIPTION!, !BROAD_VEGETATION_TYPE!, !PRIMARY_OBJECTIVE!)",
         expression_type="PYTHON3",
         code_block="""def ifelse(Act, Veg, Obj):
-            if Act in ['MECH_HFR', 'BENEFICIAL_FIRE', 'GRAZING', 'LAND_PROTEC', 'SANI_SALVG', 
+            if Act in ['MECH_HFR', 'BENEFICIAL_FIRE', 'GRAZING', 'LAND_PROTEC',  
             'TIMB_HARV', 'TREE_PLNTING', 'WATSHD_IMPRV']:
                 return Act
             if Act in ["BIOMASS_REMOVAL", "CHIPPING", "CHAIN_CRUSH", "DISCING", "DOZER_LINE", "HANDLINE", 

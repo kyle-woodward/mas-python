@@ -520,7 +520,7 @@ def enrich_polygons(
         Veg_Summarized_Polygons_Laye_6_ = arcpy.management.CalculateField(
             in_table=Veg_Summarized_Polygons_Laye2_4_,
             field="Veg_Summarized_Polygons.REGION",
-            expression="ifelse(!Veg_Summarized_Join2_RCD.RFFC_tier1!)",
+            expression="ifelse(!Veg_Summarized_Join2_RCD.Region!)",
             expression_type="PYTHON3",
             code_block="""def ifelse(Reg):
                                         if Reg == \"Central Coast\":
