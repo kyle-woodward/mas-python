@@ -129,7 +129,7 @@ def CountsToMAS(Input_Table):  # 2m Counts to MAS
                         field="COUNTS_TO_MAS", 
                         expression="ifelse(!ADMINISTERING_ORG!,!COUNTS_TO_MAS!)", 
                         code_block="""def ifelse(Admin, Counts):
-                            if Admin in ['BOF', 'CCC', 'SMMC', 'SNC', 'SCC', 'SDRC']:
+                            if Admin in ['BOF', 'CCC', 'SMMC', 'SNC', 'SCC', 'SDRC', 'MRCA', 'RMC', 'OTHER']:
                                 return 'NO' 
                             else:
                                 return Counts"""

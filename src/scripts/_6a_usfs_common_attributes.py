@@ -11,14 +11,14 @@ import time
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 
-def Model_USFS(output_enriched, output_standardized, input_fc):
+def Model_USFS(output_enriched, output_standardized, input_fc, startyear, endyear):
     start = time.time()
     print(f"Start Time {time.ctime()}")
     arcpy.env.overwriteOutput = True
 
     # START and END YEARS
-    startyear = 2020
-    endyear = 2025
+    # startyear = 2020
+    # endyear = 2025
 
     # define intermediary objects in scratch
     usfs_intermediate_scratch = os.path.join(
@@ -633,7 +633,9 @@ def Model_USFS(output_enriched, output_standardized, input_fc):
         )
 
         # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
-        usfs_standardized_w_domains = AssignDomains(in_table=output_standardized)
+        usfs_standardized_w_domains = AssignDomains(
+            in_table=output_standardized
+            )
 
         print("Enriching Dataset")
         # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon) (PC414CWIMillionAcres)

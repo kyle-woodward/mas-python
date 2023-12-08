@@ -24,7 +24,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     return \'CALSTA\'
                 elif Ag == \'CA Natural Resources Agency\':
                     return \'CNRA\'
-                elif Ag == \'Department of Defense\':
+                elif Ag == \'U.S. Department of Defense\' or Ag == \'DoD\':
                     return \'DOD\'
                 elif Ag == \'Department of the Interior\':
                     return \'DOI\'
@@ -32,6 +32,8 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     return \'USDA\'
                 elif Ag == \'Other\':
                     return \'OTHER\'
+                elif Ag == \'Industrial Timber\':
+                    return \'TIMBER\'
                 elif Ag == \'\' or Ag == \' \':
                     return None
                 else:
@@ -39,12 +41,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     """,
     )
 
-    # Process: Calculate Project Data Steward (Calculate Field) (management)
-    update_org_admin_p = arcpy.management.CalculateField(
-        in_table=update_agency,
-        field="ORG_ADMIN_p",
-        expression="ifelse(!ORG_ADMIN_p!)",
-        code_block="""def ifelse(Org):
+    org_code_block = """def ifelse(Org):
                 if Org == \'Baldwin Hills Conservancy\':
                     return \'BHC\'
                 elif Org == \'Bureau of Indian Affairs\':
@@ -67,6 +64,8 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     return \'CVMC\'
                 elif Org == \'CA Department of Conservation\':
                     return \'DOC\'
+                elif Org == \'DoD\' or Org == \'U.S. Department of Defense\':
+                    return \'DOD\'
                 elif Org == \'CA Department of Water Resources\':
                     return \'DWR\'
                 elif Org == \'US Fish and Wildlife Service\':
@@ -103,10 +102,19 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     return \'WRCB\'
                 elif Org == \'Other\':
                     return \'OTHER\'
+                elif Org == 'Timber Companies':
+                    return 'TIMBER'
                 elif Org == \'\' or Org == \' \':
                     return None
                 else:
-                    return Org""",
+                    return Org"""
+
+    # Process: Calculate Project Data Steward (Calculate Field) (management)
+    update_org_admin_p = arcpy.management.CalculateField(
+        in_table=update_agency,
+        field="ORG_ADMIN_p",
+        expression="ifelse(!ORG_ADMIN_p!)",
+        code_block= org_code_block
     )
 
     # Process: Calculate Admin Org (Calculate Field) (management)
@@ -114,69 +122,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
         in_table=update_org_admin_p,
         field="ADMINISTERING_ORG",
         expression="ifelse(!ADMINISTERING_ORG!)",
-        code_block="""def ifelse(Org):
-                if Org == \'Baldwin Hills Conservancy\':
-                    return \'BHC\'
-                elif Org == \'Bureau of Indian Affairs\':
-                    return \'BIA\'
-                elif Org == \'Bureau of Land Management\':
-                    return \'BLM\'
-                elif Org == \'CA Board of Forestry and Fire Protection\':
-                    return \'BOF\'
-                elif Org == \'CAL FIRE\':
-                    return \'CALFIRE\'
-                elif Org == \'CA Department of Transportation\':
-                    return \'CALTRANS\'
-                elif Org == \'CA Air Resources Board\':
-                    return \'CARB\'
-                elif Org == \'CA Conservation Corps\':
-                    return \'CCC\'
-                elif Org == \'CA Department of Fish and Wildlife\':
-                    return \'CDFW\'
-                elif Org == \'Coachella Valley Mountains Conservancy\':
-                    return \'CVMC\'
-                elif Org == \'CA Department of Conservation\':
-                    return \'DOC\'
-                elif Org == \'CA Department of Water Resources\':
-                    return \'DWR\'
-                elif Org == \'US Fish and Wildlife Service\' or Org == \'U.S. Fish and Wildlife Service\':
-                    return \'FWS\'
-                elif Org == \'Mountains Recreation and Conservation Authority\':
-                    return \'MRCA\'
-                elif Org == \'National Park Service\':
-                    return \'NPS\'
-                elif Org == \'Natural Resources Conservation Service\':
-                    return \'NRCS\'
-                elif Org == \'Office of Energy Infrastructure Safety\':
-                    return \'OEIS\'
-                elif Org == \'CA State Parks\':
-                    return \'PARKS\'
-                elif Org == \'San Gabriel and Lower Los Angeles Rivers and Mountains Conservancy\':
-                    return \'RMC\'
-                elif Org == \'State Coastal Conservancy\':
-                    return \'SCC\'
-                elif Org == \'San Diego River Conservancy\':
-                    return \'SDRC\'
-                elif Org == \'State Lands Commission\':
-                    return \'SLC\'
-                elif Org == \'Santa Monica Mountains Conservancy\':
-                    return \'SMMC\'
-                elif Org == \'Sierra Nevada Conservancy\':
-                    return \'SNC\'
-                elif Org == \'Tahoe Conservancy\':
-                    return \'TAHOE\'
-                elif Org == \'U.S. Forest Service\':
-                    return \'USFS\'
-                elif Org == \'CA Wildlife Conservation Board\':
-                    return \'WCB\'
-                elif Org == \'State Water Resources Control Board\':
-                    return \'WRCB\'
-                elif Org == \'Other\':
-                    return \'OTHER\'
-                elif Org == \'\' or Org == \' \':
-                    return None
-                else:
-                    return Org""",
+        code_block= org_code_block
     )
 
     # Process: Calculate Project Status (Calculate Field) (management)
@@ -210,69 +156,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
         in_table=update_project_status,
         field="ORG_ADMIN_p",
         expression="ifelse(!ORG_ADMIN_p!)",
-        code_block="""def ifelse(Org):
-                if Org == \'Baldwin Hills Conservancy\':
-                    return \'BHC\'
-                elif Org == \'Bureau of Indian Affairs\':
-                    return \'BIA\'
-                elif Org == \'Bureau of Land Management\':
-                    return \'BLM\'
-                elif Org == \'CA Board of Forestry and Fire Protection\':
-                    return \'BOF\'
-                elif Org == \'CAL FIRE\':
-                    return \'CALFIRE\'
-                elif Org == \'CA Department of Transportation\':
-                    return \'CALTRANS\'
-                elif Org == \'CA Air Resources Board\':
-                    return \'CARB\'
-                elif Org == \'CA Conservation Corps\':
-                    return \'CCC\'
-                elif Org == \'CA Department of Fish and Wildlife\':
-                    return \'CDFW\'
-                elif Org == \'Coachella Valley Mountains Conservancy\':
-                    return \'CVMC\'
-                elif Org == \'CA Department of Conservation\':
-                    return \'DOC\'
-                elif Org == \'CA Department of Water Resources\':
-                    return \'DWR\'
-                elif Org == \'US Fish and Wildlife Service\':
-                    return \'FWS\'
-                elif Org == \'Mountains Recreation and Conservation Authority\':
-                    return \'MRCA\'
-                elif Org == \'National Park Service\':
-                    return \'NPS\'
-                elif Org == \'Natural Resources Conservation Service\':
-                    return \'NRCS\'
-                elif Org == \'Office of Energy Infrastructure Safety\':
-                    return \'OEIS\'
-                elif Org == \'CA State Parks\':
-                    return \'PARKS\'
-                elif Org == \'San Gabriel and Lower Los Angeles Rivers and Mountains Conservancy\':
-                    return \'RMC\'
-                elif Org == \'State Coastal Conservancy\':
-                    return \'SCC\'
-                elif Org == \'San Diego River Conservancy\':
-                    return \'SDRC\'
-                elif Org == \'State Lands Commission\':
-                    return \'SLC\'
-                elif Org == \'Santa Monica Mountains Conservancy\':
-                    return \'SMMC\'
-                elif Org == \'Sierra Nevada Conservancy\':
-                    return \'SNC\'
-                elif Org == \'Tahoe Conservancy\':
-                    return \'TAHOE\'
-                elif Org == \'U.S. Forest Service\':
-                    return \'USFS\'
-                elif Org == \'CA Wildlife Conservation Board\':
-                    return \'WCB\'
-                elif Org == \'State Water Resources Control Board\':
-                    return \'WRCB\'
-                elif Org == \'Other\':
-                    return \'OTHER\'
-                elif Org == \'\' or Org == \' \':
-                    return None
-                else:
-                    return Org""",
+        code_block= org_code_block
     )
 
     # Process: Calculate Fund Source (Calculate Field) (management)
@@ -314,69 +198,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
         in_table=update_primary_funding_source,
         field="PRIMARY_FUNDING_ORG",
         expression="ifelse(!PRIMARY_FUNDING_ORG!)",
-        code_block="""def ifelse(Org):
-                if Org == \'Baldwin Hills Conservancy\':
-                    return \'BHC\'
-                elif Org == \'Bureau of Indian Affairs\':
-                    return \'BIA\'
-                elif Org == \'Bureau of Land Management\':
-                    return \'BLM\'
-                elif Org == \'CA Board of Forestry and Fire Protection\':
-                    return \'BOF\'
-                elif Org == \'CAL FIRE\':
-                    return \'CALFIRE\'
-                elif Org == \'CA Department of Transportation\':
-                    return \'CALTRANS\'
-                elif Org == \'CA Air Resources Board\':
-                    return \'CARB\'
-                elif Org == \'CA Conservation Corps\':
-                    return \'CCC\'
-                elif Org == \'CA Department of Fish and Wildlife\':
-                    return \'CDFW\'
-                elif Org == \'Coachella Valley Mountains Conservancy\':
-                    return \'CVMC\'
-                elif Org == \'CA Department of Conservation\':
-                    return \'DOC\'
-                elif Org == \'CA Department of Water Resources\':
-                    return \'DWR\'
-                elif Org == \'US Fish and Wildlife Service\':
-                    return \'FWS\'
-                elif Org == \'Mountains Recreation and Conservation Authority\':
-                    return \'MRCA\'
-                elif Org == \'National Park Service\':
-                    return \'NPS\'
-                elif Org == \'Natural Resources Conservation Service\':
-                    return \'NRCS\'
-                elif Org == \'Office of Energy Infrastructure Safety\':
-                    return \'OEIS\'
-                elif Org == \'CA State Parks\':
-                    return \'PARKS\'
-                elif Org == \'San Gabriel and Lower Los Angeles Rivers and Mountains Conservancy\':
-                    return \'RMC\'
-                elif Org == \'State Coastal Conservancy\':
-                    return \'SCC\'
-                elif Org == \'San Diego River Conservancy\':
-                    return \'SDRC\'
-                elif Org == \'State Lands Commission\':
-                    return \'SLC\'
-                elif Org == \'Santa Monica Mountains Conservancy\':
-                    return \'SMMC\'
-                elif Org == \'Sierra Nevada Conservancy\':
-                    return \'SNC\'
-                elif Org == \'Tahoe Conservancy\':
-                    return \'TAHOE\'
-                elif Org == \'U.S. Forest Service\':
-                    return \'USFS\'
-                elif Org == \'CA Wildlife Conservation Board\':
-                    return \'WCB\'
-                elif Org == \'State Water Resources Control Board\':
-                    return \'WRCB\'
-                elif Org == \'Other\':
-                    return \'OTHER\'
-                elif Org == \'\' or Org == \' \':
-                    return None
-                else:
-                    return Org""",
+        code_block= org_code_block
     )
 
     # Process: Calculate Treatment Data Steward (Calculate Field) (management)
@@ -384,69 +206,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
         in_table=update_primary_funding_org,
         field="ORG_ADMIN_t",
         expression="ifelse(!ORG_ADMIN_t!)",
-        code_block="""def ifelse(Org):
-                if Org == \'Baldwin Hills Conservancy\':
-                    return \'BHC\'
-                elif Org == \'Bureau of Indian Affairs\':
-                    return \'BIA\'
-                elif Org == \'Bureau of Land Management\':
-                    return \'BLM\'
-                elif Org == \'CA Board of Forestry and Fire Protection\':
-                    return \'BOF\'
-                elif Org == \'CAL FIRE\':
-                    return \'CALFIRE\'
-                elif Org == \'CA Department of Transportation\':
-                    return \'CALTRANS\'
-                elif Org == \'CA Air Resources Board\':
-                    return \'CARB\'
-                elif Org == \'CA Conservation Corps\':
-                    return \'CCC\'
-                elif Org == \'CA Department of Fish and Wildlife\':
-                    return \'CDFW\'
-                elif Org == \'Coachella Valley Mountains Conservancy\':
-                    return \'CVMC\'
-                elif Org == \'CA Department of Conservation\':
-                    return \'DOC\'
-                elif Org == \'CA Department of Water Resources\':
-                    return \'DWR\'
-                elif Org == \'US Fish and Wildlife Service\':
-                    return \'FWS\'
-                elif Org == \'Mountains Recreation and Conservation Authority\':
-                    return \'MRCA\'
-                elif Org == \'National Park Service\':
-                    return \'NPS\'
-                elif Org == \'Natural Resources Conservation Service\':
-                    return \'NRCS\'
-                elif Org == \'Office of Energy Infrastructure Safety\':
-                    return \'OEIS\'
-                elif Org == \'CA State Parks\':
-                    return \'PARKS\'
-                elif Org == \'San Gabriel and Lower Los Angeles Rivers and Mountains Conservancy\':
-                    return \'RMC\'
-                elif Org == \'State Coastal Conservancy\':
-                    return \'SCC\'
-                elif Org == \'San Diego River Conservancy\':
-                    return \'SDRC\'
-                elif Org == \'State Lands Commission\':
-                    return \'SLC\'
-                elif Org == \'Santa Monica Mountains Conservancy\':
-                    return \'SMMC\'
-                elif Org == \'Sierra Nevada Conservancy\':
-                    return \'SNC\'
-                elif Org == \'Tahoe Conservancy\':
-                    return \'TAHOE\'
-                elif Org == \'U.S. Forest Service\':
-                    return \'USFS\'
-                elif Org == \'CA Wildlife Conservation Board\':
-                    return \'WCB\'
-                elif Org == \'State Water Resources Control Board\':
-                    return \'WRCB\'
-                elif Org == \'Other\':
-                    return \'OTHER\'
-                elif Org == \'\' or Org == \' \':
-                    return None
-                else:
-                    return Org""",
+        code_block= org_code_block
     )
 
     # Process: Calculate Ownership (Calculate Field) (management)
@@ -908,6 +668,8 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     return \'YOL\'
                 elif County == \'Yuba\' or County == \'Yuba County\' or County == \'YUBA\':
                     return \'YUB\'
+                elif County == \'Non-Spatial\':
+                    return \'NON_SPATIAL\'
                 elif County == \'\' or County == \' \':
                     return None
                 else:
@@ -952,15 +714,13 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
         field="REGION",
         expression="ifelse(!REGION!)",
         code_block="""def ifelse(Region):
-                if Region == \'Central Coast\':
-                    return \'CENTRAL_COAST\'
-                elif Region == \'North Coast\':
+                if Region == \'North Coast\' or Region == \'Northern California\':
                     return \'NORTH_COAST\'
                 elif Region == \'Sierra Nevada\':
                     return \'SIERRA_NEVADA\'
                 elif Region == \'Southern California\':
                     return \'SOUTHERN_CA\'
-                elif Region == \'Coastal-Inland\':
+                elif Region == \'Coastal-Inland\' or Region == \'Central Coast\' or Region == \'Central California\':
                     return \'CENTRAL_COAST\'
                 elif Region == \'COASTAL_INLAND\':
                     return \'CENTRAL_COAST\'
@@ -983,69 +743,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
         in_table=update_region,
         field="ORG_ADMIN_a",
         expression="ifelse(!ORG_ADMIN_a!)",
-        code_block="""def ifelse(Org):
-                if Org == \'Baldwin Hills Conservancy\':
-                    return \'BHC\'
-                elif Org == \'Bureau of Indian Affairs\':
-                    return \'BIA\'
-                elif Org == \'Bureau of Land Management\':
-                    return \'BLM\'
-                elif Org == \'CA Board of Forestry and Fire Protection\':
-                    return \'BOF\'
-                elif Org == \'CAL FIRE\':
-                    return \'CALFIRE\'
-                elif Org == \'CA Department of Transportation\':
-                    return \'CALTRANS\'
-                elif Org == \'CA Air Resources Board\':
-                    return \'CARB\'
-                elif Org == \'CA Conservation Corps\':
-                    return \'CCC\'
-                elif Org == \'CA Department of Fish and Wildlife\':
-                    return \'CDFW\'
-                elif Org == \'Coachella Valley Mountains Conservancy\':
-                    return \'CVMC\'
-                elif Org == \'CA Department of Conservation\':
-                    return \'DOC\'
-                elif Org == \'CA Department of Water Resources\':
-                    return \'DWR\'
-                elif Org == \'US Fish and Wildlife Service\':
-                    return \'FWS\'
-                elif Org == \'Mountains Recreation and Conservation Authority\':
-                    return \'MRCA\'
-                elif Org == \'National Park Service\':
-                    return \'NPS\'
-                elif Org == \'Natural Resources Conservation Service\':
-                    return \'NRCS\'
-                elif Org == \'Office of Energy Infrastructure Safety\':
-                    return \'OEIS\'
-                elif Org == \'CA State Parks\':
-                    return \'PARKS\'
-                elif Org == \'San Gabriel and Lower Los Angeles Rivers and Mountains Conservancy\':
-                    return \'RMC\'
-                elif Org == \'State Coastal Conservancy\':
-                    return \'SCC\'
-                elif Org == \'San Diego River Conservancy\':
-                    return \'SDRC\'
-                elif Org == \'State Lands Commission\':
-                    return \'SLC\'
-                elif Org == \'Santa Monica Mountains Conservancy\':
-                    return \'SMMC\'
-                elif Org == \'Sierra Nevada Conservancy\':
-                    return \'SNC\'
-                elif Org == \'Tahoe Conservancy\':
-                    return \'TAHOE\'
-                elif Org == \'U.S. Forest Service\':
-                    return \'USFS\'
-                elif Org == \'CA Wildlife Conservation Board\':
-                    return \'WCB\'
-                elif Org == \'State Water Resources Control Board\':
-                    return \'WRCB\'
-                elif Org == \'Other\':
-                    return \'OTHER\'
-                elif Org == \'\' or Org == \' \':
-                    return None
-                else:
-                    return Org""",
+        code_block= org_code_block
     )
 
     # Process: Calculate Activity Description (Calculate Field) (management)
@@ -1264,9 +962,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     return \'GRAZING\'
                 elif Cat == \'Land Protection\':
                     return \'LAND_PROTEC\'
-                elif Cat == \'Sanitation & Salvage\':
-                    return \'SANI_SALVG\'
-                elif Cat == \'Timber Harvest\':
+                elif Cat == \'Timber Harvest\' or Cat == \'SANI_SALVG\' or Cat == \'Sanitation & Salvage\':
                     return \'TIMB_HARV\'
                 elif Cat == \'Tree Planting\':
                     return \'TREE_PLNTING\'
@@ -1426,69 +1122,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
         in_table=update_activity_uom,
         field="ADMIN_ORG_NAME",
         expression="ifelse(!ADMIN_ORG_NAME!)",
-        code_block="""def ifelse(Org):
-                if Org == \'Baldwin Hills Conservancy\':
-                    return \'BHC\'
-                elif Org == \'Bureau of Indian Affairs\':
-                    return \'BIA\'
-                elif Org == \'Bureau of Land Management\':
-                    return \'BLM\'
-                elif Org == \'CA Board of Forestry and Fire Protection\':
-                    return \'BOF\'
-                elif Org == \'CAL FIRE\':
-                    return \'CALFIRE\'
-                elif Org == \'CA Department of Transportation\':
-                    return \'CALTRANS\'
-                elif Org == \'CA Air Resources Board\':
-                    return \'CARB\'
-                elif Org == \'CA Conservation Corps\':
-                    return \'CCC\'
-                elif Org == \'CA Department of Fish and Wildlife\':
-                    return \'CDFW\'
-                elif Org == \'Coachella Valley Mountains Conservancy\':
-                    return \'CVMC\'
-                elif Org == \'CA Department of Conservation\':
-                    return \'DOC\'
-                elif Org == \'CA Department of Water Resources\':
-                    return \'DWR\'
-                elif Org == \'US Fish and Wildlife Service\':
-                    return \'FWS\'
-                elif Org == \'Mountains Recreation and Conservation Authority\':
-                    return \'MRCA\'
-                elif Org == \'National Park Service\':
-                    return \'NPS\'
-                elif Org == \'Natural Resources Conservation Service\':
-                    return \'NRCS\'
-                elif Org == \'Office of Energy Infrastructure Safety\':
-                    return \'OEIS\'
-                elif Org == \'CA State Parks\':
-                    return \'PARKS\'
-                elif Org == \'San Gabriel and Lower Los Angeles Rivers and Mountains Conservancy\':
-                    return \'RMC\'
-                elif Org == \'State Coastal Conservancy\':
-                    return \'SCC\'
-                elif Org == \'San Diego River Conservancy\':
-                    return \'SDRC\'
-                elif Org == \'State Lands Commission\':
-                    return \'SLC\'
-                elif Org == \'Santa Monica Mountains Conservancy\':
-                    return \'SMMC\'
-                elif Org == \'Sierra Nevada Conservancy\':
-                    return \'SNC\'
-                elif Org == \'Tahoe Conservancy\':
-                    return \'TAHOE\'
-                elif Org == \'U.S. Forest Service\':
-                    return \'USFS\'
-                elif Org == \'CA Wildlife Conservation Board\':
-                    return \'WCB\'
-                elif Org == \'State Water Resources Control Board\':
-                    return \'WRCB\'
-                elif Org == \'Other\':
-                    return \'OTHER\'
-                elif Org == \'\' or Org == \' \':
-                    return None
-                else:
-                    return Org""",
+        code_block= org_code_block
     )
 
     # Process: Calculate Act Fund Source (Calculate Field) (management)
@@ -1530,69 +1164,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
         in_table=update_primary_fund_src_name,
         field="PRIMARY_FUND_ORG_NAME",
         expression="ifelse(!PRIMARY_FUND_ORG_NAME!)",
-        code_block="""def ifelse(Org):
-                if Org == \'Baldwin Hills Conservancy\':
-                    return \'BHC\'
-                elif Org == \'Bureau of Indian Affairs\':
-                    return \'BIA\'
-                elif Org == \'Bureau of Land Management\':
-                    return \'BLM\'
-                elif Org == \'CA Board of Forestry and Fire Protection\':
-                    return \'BOF\'
-                elif Org == \'CAL FIRE\':
-                    return \'CALFIRE\'
-                elif Org == \'CA Department of Transportation\':
-                    return \'CALTRANS\'
-                elif Org == \'CA Air Resources Board\':
-                    return \'CARB\'
-                elif Org == \'CA Conservation Corps\':
-                    return \'CCC\'
-                elif Org == \'CA Department of Fish and Wildlife\':
-                    return \'CDFW\'
-                elif Org == \'Coachella Valley Mountains Conservancy\':
-                    return \'CVMC\'
-                elif Org == \'CA Department of Conservation\':
-                    return \'DOC\'
-                elif Org == \'CA Department of Water Resources\':
-                    return \'DWR\'
-                elif Org == \'US Fish and Wildlife Service\':
-                    return \'FWS\'
-                elif Org == \'Mountains Recreation and Conservation Authority\':
-                    return \'MRCA\'
-                elif Org == \'National Park Service\':
-                    return \'NPS\'
-                elif Org == \'Natural Resources Conservation Service\':
-                    return \'NRCS\'
-                elif Org == \'Office of Energy Infrastructure Safety\':
-                    return \'OEIS\'
-                elif Org == \'CA State Parks\':
-                    return \'PARKS\'
-                elif Org == \'San Gabriel and Lower Los Angeles Rivers and Mountains Conservancy\':
-                    return \'RMC\'
-                elif Org == \'State Coastal Conservancy\':
-                    return \'SCC\'
-                elif Org == \'San Diego River Conservancy\':
-                    return \'SDRC\'
-                elif Org == \'State Lands Commission\':
-                    return \'SLC\'
-                elif Org == \'Santa Monica Mountains Conservancy\':
-                    return \'SMMC\'
-                elif Org == \'Sierra Nevada Conservancy\':
-                    return \'SNC\'
-                elif Org == \'Tahoe Conservancy\':
-                    return \'TAHOE\'
-                elif Org == \'U.S. Forest Service\':
-                    return \'USFS\'
-                elif Org == \'CA Wildlife Conservation Board\':
-                    return \'WCB\'
-                elif Org == \'State Water Resources Control Board\':
-                    return \'WRCB\'
-                elif Org == \'Other\':
-                    return \'OTHER\'
-                elif Org == \'\' or Org == \' \':
-                    return None
-                else:
-                    return Org""",
+        code_block= org_code_block
     )
 
     # Process: Calculate Act Fund Source (2) (Calculate Field) (management)
@@ -1634,69 +1206,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
         in_table=update_secondary_fund_src_name,
         field="SECONDARY_FUND_SRC_NAME",
         expression="ifelse(!SECONDARY_FUND_SRC_NAME!)",
-        code_block="""def ifelse(Org):
-                if Org == \'Baldwin Hills Conservancy\':
-                    return \'BHC\'
-                elif Org == \'Bureau of Indian Affairs\':
-                    return \'BIA\'
-                elif Org == \'Bureau of Land Management\':
-                    return \'BLM\'
-                elif Org == \'CA Board of Forestry and Fire Protection\':
-                    return \'BOF\'
-                elif Org == \'CAL FIRE\':
-                    return \'CALFIRE\'
-                elif Org == \'CA Department of Transportation\':
-                    return \'CALTRANS\'
-                elif Org == \'CA Air Resources Board\':
-                    return \'CARB\'
-                elif Org == \'CA Conservation Corps\':
-                    return \'CCC\'
-                elif Org == \'CA Department of Fish and Wildlife\':
-                    return \'CDFW\'
-                elif Org == \'Coachella Valley Mountains Conservancy\':
-                    return \'CVMC\'
-                elif Org == \'CA Department of Conservation\':
-                    return \'DOC\'
-                elif Org == \'CA Department of Water Resources\':
-                    return \'DWR\'
-                elif Org == \'US Fish and Wildlife Service\':
-                    return \'FWS\'
-                elif Org == \'Mountains Recreation and Conservation Authority\':
-                    return \'MRCA\'
-                elif Org == \'National Park Service\':
-                    return \'NPS\'
-                elif Org == \'Natural Resources Conservation Service\':
-                    return \'NRCS\'
-                elif Org == \'Office of Energy Infrastructure Safety\':
-                    return \'OEIS\'
-                elif Org == \'CA State Parks\':
-                    return \'PARKS\'
-                elif Org == \'San Gabriel and Lower Los Angeles Rivers and Mountains Conservancy\':
-                    return \'RMC\'
-                elif Org == \'State Coastal Conservancy\':
-                    return \'SCC\'
-                elif Org == \'San Diego River Conservancy\':
-                    return \'SDRC\'
-                elif Org == \'State Lands Commission\':
-                    return \'SLC\'
-                elif Org == \'Santa Monica Mountains Conservancy\':
-                    return \'SMMC\'
-                elif Org == \'Sierra Nevada Conservancy\':
-                    return \'SNC\'
-                elif Org == \'Tahoe Conservancy\':
-                    return \'TAHOE\'
-                elif Org == \'U.S. Forest Service\':
-                    return \'USFS\'
-                elif Org == \'CA Wildlife Conservation Board\':
-                    return \'WCB\'
-                elif Org == \'State Water Resources Control Board\':
-                    return \'WRCB\'
-                elif Org == \'Other\':
-                    return \'OTHER\'
-                elif Org == \'\' or Org == \' \':
-                    return None
-                else:
-                    return Org""",
+        code_block= org_code_block
     )
 
     # Process: Calculate Act Fund Source (3) (Calculate Field) (management)
@@ -1738,69 +1248,7 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
         in_table=update_tertiary_fund_src_name,
         field="TERTIARY_FUND_ORG_NAME",
         expression="ifelse(!TERTIARY_FUND_ORG_NAME!)",
-        code_block="""def ifelse(Org):
-                if Org == \'Baldwin Hills Conservancy\':
-                    return \'BHC\'
-                elif Org == \'Bureau of Indian Affairs\':
-                    return \'BIA\'
-                elif Org == \'Bureau of Land Management\':
-                    return \'BLM\'
-                elif Org == \'CA Board of Forestry and Fire Protection\':
-                    return \'BOF\'
-                elif Org == \'CAL FIRE\':
-                    return \'CALFIRE\'
-                elif Org == \'CA Department of Transportation\':
-                    return \'CALTRANS\'
-                elif Org == \'CA Air Resources Board\':
-                    return \'CARB\'
-                elif Org == \'CA Conservation Corps\':
-                    return \'CCC\'
-                elif Org == \'CA Department of Fish and Wildlife\':
-                    return \'CDFW\'
-                elif Org == \'Coachella Valley Mountains Conservancy\':
-                    return \'CVMC\'
-                elif Org == \'CA Department of Conservation\':
-                    return \'DOC\'
-                elif Org == \'CA Department of Water Resources\':
-                    return \'DWR\'
-                elif Org == \'US Fish and Wildlife Service\':
-                    return \'FWS\'
-                elif Org == \'Mountains Recreation and Conservation Authority\':
-                    return \'MRCA\'
-                elif Org == \'National Park Service\':
-                    return \'NPS\'
-                elif Org == \'Natural Resources Conservation Service\':
-                    return \'NRCS\'
-                elif Org == \'Office of Energy Infrastructure Safety\':
-                    return \'OEIS\'
-                elif Org == \'CA State Parks\':
-                    return \'PARKS\'
-                elif Org == \'San Gabriel and Lower Los Angeles Rivers and Mountains Conservancy\':
-                    return \'RMC\'
-                elif Org == \'State Coastal Conservancy\':
-                    return \'SCC\'
-                elif Org == \'San Diego River Conservancy\':
-                    return \'SDRC\'
-                elif Org == \'State Lands Commission\':
-                    return \'SLC\'
-                elif Org == \'Santa Monica Mountains Conservancy\':
-                    return \'SMMC\'
-                elif Org == \'Sierra Nevada Conservancy\':
-                    return \'SNC\'
-                elif Org == \'Tahoe Conservancy\':
-                    return \'TAHOE\'
-                elif Org == \'U.S. Forest Service\':
-                    return \'USFS\'
-                elif Org == \'CA Wildlife Conservation Board\':
-                    return \'WCB\'
-                elif Org == \'State Water Resources Control Board\':
-                    return \'WRCB\'
-                elif Org == \'Other\':
-                    return \'OTHER\'
-                elif Org == \'\' or Org == \' \':
-                    return None
-                else:
-                    return Org""",
+        code_block= org_code_block
     )
 
     # Process: Calculate Residue (Calculate Field) (management)
