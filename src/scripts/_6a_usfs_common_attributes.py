@@ -1,11 +1,20 @@
+"""
+# Description: 
+#               
+#               
+#              
+# Author: Spatial Informatics Group LLC
+# Version: 1.0.0
+# Date Created: Jan 24, 2024
+"""
 import arcpy
 from ._1b_add_fields import AddFields
 from ._2b_assign_domains import AssignDomains
 from ._7a_enrichments_polygon import enrich_polygons
 from ._2k_keep_fields import KeepFields
-from sys import argv
+# from sys import argv
 from .utils import init_gdb, delete_scratch_files, runner
-import os
+# import os
 import time
 
 original_gdb, workspace, scratch_workspace = init_gdb()
@@ -30,8 +39,18 @@ def Model_USFS(output_enriched, output_standardized, input_fc, startyear, endyea
 
     # Model Environment settings
     with arcpy.EnvManager(
-        outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]"""
-    ):
+        outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
+        cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
+        extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",
+        preserveGlobalIds=True, 
+        qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
+        transferDomains=True, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
+        overwriteOutput = True,
+        ):
+        
         print("Performing Standardization...")
         # Process: Select Layer By Attribute California (Select Layer By Attribute) (management)
         usfs_CA = arcpy.management.SelectLayerByAttribute(
@@ -231,7 +250,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc, startyear, endyea
         )
 
         print("   step 3/8 Adding Fields...")
-        # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
+        # Process: 1b Add Fields (1b Add Fields)
         usfs_non_wildfire_after_1995_w_fields = AddFields(
             Input_Table=usfs_non_wildfire_after_1995_repaired_geom2
         )
@@ -632,13 +651,13 @@ def Model_USFS(output_enriched, output_standardized, input_fc, startyear, endyea
             where_clause="Year >= %d And Year <= %d" % (startyear, endyear),
         )
 
-        # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
+        # Process: 2b Assign Domains (2b Assign Domains)
         usfs_standardized_w_domains = AssignDomains(
             in_table=output_standardized
             )
 
         print("Enriching Dataset")
-        # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon) (PC414CWIMillionAcres)
+        # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon)
         enrich_polygons(
             enrich_in=usfs_standardized_w_domains,
             enrich_out=output_enriched            
@@ -656,7 +675,7 @@ def Model_USFS(output_enriched, output_standardized, input_fc, startyear, endyea
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
+        # Process: 2b Assign Domains (2) (2b Assign Domains)
         AssignDomains(in_table=output_enriched)
 
         # print('   Deleting Scratch Files')
@@ -668,8 +687,8 @@ def Model_USFS(output_enriched, output_standardized, input_fc, startyear, endyea
         print(f"Time Elapsed: {(end-start)/60} minutes")
 
 
-if __name__ == "__main__":
-    runner(workspace, scratch_workspace, Model_USFS, "*argv[1:]")
+# if __name__ == "__main__":
+#     runner(workspace, scratch_workspace, Model_USFS, "*argv[1:]")
 # # Global Environment settings
 #  with arcpy.EnvManager(
 #     overwriteOutput=True,

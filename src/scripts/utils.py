@@ -1,12 +1,19 @@
-# %%
+
+"""
+# Description: Returns domain coded values in cases 
+#              where domain descriptions are 
+#              captured in a cell.  Maintains data 
+#              integrity
+# Author: Spatial Informatics Group LLC
+# Version: 1.0.0
+# Date Created: Jan 24, 2024
+"""
 import os
 import arcpy
 import yaml
+# from sys import argv
 from datetime import datetime
 
-
-# usage: insert this line of code into all other scripts at the top:
-# original_gdb, workspace, scratch_workspace = init_gdb()
 def init_gdb():
     """
     Returns local paths to original, current version, and scratch .gdb's and makes the last two if they don't exist.
@@ -19,47 +26,19 @@ def init_gdb():
     with open(os.path.join(three_up, "settings.yml")) as file:
         settings = yaml.full_load(file)
 
-    versioned_gdb = settings.get("gdb").get("versions")[0]
+    # versioned_gdb = settings.get("gdb").get("versions")[0]
 
     # make original gdb workspace and scratchWorkspace dynamic, not-hardcoded paths
-    original_gdb = os.path.join(three_up,"PC414 CWI Million Acres.gdb")
+    original_gdb = os.path.join(three_up,"Interagency Tracking System.gdb")
     workspace = os.path.join(three_up,original_gdb)
     scratch_workspace = os.path.join(three_up,"scratch.gdb")
-
+    
     for w in [workspace, scratch_workspace]:
         if not os.path.exists(w):
             # print(f'Creating new FileGDB: {w}')
             arcpy.management.CreateFileGDB(os.path.dirname(w), os.path.basename(w))
 
     return original_gdb, workspace, scratch_workspace
-
-
-# def init_gdb():
-#     """
-#     Returns local paths to original, current version, and scratch .gdb's and makes the last two if they don't exist.
-#     usage: insert this line of code into all other scripts at the top:
-#     original_gdb, workspace, scratch_workspace = init_gdb()
-#     """
-#     three_up =  os.path.abspath(os.path.join(__file__ ,"../../.."))
-#     # print(three_up)
-#     # parse settings file
-#     with open(os.path.join(three_up,'settings.yml')) as file:
-#         settings = yaml.full_load(file)
-
-#     versioned_gdb = settings.get('gdb').get('versions')
-
-#     # make original gdb workspace and scratchWorkspace dynamic, not-hardcoded paths
-#     original_gdb = os.path.join(three_up,"PC414 CWI Million Acres.gdb")
-#     # workspace = os.path.join(three_up,"PC414 CWI Million Acres.gdb")
-#     workspace = os.path.join(three_up,versioned_gdb)
-#     scratch_workspace = os.path.join(three_up,"scratch.gdb")
-
-#     for w in [workspace,scratch_workspace]:
-#         if not os.path.exists(w):
-#             # print(f'Creating new FileGDB: {w}')
-#             arcpy.management.CreateFileGDB(os.path.dirname(w), os.path.basename(w))
-
-#     return workspace, scratch_workspace
 
 
 def unique_rename(scratch_fc: str, input_fc: str):
@@ -131,15 +110,10 @@ def check_exists(fc_list: list, workspace):
 def og_file_input(prefix: str, filetype: str, gdb):
     """
     Finds input file in the "a_Originals" folder in the workspace
-
     args:
-
     gdb: full file path to GDB from which you want to delete all files
-
     prefix: prefix of desired file
-
     filetype: type of feature class desired (Point, Line, Polyline, Polygon, etc.)
-
     """
     arcpy.env.workspace = gdb
     file_list = arcpy.ListFeatureClasses(feature_type=filetype)
@@ -157,118 +131,11 @@ def og_file_input(prefix: str, filetype: str, gdb):
     most_recent = files_w_prefix[-1]
     return most_recent
 
-
-# def KeepFields(input_table):
-#     arcpy.env.overwriteOutput = True
-#     fields_kept = arcpy.management.DeleteField(
-#         in_table=input_table,
-#         drop_field=[
-#             "PROJECTID_USER",
-#             "AGENCY",
-#             "ORG_ADMIN_p",
-#             "PROJECT_CONTACT",
-#             "PROJECT_EMAIL",
-#             "ADMINISTERING_ORG",
-#             "PROJECT_NAME",
-#             "PROJECT_STATUS",
-#             "PROJECT_START",
-#             "PROJECT_END",
-#             "PRIMARY_FUNDING_SOURCE",
-#             "PRIMARY_FUNDING_ORG",
-#             "IMPLEMENTING_ORG",
-#             "LATITUDE",
-#             "LONGITUDE",
-#             "BatchID_p",
-#             "Val_Status_p",
-#             "Val_Message_p",
-#             "Val_RunDate_p",
-#             "Review_Status_p",
-#             "Review_Message_p",
-#             "Review_RunDate_p",
-#             "Dataload_Status_p",
-#             "Dataload_Msg_p",
-#             "TRMTID_USER",
-#             "PROJECTID",
-#             "PROJECTNAME_",
-#             "ORG_ADMIN_t",
-#             "PRIMARY_OWNERSHIP_GROUP",
-#             "PRIMARY_OBJECTIVE",
-#             "SECONDARY_OBJECTIVE",
-#             "TERTIARY_OBJECTIVE",
-#             "TREATMENT_STATUS",
-#             "COUNTY",
-#             "IN_WUI",
-#             "REGION",
-#             "TREATMENT_AREA",
-#             "TREATMENT_START",
-#             "TREATMENT_END",
-#             "RETREATMENT_DATE_EST",
-#             "TREATMENT_NAME",
-#             "BatchID",
-#             "Val_Status_t",
-#             "Val_Message_t",
-#             "Val_RunDate_t",
-#             "Review_Status_t",
-#             "Review_Message_t",
-#             "Review_RunDate_t",
-#             "Dataload_Status_t",
-#             "Dataload_Msg_t",
-#             "ACTIVID_USER",
-#             "TREATMENTID_",
-#             "ORG_ADMIN_a",
-#             "ACTIVITY_DESCRIPTION",
-#             "ACTIVITY_CAT",
-#             "BROAD_VEGETATION_TYPE",
-#             "BVT_USERD",
-#             "ACTIVITY_STATUS",
-#             "ACTIVITY_QUANTITY",
-#             "ACTIVITY_UOM",
-#             "ACTIVITY_START",
-#             "ACTIVITY_END",
-#             "ADMIN_ORG_NAME",
-#             "IMPLEM_ORG_NAME",
-#             "PRIMARY_FUND_SRC_NAME",
-#             "PRIMARY_FUND_ORG_NAME",
-#             "SECONDARY_FUND_SRC_NAME",
-#             "SECONDARY_FUND_ORG_NAME",
-#             "TERTIARY_FUND_SRC_NAME",
-#             "TERTIARY_FUND_ORG_NAME",
-#             "ACTIVITY_PRCT",
-#             "RESIDUE_FATE",
-#             "RESIDUE_FATE_QUANTITY",
-#             "RESIDUE_FATE_UNITS",
-#             "ACTIVITY_NAME",
-#             "VAL_STATUS_a",
-#             "VAL_MSG_a",
-#             "VAL_RUNDATE_a",
-#             "REVIEW_STATUS_a",
-#             "REVIEW_MSG_a",
-#             "REVIEW_RUNDATE_a",
-#             "DATALOAD_STATUS_a",
-#             "DATALOAD_MSG_a",
-#             "Source",
-#             "Year",
-#             "Year_txt",
-#             "Act_Code",
-#             "Crosswalk",
-#             "Federal_FY",
-#             "State_FY",
-#             "TRMT_GEOM",
-#             "COUNTS_TO_MAS",
-#         ],
-#         method="KEEP_FIELDS",
-#     )
-#     return fields_kept
-
-
 def check_schema_lock(input):
     """
     Checks the schema lock on input files
-
     args:
-
     input: full file path to file you want to have schema lock on
-
     """
     if not arcpy.Exists(input):
         [print(f"Dataset does not exist: {input}")]
@@ -280,17 +147,20 @@ def check_schema_lock(input):
                 f"Cannot get exclusive schema lock for {input}. Either being edited or in use by another application or service."
             )
 
-
-def runner(workspace:str,scratch_workspace:str,func, arg):
-
-    with envs == arcpy.EnvManager(
-        outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), 
-        cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), 
+#TODO insert runner into scripts
+def runner(workspace:str,scratch_workspace:str):
+    arcpy.EnvManager(
+        outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
+        cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
+        extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",
+                DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],
+                PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
         scratchWorkspace=scratch_workspace, 
-        transferDomains=True, 
+        transferDomains=False, 
         transferGDBAttributeProperties=True, 
         workspace=workspace,
-        overwriteOutput = True
-    ):__file__
+        overwriteOutput = True,
+    )
+# %%

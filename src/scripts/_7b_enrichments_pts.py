@@ -1,40 +1,53 @@
+"""
+# Description: 
+#               
+#               
+#              
+# Author: Spatial Informatics Group LLC
+# Version: 1.0.0
+# Date Created: Jan 24, 2024
+"""
 import arcpy
-from ._2d_calculate_activity import Activity
-from ._2f_calculate_category import Category
-from ._2e_calculate_objective import Objective
-from ._2g_calculate_residue_fate import Residue
+# from ._2d_calculate_activity import Activity
+# from ._2f_calculate_category import Category
+# from ._2e_calculate_objective import Objective
+# from ._2g_calculate_residue_fate import Residue
 from ._2h_calculate_year import Year
 from ._2k_keep_fields import KeepFields
 from ._2l_crosswalk import Crosswalk
-from sys import argv
+# from sys import argv
 from .utils import init_gdb, delete_scratch_files, runner
-import os
+# import os
 
 original_gdb, workspace, scratch_workspace = init_gdb()
 #TODO add print steps
 
 def enrich_points(
-    enrich_pts_out, enrich_pts_in, delete_scratch=False
+    enrich_pts_out, enrich_pts_in #, delete_scratch=False
 ):  # 7b Enrichments pts
     
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = True
     arcpy.env.qualifiedFieldNames = False
 
-    Fuels_Treatments_Piles_Crosswalk = os.path.join(
-        workspace, "Fuels_Treatments_Piles_Crosswalk"
-    )
+    # Fuels_Treatments_Piles_Crosswalk = os.path.join(
+    #     workspace, "Fuels_Treatments_Piles_Crosswalk"
+    # )
 
-    Veg_Layer = os.path.join(workspace,'b_Reference','Broad_Vegetation_Types')
+    # define file paths to required input datasets (mostly from b_Reference featuredataset in original GDB)
     WUI_Layer = os.path.join(workspace,'b_Reference','WUI')
     Ownership_Layer = os.path.join(workspace,'b_Reference','CALFIRE_Ownership_Update')
     Regions_Layer = os.path.join(workspace,'b_Reference','WFRTF_Regions')
+    Veg_Layer = os.path.join(workspace,'b_Reference','Broad_Vegetation_Types')
 
-    Pts_enrichment_Veg = os.path.join(scratch_workspace, "Pts_enrichment_Veg")
+    # define file paths to intermediary outputs in scratch gdb
     Pts_enrichment_copy = os.path.join(scratch_workspace, "Pts_enrichment_copy")
     Pts_enrichment_Own = os.path.join(scratch_workspace, "Pts_enrichment_Own")
     Pts_enrichment_Region = os.path.join(scratch_workspace, "Pts_enrichment_Region")
+    Pts_enrichment_Veg = os.path.join(scratch_workspace, "Pts_enrichment_Veg")
+    Pts_enrichment_XY = os.path.join(scratch_workspace, "Pts_enrichment_XY")
 
+    print("Executing Point Enrichments...")
     # Process: Copy Features (Copy Features) (management)
     arcpy.management.CopyFeatures(
         in_features=enrich_pts_in,
@@ -45,7 +58,9 @@ def enrich_points(
         spatial_grid_3=None,
     )
 
+    print("   Calculating WUI...")
     # Process: Select WUI Null (Select Layer By Attribute) (management)
+    print("     step 13/34 select layer by attribute")
     Pts_enrichment_copy_Layer1 = arcpy.management.SelectLayerByAttribute(
         in_layer_or_view=Pts_enrichment_copy,
         selection_type="NEW_SELECTION",
@@ -64,6 +79,7 @@ def enrich_points(
     )
 
     # Process: Calculate In WUI (Calculate Field) (management)
+    print("     step 15/34 calculate WUI yes")
     Pts_enrichment_copy_Layer_2_ = arcpy.management.CalculateField(
         in_table=Pts_enrichment_copy_Layer,
         field="IN_WUI",
@@ -75,6 +91,7 @@ def enrich_points(
     )
 
     # Process: Select WUI Null 2 (Select Layer By Attribute) (management)
+    print("     step 16/34 select layer by attribute")
     Pts_enrichment_copy_Layer_3_ = arcpy.management.SelectLayerByAttribute(
         in_layer_or_view=Pts_enrichment_copy_Layer_2_,
         selection_type="NEW_SELECTION",
@@ -83,6 +100,7 @@ def enrich_points(
     )
 
     # Process: Calculate Non WUI (Calculate Field) (management)
+    print("     step 17/34 calculate WUI no")
     Pts_enrichment_copy_Layer_4_ = arcpy.management.CalculateField(
         in_table=Pts_enrichment_copy_Layer_3_,
         field="IN_WUI",
@@ -94,6 +112,7 @@ def enrich_points(
     )
 
     # Process: Clear Selection (Select Layer By Attribute) (management)
+    print("     step 18/34 clear selection")
     Treatments_Merge3_California_5_ = arcpy.management.SelectLayerByAttribute(
         in_layer_or_view=Pts_enrichment_copy_Layer_4_,
         selection_type="CLEAR_SELECTION",
@@ -101,7 +120,9 @@ def enrich_points(
         invert_where_clause="",
     )
 
+    print("   Calculating Ownership, Counties, and Regions...")
     # Process: Spatial Join (Spatial Join) (analysis)
+    print("     step 20/34 spatial join ownership")
     arcpy.analysis.SpatialJoin(
         target_features=Treatments_Merge3_California_5_,
         join_features=Ownership_Layer,
@@ -115,6 +136,7 @@ def enrich_points(
     )
 
     # Process: Spatial Join (2) (Spatial Join) (analysis)
+    print("     step 21/34 spatial join regions")
     arcpy.analysis.SpatialJoin(
         target_features=Pts_enrichment_Own,
         join_features=Regions_Layer,
@@ -128,6 +150,7 @@ def enrich_points(
     )
 
     # Process: Spatial Join (3) (Spatial Join) (analysis)
+    print("     step 21/34 spatial join veg")
     arcpy.analysis.SpatialJoin(
         target_features=Pts_enrichment_Region,
         join_features=Veg_Layer,
@@ -141,6 +164,7 @@ def enrich_points(
     )
 
     # Process: Calculate Owner (Calculate Field) (management)
+    print("     step 23/34 calculate ownership field")
     Veg_Summarized_Point_Laye_3_ = arcpy.management.CalculateField(
         in_table=Pts_enrichment_Veg,
         field="PRIMARY_OWNERSHIP_GROUP",
@@ -172,6 +196,7 @@ def enrich_points(
     )
 
     # Process: Calculate County (Calculate Field) (management)
+    print("     step 24/34 calculate county field")
     Veg_Summarized_Point_Laye_4_ = arcpy.management.CalculateField(
         in_table=Veg_Summarized_Point_Laye_3_,
         field="COUNTY",
@@ -304,10 +329,11 @@ def enrich_points(
     )
 
     # Process: Calculate Region (Calculate Field) (management)
+    print("     step 25/34 calculate region field")
     Veg_Summarized_Point_Laye_6_ = arcpy.management.CalculateField(
         in_table=Veg_Summarized_Point_Laye_4_,
         field="REGION",
-        expression="!RFFC_tier1!",
+        expression="!Region!",
         # expression="ifelse(!RFFC_tier1!)",
         expression_type="PYTHON3",
         code_block="",
@@ -327,10 +353,11 @@ def enrich_points(
     )
 
     # Process: Calculate Veg (Calculate Field) (management)
+    print("     step 25/34 calculate veg type")
     Veg_Summarized_Point_Laye_2_ = arcpy.management.CalculateField(
         in_table=Veg_Summarized_Point_Laye_6_,
         field="BROAD_VEGETATION_TYPE",
-        expression="ifelse(!WHR13NAME!)",
+        expression="!WHR13NAME!",
         # expression="ifelse(!WHR13NAME!)",
         expression_type="PYTHON3",
         code_block="",
@@ -384,19 +411,20 @@ def enrich_points(
     print("   Crosswalk Complete, Continuing Enrichment...")
 
     # Process: 2h Calculate Year (2h Calculate Year) (PC414CWIMillionAcres)
-    Pts_enrichment_Veg_3_ = Year(Year_Input=crosswalk_table)
+    print("     step 27/34 Calculating Years...")
+    Pts_enrichment_Year = Year(Year_Input=crosswalk_table)
+    arcpy.CopyFeatures_management(Pts_enrichment_Year,Pts_enrichment_XY)
 
     # Process: Calculate Geometry Attributes (Calculate Geometry Attributes) (management)
-    Pts_enrichment_Veg_Layer3 = arcpy.management.CalculateGeometryAttributes(
-        in_features=Pts_enrichment_Veg_3_,
+    print("     step 29/34 Calculating Latitude and Longitude...")
+    Pts_enrichment_Veg_Layer3 = arcpy.CalculateGeometryAttributes_management(
+        in_features=Pts_enrichment_XY,
         geometry_property=[
             ["LATITUDE", "POINT_Y"],
             ["LONGITUDE", "POINT_X"],
         ],
-        length_unit="",
-        area_unit="",
-        coordinate_system='GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
-        coordinate_format="DD",
+        coordinate_system= 4269,  #GCS_North_American_1983 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+        coordinate_format="DD"
     )
 
     # # Process: Delete Identical (Delete Identical) (management)
@@ -499,9 +527,13 @@ def enrich_points(
     #     z_tolerance=0,
     # )
 
+    # # Process: Keep Fields (Delete Field) (management)
+    print("     step 31/34 removing unnecessary fields")
+    Veg_Summarized_Pts_Laye_11_ = KeepFields(Pts_enrichment_Veg_Layer3)       
+        
     # Process: Select (Select) (analysis)
     arcpy.analysis.Select(
-        in_features=Pts_enrichment_Veg_Layer3,
+        in_features=Veg_Summarized_Pts_Laye_11_,
         out_feature_class=enrich_pts_out,
         where_clause="" #"County IS NOT NULL",
     )
@@ -511,10 +543,10 @@ def enrich_points(
     #     delete_scratch_files(
     #         gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
     #     )
+    print("Enrich Points Complete...")
 
-
-if __name__ == "__main__":
-    runner(workspace, scratch_workspace, enrich_points, "*argv[1:]")
+# if __name__ == "__main__":
+    # runner(workspace, scratch_workspace, enrich_points)
     # # Global Environment settings
     # with arcpy.EnvManager(
     # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",

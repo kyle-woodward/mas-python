@@ -1,16 +1,20 @@
-# -*- coding: utf-8 -*-
 """
+# Description: Returns domain coded values in cases  
+#              where domain descriptions are
+#              captured in a cell.  Maintains data 
+#              integrity
+# Author: Spatial Informatics Group LLC
+# Version: 1.0.0
+# Date Created: Jan 24, 2024
 """
 import arcpy
-from sys import argv
-from scripts.utils import init_gdb, runner
+from scripts.utils import init_gdb
 
 original_gdb, workspace, scratch_workspace = init_gdb()
 
-
-def StandardizeDomains(Input_Table):  # 2j Standardize Domains
+def StandardizeDomains(Input_Table): 
     # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
+    arcpy.env.overwriteOutput = True
 
     # Process: Calculate Agency (Calculate Field) (management)
     update_agency = arcpy.management.CalculateField(
@@ -938,12 +942,12 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
                     return \'WM_RESRC_BENEFIT\'
                 elif ACT == \'Yarding/Skidding\':
                     return \'YARDING\'
-                elif ACT == \'Not Defined\':
-                    return \'NOT_DEFINED\'
-                elif ACT == None:
-                    return \'TBD\'
-                elif Act == \'\' or Act == \' \':
-                    return \'TBD\'
+                # elif ACT == \'Not Defined\':
+                #     return \'NOT_DEFINED\'
+                # elif ACT == None:
+                #     return \'TBD\'
+                # elif Act == \'\' or Act == \' \':
+                #     return \'TBD\'
                 else:
                     return \'TBD\'""",
     )
@@ -1355,12 +1359,3 @@ def StandardizeDomains(Input_Table):  # 2j Standardize Domains
     )
 
     return final_output
-
-
-if __name__ == "__main__":
-    runner(workspace, scratch_workspace, StandardizeDomains, "*argv[1:]")
-# Global Environment settings
-# with arcpy.EnvManager(extent='-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS[\'GCS_WGS_1984\',DATUM[\'D_WGS_1984\',SPHEROID[\'WGS_1984\',6378137.0,298.257223563]],PRIMEM[\'Greenwich\',0.0],UNIT[\'Degree\',0.0174532925199433]]', outputCoordinateSystem='PROJCS[\'NAD_1983_California_Teale_Albers\',GEOGCS[\'GCS_North_American_1983\',DATUM[\'D_North_American_1983\',SPHEROID[\'GRS_1980\',6378137.0,298.257222101]],PRIMEM[\'Greenwich\',0.0],UNIT[\'Degree\',0.0174532925199433]],PROJECTION[\'Albers\'],PARAMETER[\'False_Easting\',0.0],PARAMETER[\'False_Northing\',-4000000.0],PARAMETER[\'Central_Meridian\',-120.0],PARAMETER[\'Standard_Parallel_1\',34.0],PARAMETER[\'Standard_Parallel_2\',40.5],PARAMETER[\'Latitude_Of_Origin\',0.0],UNIT[\'Meter\',1.0]]', preserveGlobalIds=True,
-#                       qualifiedFieldNames=False, scratchWorkspace='C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb', transferGDBAttributeProperties=True,
-#                       workspace='C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb'):
-#     StandardizeDomains(*argv[1:])

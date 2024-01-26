@@ -1,6 +1,16 @@
+"""
+# Description: 
+#               
+#               
+#              
+# Author: Spatial Informatics Group LLC
+# Version: 1.0.0
+# Date Created: Jan 24, 2024
+"""
+
 import arcpy
-import os
-from sys import argv
+# import os
+# from sys import argv
 from scripts.utils import init_gdb
 
 original_gdb, workspace, scratch_workspace = init_gdb()

@@ -1,3 +1,12 @@
+"""
+# Description: 
+#               
+#               
+#              
+# Author: Spatial Informatics Group LLC
+# Version: 1.0.0
+# Date Created: Jan 24, 2024
+"""
 import arcpy
 
 # from ._2d_calculate_activity import Activity
@@ -7,9 +16,9 @@ import arcpy
 from ._2h_calculate_year import Year
 from ._2k_keep_fields import KeepFields
 from ._2l_crosswalk import Crosswalk
-from sys import argv
+# from sys import argv
 from scripts.utils import init_gdb, delete_scratch_files, runner
-import os
+# import os
 
 original_gdb, workspace, scratch_workspace = init_gdb()
 
@@ -18,15 +27,15 @@ original_gdb, workspace, scratch_workspace = init_gdb()
 def enrich_polygons(
     enrich_out, enrich_in, delete_scratch=False
 ):  # 7a Enrichments Polygon
-    arcpy.ImportToolbox(
-        r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Analysis Tools.tbx"
-    )
-    arcpy.ImportToolbox(
-        r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\GeoAnalytics Desktop Tools.tbx"
-    )
-    arcpy.ImportToolbox(
-        r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Data Management Tools.tbx"
-    )
+    # arcpy.ImportToolbox(
+    #     r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Analysis Tools.tbx"
+    # )
+    # arcpy.ImportToolbox(
+    #     r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\GeoAnalytics Desktop Tools.tbx"
+    # )
+    # arcpy.ImportToolbox(
+    #     r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Data Management Tools.tbx"
+    # )
 
     # wrapping entire process within an arcpy.EnvManager() instance fixes the SummarizeWithin tool failed error
     with arcpy.EnvManager(
@@ -66,7 +75,8 @@ def enrich_polygons(
         WHR13NAME_Summary_temp = os.path.join(
             scratch_workspace, "WHR13NAME_Summary_temp"
         )
-        # Begin tool chain processes
+        
+        # BEGIN TOOL CHAIN
 
         print("Executing Polygon Enrichments...")
         print("   Calculating Broad Vegetation Type...")
@@ -319,7 +329,7 @@ def enrich_polygons(
 
         print("   Calculating Ownership, Counties, and Regions...")
         # Process: Spatial Join (Spatial Join) (analysis)
-        print("     step 20/34 spatial join")
+        print("     step 20/34 spatial join ownership")
         arcpy.analysis.SpatialJoin(
             target_features=Veg_Summarized_Centroids,
             join_features=Ownership_Layer,
@@ -332,7 +342,7 @@ def enrich_polygons(
         )
 
         # Process: Spatial Join (2) (Spatial Join) (analysis)
-        print("     step 21/34 spatial join")
+        print("     step 21/34 spatial join veg")
         arcpy.analysis.SpatialJoin(
             target_features=Veg_Summarized_Join1_Own,
             join_features=Regions_Layer,
@@ -563,7 +573,9 @@ def enrich_polygons(
         # Process: Calculate Geometry Attributes (3) (Calculate Geometry Attributes) (management)
         Veg_Summarized_Polygons_Laye_4_ = arcpy.management.CalculateGeometryAttributes(
             in_features=Veg_Summarized_Polygons_Laye3_7_,
-            geometry_property=[["LATITUDE", "INSIDE_Y"], ["LONGITUDE", "INSIDE_X"]],
+            geometry_property=[
+                ["LATITUDE", "INSIDE_Y"], 
+                ["LONGITUDE", "INSIDE_X"]],
             length_unit="",
             area_unit="",
             coordinate_system='GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
@@ -588,7 +600,7 @@ def enrich_polygons(
         # Count6 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye_11_)
         # print('{} has {} records'.format(Veg_Summarized_Polygons_Laye_11_, Count6[0]))
 
-        Process: Select (Select) (analysis)
+        # Process: Select (Select) (analysis)
         print("     step 33/34 delete if County is Null")
         Veg_Summarized_Polygons_Laye_13_ = arcpy.analysis.Select(
             in_features=Veg_Summarized_Polygons_Laye_11_,
@@ -612,8 +624,8 @@ def enrich_polygons(
 
         print("Enrich Polygons Complete...")
 
-if __name__ == "__main__":
-    runner(workspace, scratch_workspace, enrich_polygons, "*argv[1:]")
+# if __name__ == "__main__":
+#     runner(workspace, scratch_workspace, enrich_polygons, "*argv[1:]")
     # # Global Environment settings
     # with arcpy.EnvManager(
     # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",
@@ -627,14 +639,15 @@ if __name__ == "__main__":
     #     enrich_polygons(*argv[1:])
     # runner(workspace,scratch_workspace,aEnrichmentsPolygon1, '*argv[1:]')
     # Global Environment settings
-    with arcpy.EnvManager(
-        extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",
-        outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
-        preserveGlobalIds=True,
-        qualifiedFieldNames=False,
-        scratchWorkspace=scratch_workspace,
-        transferDomains=True,
-        transferGDBAttributeProperties=True,
-        workspace=workspace,
-    ):
-        enrich_polygons(*argv[1:])
+
+    # with arcpy.EnvManager(
+    #     extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",
+    #     outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
+    #     preserveGlobalIds=True,
+    #     qualifiedFieldNames=False,
+    #     scratchWorkspace=scratch_workspace,
+    #     transferDomains=True,
+    #     transferGDBAttributeProperties=True,
+    #     workspace=workspace,
+    # ):
+    #     enrich_polygons(*argv[1:])

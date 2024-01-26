@@ -1,12 +1,19 @@
 """
+# Description: 
+#               
+#               
+#              
+# Author: Spatial Informatics Group LLC
+# Version: 1.0.0
+# Date Created: Jan 24, 2024
 """
 import arcpy
 from scripts._1b_add_fields import AddFields
 from scripts._2b_assign_domains import AssignDomains
 from scripts._7a_enrichments_polygon import enrich_polygons
 from scripts.utils import runner, init_gdb
-from sys import argv
-import os
+# from sys import argv
+# import os
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 def DOC6(DOC_Ag_Standardized, 
@@ -24,7 +31,18 @@ def DOC6(DOC_Ag_Standardized,
     DOC_Ag_OG_Dissolve = os.path.join(scratch_workspace, "DOC_Ag_OG_Dissolve")
     DOC_Summarized_Polygons = os.path.join(scratch_workspace, "DOC_Summarized_Polygons")
 
-    with arcpy.EnvManager(qualifiedFieldNames=False, transferDomains=False, transferGDBAttributeProperties=False): 
+    with arcpy.EnvManager(
+        outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
+        cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
+        extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",
+        preserveGlobalIds=True, 
+        qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
+        transferDomains=True, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
+        overwriteOutput = True,
+    ):
         # Process: Dissolve (Dissolve) (management)
         print("step 1/24  dissolve...")
         arcpy.management.Dissolve(in_features=DOC_Ag_OG, 
@@ -178,9 +196,9 @@ def DOC6(DOC_Ag_Standardized,
 
         print("6aa complete...")
 
-if __name__ == '__main__':
-    runner(workspace,scratch_workspace,DOC6, '*argv[1:]')
-    # # Global Environment settings
+# if __name__ == '__main__':
+#     runner(workspace,scratch_workspace,DOC6, '*argv[1:]')
+#     # # Global Environment settings
     # with arcpy.EnvManager(extent="-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", outputCoordinateSystem="PROJCS[\"NAD_1983_California_Teale_Albers\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",-4000000.0],PARAMETER[\"Central_Meridian\",-120.0],PARAMETER[\"Standard_Parallel_1\",34.0],PARAMETER[\"Standard_Parallel_2\",40.5],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]", preserveGlobalIds=True, 
     #                       scratchWorkspace="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb", workspace="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb"):
     #     aaDOCAg(*argv[1:])
