@@ -1,10 +1,19 @@
 # NOTE: Might not need to work this one as output (WFR_TF_Template feature class) is in the b_Reference feature dataset, might be a one-off tool to make it
+"""
+# Description: 
+#               
+#               
+#              
+# Author: Spatial Informatics Group LLC
+# Version: 1.0.0
+# Date Created: Jan 24, 2024
+"""
 import arcpy
-import os
+# import os
 from ._1b_add_fields import (
     AddFields,
 )  # importable scripts as modules in other scripts can't start with a number, so we add a '_' to script namer
-from sys import argv
+# from sys import argv
 from .utils import init_gdb, runner
 
 original_gdb, workspace, scratch_workspace = init_gdb()
@@ -45,11 +54,11 @@ def WFRTFtemplate():  # 1a Template
         Input_Table=os.path.join(b_Reference_new_path, "WFR_TF_Template")
     )
 
-    return
+    return WFRTF_Template_5_
 
 
-if __name__ == "__main__":
-    runner(workspace, scratch_workspace, WFRTFtemplate, "*argv[1:]")
+# if __name__ == "__main__":
+#     runner(workspace, scratch_workspace, WFRTFtemplate, "*argv[1:]")
     # # Global Environment settings
     # # run desired function with environment settings set by arcpy.EnvManager, don't think this is gonna work
     # #runner(workspace,scratch_workspace,WFRTFtemplate)

@@ -1,4 +1,13 @@
 # NOTE: Skip for now, may want to adapt Dan Camboia's Data retriver geoprocess tool instead
+"""
+# Description: 
+#               
+#               
+#              
+# Author: Spatial Informatics Group LLC
+# Version: 1.0.0
+# Date Created: Jan 24, 2024
+"""
 import arcpy
 import time
 
@@ -194,15 +203,15 @@ def Model1():  # 1 Get Data
             )
 
 
-if __name__ == "__main__":
-    # Global Environment settings
-    with arcpy.EnvManager(
-        extent='-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
-        preserveGlobalIds=True,
-        qualifiedFieldNames=False,
-        scratchWorkspace=r"C:\Users\sageg\Documents\ArcGIS\Projects\PC414 CWI Million Acres\scratch.gdb",
-        transferDomains=True,
-        transferGDBAttributeProperties=True,
-        workspace=r"C:\Users\sageg\Documents\ArcGIS\Projects\PC414 CWI Million Acres\PC414 CWI Million Acres.gdb",
-    ):
-        Model1()
+# if __name__ == "__main__":
+#     # Global Environment settings
+#     with arcpy.EnvManager(
+#         extent='-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+#         preserveGlobalIds=True,
+#         qualifiedFieldNames=False,
+#         scratchWorkspace=r"C:\Users\sageg\Documents\ArcGIS\Projects\PC414 CWI Million Acres\scratch.gdb",
+#         transferDomains=True,
+#         transferGDBAttributeProperties=True,
+#         workspace=r"C:\Users\sageg\Documents\ArcGIS\Projects\PC414 CWI Million Acres\PC414 CWI Million Acres.gdb",
+#     ):
+#         Model1()

@@ -1,4 +1,11 @@
 """
+# Description: 
+#               
+#               
+#              
+# Author: Spatial Informatics Group LLC
+# Version: 1.0.0
+# Date Created: Jan 24, 2024
 """
 import arcpy
 from scripts._1b_add_fields import AddFields
@@ -10,15 +17,13 @@ from scripts.utils import runner, init_gdb
 from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
 from scripts.utils import runner, init_gdb, KeepFields
 >>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
-from sys import argv
-import os
+# from sys import argv
+# import os
 import datetime
 original_gdb, workspace, scratch_workspace = init_gdb()
 
 def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
 
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
     date_id = datetime.datetime.now().strftime("%Y-%m-%d").replace('-','')
 
     # scratch outputs
@@ -30,7 +35,18 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
     WCB_enriched = os.path.join(workspace, 'd_Enriched', f'WCB_enriched_{date_id}') 
 
     # Model Environment settings
-    with arcpy.EnvManager(unionDimension=False):
+    with arcpy.EnvManager(
+        outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
+        cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
+        extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",
+        preserveGlobalIds=True, 
+        qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
+        transferDomains=True, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
+        overwriteOutput = True,
+    ):
 
         # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
         print("Executing Step 1/34 : Select Layer by Attribute...")
@@ -249,8 +265,8 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
 
         #delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
 
-if __name__ == '__main__':
-    runner(workspace,scratch_workspace,WCB, '*argv[1:]')
+# if __name__ == '__main__':
+#     runner(workspace,scratch_workspace,WCB, '*argv[1:]')
     # Global Environment settings
     # with arcpy.EnvManager(
     # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 

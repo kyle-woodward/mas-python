@@ -1,10 +1,19 @@
+"""
+# Description: 
+#               
+#               
+#              
+# Author: Spatial Informatics Group LLC
+# Version: 1.0.0
+# Date Created: Jan 24, 2024
+"""
 import arcpy
 from scripts._9c_Transform_Check_Duplicates import TransformCheck
-from sys import argv
+# from sys import argv
 from datetime import datetime
 import time
 from .utils import init_gdb, delete_scratch_files, runner
-import os
+# import os
 
 original_gdb, workspace, scratch_workspace = init_gdb()
 
@@ -142,8 +151,8 @@ def TransformTreatments(
         )
 
 
-if __name__ == "__main__":
-    runner(workspace, scratch_workspace, TransformTreatments, "*argv[1:]")
+# if __name__ == "__main__":
+#     runner(workspace, scratch_workspace, TransformTreatments, "*argv[1:]")
 
     # # Global Environment settings
     # with arcpy.EnvManager(
