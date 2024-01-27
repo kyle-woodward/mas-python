@@ -1,8 +1,6 @@
 """
-# Description: 
-#               
-#               
-#              
+# Description: Calculates year, state fiscal year, and
+#              federal fiscal year for reporting purposes               
 # Author: Spatial Informatics Group LLC
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
@@ -40,7 +38,7 @@ def Year(Year_Input):  # 2h Calculate Year
     )
 
     # Process: Calculate Fed FY (Calculate Field) (management)
-    #TODO simplify code block
+    #TODO simplify code block, replace hard coding with dynamic coding
     year_fed_fy = arcpy.management.CalculateField(
         in_table=year_txt_calculated,
         field="Federal_FY",

@@ -1,8 +1,6 @@
 """
-# Description: 
-#               
-#               
-#              
+# Description: Standardizes domain values for OEIS
+#              utility datasets
 # Author: Spatial Informatics Group LLC
 # Version: 1.0.0
 # Date Created: Jan 24, 2024

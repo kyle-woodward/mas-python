@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """
-# Description: 
-#               
-#               
-#              
+# Description: Utilizes the Crosswalk Table to standardize activity description,
+#              activity category, primary objective, residue fate and counts towards
+#              Million Acre Strategy from the native dataset into Task Force domain values
 # Author: Spatial Informatics Group LLC
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
@@ -21,10 +19,9 @@ original_gdb, workspace, scratch_workspace = init_gdb()
 
 
 def Crosswalk(Input_Table):  # 2l Crosswalk
-    # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = True
 
-    Crosswalk_Table = os.path.join(workspace, "Fuels_Treatments_Piles_Crosswalk")
+    Crosswalk_Table = os.path.join(workspace, "Crosswalk")
 
     print("   Calculating Crosswalking Activites...")
     # Process: Add Join (Add Join) (management)
@@ -43,7 +40,7 @@ def Crosswalk(Input_Table):  # 2l Crosswalk
     xwalk_activity_description = arcpy.management.CalculateField(
         in_table=add_join_w_xwalk,
         field="ACTIVITY_DESCRIPTION",
-        expression="!Fuels_Treatments_Piles_Crosswalk.Activity!",
+        expression="!Crosswalk.Activity!",
     )
 
     # Process: Calculate Residue Fate (Calculate Field) (management)
@@ -51,7 +48,7 @@ def Crosswalk(Input_Table):  # 2l Crosswalk
     xwalk_residue_fate = arcpy.management.CalculateField(
         in_table=xwalk_activity_description,
         field="RESIDUE_FATE",
-        expression="!Fuels_Treatments_Piles_Crosswalk.Residue_Fate!",
+        expression="!Crosswalk.Residue_Fate!",
     )
 
     # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
@@ -66,7 +63,7 @@ def Crosswalk(Input_Table):  # 2l Crosswalk
     xwalk_primary_objective = arcpy.management.CalculateField(
         in_table=select_tbd_objective,
         field="PRIMARY_OBJECTIVE",
-        expression="!Fuels_Treatments_Piles_Crosswalk.Objective!",
+        expression="!Crosswalk.Objective!",
     )
 
     # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)

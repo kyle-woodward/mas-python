@@ -1,9 +1,6 @@
 
 """
-# Description: Returns domain coded values in cases 
-#              where domain descriptions are 
-#              captured in a cell.  Maintains data 
-#              integrity
+# Description:  Utilities used in scripts and notebooks.
 # Author: Spatial Informatics Group LLC
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
@@ -147,14 +144,13 @@ def check_schema_lock(input):
                 f"Cannot get exclusive schema lock for {input}. Either being edited or in use by another application or service."
             )
 
-#TODO insert runner into scripts
+#TODO fix and insert runner into scripts
 def runner(workspace:str,scratch_workspace:str):
     arcpy.EnvManager(
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",
-                DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],
-                PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",
+        extent="""450000, -374900, 540100, -604500,
+                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
         scratchWorkspace=scratch_workspace, 
