@@ -1,13 +1,9 @@
 """
-# Description: 
-#               
-#               
-#              
+# Description: Removes fields that don't match the schema
 # Author: Spatial Informatics Group LLC
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
-
 import arcpy
 # import os
 # from sys import argv

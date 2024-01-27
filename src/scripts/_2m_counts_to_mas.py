@@ -1,8 +1,6 @@
 """
-# Description: 
-#               
-#               
-#              
+# Description: Part 1 in calculating whether an activity counts towards the
+#              Million Acre Strategy.
 # Author: Spatial Informatics Group LLC
 # Version: 1.0.0
 # Date Created: Jan 24, 2024

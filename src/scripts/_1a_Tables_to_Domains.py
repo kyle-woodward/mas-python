@@ -13,7 +13,7 @@ original_gdb, workspace, scratch_workspace = init_gdb()
 def TablesToDomains(workspace):
     arcpy.env.overwriteOutput = True
 
-    Excel = "Domain Tables 20230414.xlsx"
+    Excel = "Domain Tables 20231004.xlsx"
    
     D_OBJECTIVE_ = os.path.join(Excel, "D_OBJECTIVE$")
     D_STATUS_ = os.path.join(Excel, "D_STATUS$")
