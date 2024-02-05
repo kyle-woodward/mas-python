@@ -8,23 +8,24 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
+import os
+import time
 import arcpy
 from ._1b_add_fields import AddFields
 from ._2b_assign_domains import AssignDomains
+from ._2f_calculate_category import Category
 from ._2j_standardize_domains import StandardizeDomains
 from ._7a_enrichments_polygon import enrich_polygons
 from ._2k_keep_fields import KeepFields
-# from sys import argv
-from .utils import init_gdb, delete_scratch_files, runner
-# import os
-import time
+from .utils import init_gdb, delete_scratch_files
 
-original_gdb, workspace, scratch_workspace = init_gdb()
-
+workspace, scratch_workspace = init_gdb()
+# TODO add print steps, rename variables
 
 def Model_BLM(
-    output_enriched, output_standardized, input_fc, startyear, endyear, California
-):  # 6t BLM 20230814
+    output_enriched, input_fc, startyear, endyear, California,
+    delete_scratch=True
+):
     start = time.time()
     print(f"Start Time {time.ctime()}")
     arcpy.env.overwriteOutput = True
@@ -35,16 +36,15 @@ def Model_BLM(
 
     # Model Environment settings
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
+        transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     ):
         
@@ -129,7 +129,7 @@ def Model_BLM(
         BLM_standardized_12 = arcpy.management.CalculateField(
             in_table=BLM_standardized_11,
             field="PRIMARY_FUNDING_ORG",
-            expression='"NPS"',
+            expression='"BLM"',
         )
 
         # Process: Calculate Imp Org (Calculate Field) (management)
@@ -244,6 +244,7 @@ def Model_BLM(
             # expression="!TRTMNT_COMMENTS!.lower()"
             expression="!TRTMNT_COMMENTS!",
         )
+
         print("   step 9/13 Adding original activity description to Crosswalk Field...")
         # Process: Calculate Crosswalk (Calculate Field) (management)
         BLM_standardized_29 = arcpy.management.CalculateField(
@@ -330,6 +331,9 @@ def Model_BLM(
                                 return cross""",
         )
         
+        output_standardized = os.path.join(
+            scratch_workspace, "BLM_standardized" #f"BLM_standardized_{date_id}"
+)
         print(f"Saving Standardized Output: {output_standardized}")
         # Process: Select by Years (Select) (analysis)
         arcpy.analysis.Select(
@@ -337,6 +341,7 @@ def Model_BLM(
             out_feature_class=output_standardized,
             where_clause="Year >= %d And Year <= %d" % (startyear, endyear),
         )
+
         print("   step 10/13 Calculate Geometry...")
         # Process: Calculate Geometry (Calculate Field) (management)
         BLM_standardized_32 = arcpy.management.CalculateField(
@@ -361,18 +366,23 @@ def Model_BLM(
             field="TRMTID_USER",
             expression="!PROJECTID_USER![:7]+'-'+!COUNTY![:3]+'-'+!PRIMARY_OWNERSHIP_GROUP![:4]+'-'+!IN_WUI![:3]+'-'+!PRIMARY_OBJECTIVE![:8]"
         )
+
+        print(f"Calculating Category")
+        # Process: Calculate Category
+        BLM_standardized_35 = Category(
+            Input_Table=BLM_standardized_34
+        )
+
         print("   step 13/13 Assign Domains...")
         # Process: 2b Assign Domains (2b Assign Domains) 
-        BLM_standardized_35 = AssignDomains(in_table=BLM_standardized_34)
+        BLM_standardized_36 = AssignDomains(in_table=BLM_standardized_35)
 
-        print('   Deleting Scratch Files')
-        delete_scratch_files(
-            gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-        )
+        if delete_scratch:
+            delete_scratch_files(
+                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
+            )
 
         end = time.time()
         print(f"Time Elapsed: {(end-start)/60} minutes")
 
 
-# if __name__ == "__main__":
-#     runner(workspace, scratch_workspace, Model_BLM, "*argv[1:]")

@@ -20,3 +20,6 @@ Maybe have a [living document](https://docs.google.com/document/d/14RdlL0rXei1X8
 ## Running the notebooks
 From your favorite python IDE (suggested: VS Code or Jupyter Lab), open each notebook and run each cell in order.
 The first cell sets up the required inputs and the new file paths to save the output datasets to. If you see this message in the cell's output:
+
+
+##TODO Arcpy license levels, Packages required Pandas, ArcPy, os, datetime, time, shutil...

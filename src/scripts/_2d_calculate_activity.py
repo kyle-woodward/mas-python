@@ -12,7 +12,7 @@ import arcpy
 # import os
 from scripts.utils import init_gdb #, runner
 
-original_gdb, workspace, scratch_workspace = init_gdb()
+workspace, scratch_workspace = init_gdb()
 
 
 def Activity(Input_Table):  # 2d Calculate Activity

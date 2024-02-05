@@ -7,27 +7,23 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
+import os
+import time
 import arcpy
 from ._1b_add_fields import AddFields
 from ._2b_assign_domains import AssignDomains
+# add 2j standardize domains, 2f Categories
 from ._7a_enrichments_polygon import enrich_polygons
 from ._2k_keep_fields import KeepFields
-# from sys import argv
-from .utils import init_gdb, delete_scratch_files, runner
-# import os
-import time
+from .utils import init_gdb, delete_scratch_files
 
-original_gdb, workspace, scratch_workspace = init_gdb()
+workspace, scratch_workspace = init_gdb()
+# TODO add print steps, rename variables
 
-
-def Model_USFS(output_enriched, output_standardized, input_fc, startyear, endyear):
+def Model_USFS(output_enriched, output_standardized, input_fc, startyear, endyear, delete_scratch=True):
     start = time.time()
     print(f"Start Time {time.ctime()}")
     arcpy.env.overwriteOutput = True
-
-    # START and END YEARS
-    # startyear = 2020
-    # endyear = 2025
 
     # define intermediary objects in scratch
     usfs_intermediate_scratch = os.path.join(
@@ -39,16 +35,15 @@ def Model_USFS(output_enriched, output_standardized, input_fc, startyear, endyea
 
     # Model Environment settings
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
+        transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     ):
         
@@ -679,25 +674,11 @@ def Model_USFS(output_enriched, output_standardized, input_fc, startyear, endyea
         # Process: 2b Assign Domains (2) (2b Assign Domains)
         AssignDomains(in_table=output_enriched)
 
-        # print('   Deleting Scratch Files')
-        delete_scratch_files(
-            gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-        )
+        if delete_scratch: delete_scratch_files(
+                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
+            )
 
         end = time.time()
         print(f"Time Elapsed: {(end-start)/60} minutes")
 
 
-# if __name__ == "__main__":
-#     runner(workspace, scratch_workspace, Model_USFS, "*argv[1:]")
-# # Global Environment settings
-#  with arcpy.EnvManager(
-#     overwriteOutput=True,
-#     extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
-#     preserveGlobalIds=True,
-#     qualifiedFieldNames=False,
-#     scratchWorkspace=scratch_workspace,
-#     transferDomains=True,
-#     transferGDBAttributeProperties=True,
-#     workspace=workspace):
-#         Model_USFS(*argv[1:])

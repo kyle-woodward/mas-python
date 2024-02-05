@@ -5,7 +5,7 @@
 # Date Created: Jan 24, 2024
 """
 import arcpy
-# from scripts.utils import init_gdb, runner
+# from scripts.utils import init_gdb
 from arcpy import metadata as md
 import shutil
 

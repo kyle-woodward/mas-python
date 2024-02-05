@@ -10,6 +10,7 @@
 import arcpy
 from scripts._1b_add_fields import AddFields
 from scripts._2b_assign_domains import AssignDomains
+# add 2j standardize domains, 2f Categories
 <<<<<<< HEAD
 from scripts._7a_enrichments_polygon import enrich_polygons
 from scripts.utils import runner, init_gdb
@@ -17,13 +18,13 @@ from scripts.utils import runner, init_gdb
 from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
 from scripts.utils import runner, init_gdb, delete_scratch_files, KeepFields
 >>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
-# from sys import argv
-# import os
+import os
 original_gdb, workspace, scratch_workspace = init_gdb()
-
+# TODO add print steps, rename variables
 def TahoeFF6(TahoeFF_Tx_enriched,
              TahoeFF_Tx_standardized,
-             TahoeFF_Tx_OG): 
+             TahoeFF_Tx_OG,
+             delete_scratch=True): 
 
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = False
@@ -36,16 +37,15 @@ def TahoeFF6(TahoeFF_Tx_enriched,
 
     # Model Environment settings
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
+        transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     ):
         California = os.path.join(workspace, 'b_Reference', 'California')
@@ -75,7 +75,7 @@ def TahoeFF6(TahoeFF_Tx_enriched,
                                                                              new_field_name="YEAR_", 
                                                                              new_field_alias="YEAR_")
 
-        # Process: 1b Add Fields (2) (1b Add Fields) (PC414CWIMillionAcres)
+        # Process: 1b Add Fields (2) (1b Add Fields)
 <<<<<<< HEAD
         TahoeFF_add_fields = AddFields(Input_Table=TahoeFF_alter_year)
 =======
@@ -347,7 +347,7 @@ def Reclass(JURIS):
         # arcpy.management.CopyFeatures(in_features=TahoeFF_Tx_standardized_keep_fields, 
         #                               out_feature_class = check_this_out.__str__().format(**locals(),**globals()))
         
-        # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
+        # Process: 7a Enrichments Polygon (7a Enrichments Polygon)
 <<<<<<< HEAD
         enrich_polygons(enrich_out=TahoeFF_enriched_scratch, 
 =======
@@ -361,23 +361,13 @@ def Reclass(JURIS):
         arcpy.management.CopyFeatures(in_features=TahoeFF_enriched_scratch, 
                                       out_feature_class=TahoeFF_Tx_enriched.__str__().format(**locals(),**globals()))
 
-        # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
+        # Process: 2b Assign Domains (2b Assign Domains)
         print("Executing Step 40/40 : AssignDomains...")
         WFR_TF_Template_2_ = AssignDomains(in_table=TahoeFF_Tx_enriched.__str__().format(**locals(),**globals()))
 
-        print("completed step 40/40")
-        #delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
+        if delete_scratch: delete_scratch_files(
+                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
+            )
 
-# if __name__ == '__main__':
-#     # runner(workspace,scratch_workspace,TahoeFF6, '*argv[1:]')
-#     # Global Environment settings
-#     with arcpy.EnvManager(
-#     extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""", 
-#     outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
-#     preserveGlobalIds=True, 
-#     qualifiedFieldNames=False, 
-#     scratchWorkspace=scratch_workspace, 
-#     transferDomains=True, 
-#     transferGDBAttributeProperties=True, 
-#     workspace=workspace):
-#         TahoeFF6(*argv[1:])
+        print("completed step 40/40")
+        

@@ -11,6 +11,7 @@
 import arcpy
 from scripts._1b_add_fields import AddFields
 from scripts._2b_assign_domains import AssignDomains
+# add 2j standardize domains, 2f Categories
 <<<<<<< HEAD
 from scripts._7a_enrichments_polygon import enrich_polygons
 from scripts.utils import runner, init_gdb
@@ -18,12 +19,11 @@ from scripts.utils import runner, init_gdb
 from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
 from scripts.utils import runner, init_gdb, KeepFields
 >>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
-# from sys import argv
-# import os
+import os
 import datetime
-original_gdb, workspace, scratch_workspace = init_gdb()
-
-def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
+workspace, scratch_workspace = init_gdb()
+# TODO add print steps, rename variables
+def WCB(WCB_standardized, WCB_OG, delete_scratch=True):
 
     date_id = datetime.datetime.now().strftime("%Y-%m-%d").replace('-','')
 
@@ -37,16 +37,15 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
 
     # Model Environment settings
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
+        transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     ):
 
@@ -100,7 +99,7 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
                                                                field="County", 
                                                                new_field_name="County_")
 
-        # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
+        # Process: 1b Add Fields (1b Add Fields)
 <<<<<<< HEAD
         WCB_add_fields = AddFields(Input_Table=WCB_Dissolve_alter_field_2)
 =======
@@ -238,11 +237,11 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
         
         WCB_standardized_keep_fields = KeepFields(WCB_standardized.__str__().format(**locals(),**globals()))
 
-        # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
+        # Process: 2b Assign Domains (2b Assign Domains)
         print("Executing Step 30/34 : AssignDomains to standardized...")
         WCB_w_domains = AssignDomains(in_table=WCB_standardized_keep_fields)
 
-        # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
+        # Process: 7a Enrichments Polygon (7a Enrichments Polygon)
 <<<<<<< HEAD
         enrich_polygons(enrich_out=WCB_enriched_scratch, 
 =======
@@ -261,21 +260,12 @@ def WCB(WCB_standardized, WCB_OG):  # 6u WCB 20221226
         arcpy.management.CopyFeatures(in_features=WCB_enriched_scratch_select, 
                                       out_feature_class=WCB_enriched)
 
-        # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
+        # Process: 2b Assign Domains (2) (2b Assign Domains)
         print("Executing Step 34/34 : AssignDomains to enriched...")
         WFR_TF_Template_4_ = AssignDomains(in_table=WCB_enriched)
 
-        #delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
+        if delete_scratch: delete_scratch_files(
+                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
+            )
 
-# if __name__ == '__main__':
-#     runner(workspace,scratch_workspace,WCB, '*argv[1:]')
-    # Global Environment settings
-    # with arcpy.EnvManager(
-    # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""", 
-    # preserveGlobalIds=True, 
-    # qualifiedFieldNames=False, 
-    # scratchWorkspace=scratch_workspace, 
-    # transferDomains=True, 
-    # transferGDBAttributeProperties=True, 
-    # workspace=workspace):
-    #     WCB(*argv[1:])
+

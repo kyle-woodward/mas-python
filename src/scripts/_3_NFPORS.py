@@ -8,20 +8,20 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
+import os
+import time
 import arcpy
 from ._1b_add_fields import AddFields
 from ._2b_assign_domains import AssignDomains
+# add 2j standardize domains, 2f Categories
 from ._7b_enrichments_pts import enrich_points
 from ._2c_units_domain import Units
 from ._7a_enrichments_polygon import enrich_polygons
 from ._2k_keep_fields import KeepFields
-# from sys import argv
-from .utils import init_gdb, delete_scratch_files, runner
-# import os
-import time
+from .utils import init_gdb, delete_scratch_files
 
-original_gdb, workspace, scratch_workspace = init_gdb()
-
+workspace, scratch_workspace = init_gdb()
+# TODO add print steps, rename variables
 def Model_NFPORS(
     input_original_polys,
     input_original_pts_BIA,
@@ -31,18 +31,18 @@ def Model_NFPORS(
     output_polys_enriched,
     output_pts_standardized,
     output_pts_enriched,
+    delete_scratch=True
 ):
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
+        transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     ):
         
@@ -112,7 +112,7 @@ def Model_NFPORS(
                 clear_field_alias="CLEAR_ALIAS",
             )
 
-            # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
+            # Process: 1b Add Fields (1b Add Fields)
             nfpors_DOI_w_fields = AddFields(Input_Table=nfpors_DOI_alter_field)
 
             # Process: Calculate Projet ID (Calculate Field) (management)
@@ -288,13 +288,13 @@ def Model_NFPORS(
                 spatial_grid_3=None,
             )
 
-            # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
+            # Process: 2b Assign Domains (2b Assign Domains)
             nfpors_stamdardized_w_domains = AssignDomains(
                 in_table=output_polys_standardized
             )
 
             print(f"Performing Polygon Enrichments")
-            # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
+            # Process: 7a Enrichments Polygon (7a Enrichments Polygon)
             # Veg_Summarized_Polygons2 = os.path.join(scratch_workspace,'Veg_Summarized_Polygons2')
             enrich_polygons(
                 enrich_out=output_polys_enriched, enrich_in=nfpors_stamdardized_w_domains
@@ -314,7 +314,7 @@ def Model_NFPORS(
                 enforce_domains="NO_ENFORCE_DOMAINS",
             )
 
-            # Process: 2b Assign Domains (4) (2b Assign Domains) (PC414CWIMillionAcres)
+            # Process: 2b Assign Domains (4) (2b Assign Domains)
             # nfpors_fuels_treatments_enriched_20220906_2_ =
             AssignDomains(in_table=output_polys_enriched)
 
@@ -397,7 +397,7 @@ def Model_NFPORS(
                 clear_field_alias="CLEAR_ALIAS",
             )
 
-            # Process: 1b Add Fields (2) (1b Add Fields) (PC414CWIMillionAcres)
+            # Process: 1b Add Fields (2) (1b Add Fields)
             BIA_FWS_CA_w_fields = AddFields(Input_Table=BIA_FWS_CA_alter_field_v4)
 
             # Process: Calculate Projet ID (2) (Calculate Field) (management)
@@ -484,7 +484,7 @@ def Model_NFPORS(
                 enforce_domains="NO_ENFORCE_DOMAINS",
             )
 
-            # Process: 2c Units Domain (2c Units Domain) (PC414CWIMillionAcres)
+            # Process: 2c Units Domain (2c Units Domain)
             bia_fws_ca_calc_units = Units(in_table=bia_fws_ca_calc_field_v7)
 
             # Process: Calculate Activity Quantity (2) (Calculate Field) (management)
@@ -603,11 +603,11 @@ def Model_NFPORS(
             # Process: Delete Field (2) (Delete Field) (management)
             bia_fws_keepfields = KeepFields(output_original_polys)
 
-            # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
+            # Process: 2b Assign Domains (2) (2b Assign Domains)
             bia_fws_assigndomains = AssignDomains(in_table=bia_fws_keepfields)
 
             print("Performing Points Enrichments")
-            # Process: 7b Enrichments pts (7b Enrichments pts) (PC414CWIMillionAcres)
+            # Process: 7b Enrichments pts (7b Enrichments pts)
             # Pts_enrichment_Veg2 = os.path.join(scratch_workspace,'Pts_enrichment_Veg2')
             enrich_points(
                 enrich_pts_out=output_pts_enriched, enrich_pts_in=bia_fws_assigndomains
@@ -635,11 +635,10 @@ def Model_NFPORS(
                 enforce_domains="NO_ENFORCE_DOMAINS",
             )
 
-            # Process: 2b Assign Domains (3) (2b Assign Domains) (PC414CWIMillionAcres)
+            # Process: 2b Assign Domains (3) (2b Assign Domains)
             WFR_TF_Template_2_ = AssignDomains(in_table=usfs_haz_fuels_treatments_reduction2_5_)
 
-            print("Deleting Scratch Files")
-            delete_scratch_files(
+            if delete_scratch: delete_scratch_files(
                 gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
             )
 
@@ -647,6 +646,4 @@ def Model_NFPORS(
             print(f"Time Elapsed: {(end-start)/60} minutes")
 
 
-# if __name__ == "__main__":
-#     runner(workspace, scratch_workspace, Model_NFPORS, "*argv[1:]")
 

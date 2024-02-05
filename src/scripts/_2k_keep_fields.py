@@ -5,13 +5,10 @@
 # Date Created: Jan 24, 2024
 """
 import arcpy
-# import os
-# from sys import argv
 from scripts.utils import init_gdb
 
-original_gdb, workspace, scratch_workspace = init_gdb()
-
-
+workspace, scratch_workspace = init_gdb()
+# TODO add print steps, rename variables
 def KeepFields(Keep_table):
     arcpy.env.overwriteOutput = True
     fields_kept = arcpy.management.DeleteField(
