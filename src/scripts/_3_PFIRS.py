@@ -11,6 +11,7 @@
 import arcpy
 from ._1b_add_fields import AddFields
 from ._2b_assign_domains import AssignDomains
+# add 2j standardize domains, 2f Categories
 from ._7b_enrichments_pts import enrich_points
 from ._2k_keep_fields import KeepFields
 # import os
@@ -18,28 +19,27 @@ from ._2k_keep_fields import KeepFields
 from .utils import init_gdb, delete_scratch_files, runner
 import time
 
-original_gdb, workspace, scratch_workspace = init_gdb()
+workspace, scratch_workspace = init_gdb()
+# TODO add print steps, rename variables
 
-
-def PFIRS(input_fc, output_standardized, output_enriched, treat_poly):
+def PFIRS(input_fc, output_standardized, output_enriched, treat_poly, delete_scratch=True):
     start = time.time()
     print(f"Start Time {time.ctime()}")
-    arcpy.env.overwriteOutput = True
 
     # Model Environment settings
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
+        transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     ):
+        
         print("Performing Standardization")
         # Process: Select Layer By Attribute (3) (Select Layer By Attribute) (management)
         pfirs_agencies = arcpy.management.SelectLayerByAttribute(
@@ -84,7 +84,7 @@ def PFIRS(input_fc, output_standardized, output_enriched, treat_poly):
             clear_field_alias="DO_NOT_CLEAR",
         )
 
-        # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
+        # Process: 1b Add Fields (1b Add Fields)
         pfirs_add_fields = AddFields(Input_Table=pfirs_alter_county)
 
         # Process: Calculate Project ID (Calculate Field) (management)
@@ -402,7 +402,7 @@ def PFIRS(input_fc, output_standardized, output_enriched, treat_poly):
         # Process: Delete Field (Delete Field) (management)
         pfirs_keep_field = KeepFields(pfirs_rows_deleted)
 
-        # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
+        # Process: 2b Assign Domains (2b Assign Domains)
         pfirs_assign_domains = AssignDomains(in_table=pfirs_keep_field)
         output_standardized_copy = os.path.join(
             scratch_workspace, "pfirs_standardized_copy"
@@ -410,7 +410,7 @@ def PFIRS(input_fc, output_standardized, output_enriched, treat_poly):
         arcpy.CopyFeatures_management(pfirs_assign_domains, output_standardized_copy)
 
         print("Performing Enrichments")
-        # Process: 7b Enrichments pts (7b Enrichments pts) (PC414CWIMillionAcres)
+        # Process: 7b Enrichments pts (7b Enrichments pts)
         # Pts_enrichment_Veg2 = os.path.join(scratch_workspace, "Pts_enrichment_Veg2") # no point in having final output be a scratch file
         enrich_points(
             enrich_pts_out=output_enriched, enrich_pts_in=output_standardized_copy
@@ -421,27 +421,13 @@ def PFIRS(input_fc, output_standardized, output_enriched, treat_poly):
         # arcpy.management.CopyFeatures(in_features=Pts_enrichment_Veg2,
         #                               out_feature_class=output_enriched)
 
-        # Process: 2b Assign Domains (2) (2b Assign Domains) (PC414CWIMillionAcres)
+        # Process: 2b Assign Domains (2) (2b Assign Domains)
         # pfirs_enriched_assign_domains =
         AssignDomains(in_table=output_enriched)
 
-        print("Deleting Scratch Files")
-        delete_scratch_files(
-            gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-        )
+        if delete_scratch: delete_scratch_files(
+                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
+            )
+
         end = time.time()
         print(f"Time Elapsed: {(end-start)/60} minutes")
-
-
-# if __name__ == "__main__":
-#     runner(workspace, scratch_workspace, PFIRS, "*argv[1:]")
-# # Global Environment settings
-#  with arcpy.EnvManager(
-# extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
-# preserveGlobalIds=True,
-# qualifiedFieldNames=False,
-# scratchWorkspace=scratch_workspace,
-# transferDomains=True,
-# transferGDBAttributeProperties=True,
-# workspace=workspace):
-#     PFIRS(*argv[1:])

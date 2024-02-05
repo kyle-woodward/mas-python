@@ -10,18 +10,15 @@
 import arcpy
 from scripts._1b_add_fields import AddFields
 from scripts._2b_assign_domains import AssignDomains
+# add 2j standardize domains, 2f Categories
 from scripts._7a_enrichments_polygon import enrich_polygons
-from scripts.utils import runner, init_gdb
-# from sys import argv
-# import os
-original_gdb, workspace, scratch_workspace = init_gdb()
-
+from scripts.utils import init_gdb
+import os
+workspace, scratch_workspace = init_gdb()
+# TODO add print steps, rename variables
 def DOC6(DOC_Ag_Standardized, 
             DOC_Ag_enriched,
             DOC_Ag_OG):  
-
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = True
 
     # # Model Environment settings
     # with arcpy.EnvManager(qualifiedFieldNames=False, transferDomains=False, transferGDBAttributeProperties=False):
@@ -32,16 +29,15 @@ def DOC6(DOC_Ag_Standardized,
     DOC_Summarized_Polygons = os.path.join(scratch_workspace, "DOC_Summarized_Polygons")
 
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
+        transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     ):
         # Process: Dissolve (Dissolve) (management)
@@ -62,7 +58,7 @@ def DOC6(DOC_Ag_Standardized,
         print("step 2/24  repair geometry...")
         DOC_Repaired_Geometry = arcpy.management.RepairGeometry(in_features=DOC_Ag_OG_Dissolve)#[0]
 
-        # Process: 1b Add Fields (1b Add Fields) (PC414CWIMillionAcres)
+        # Process: 1b Add Fields (1b Add Fields)
 <<<<<<< HEAD
         DOC_w_Fields = AddFields(Input_Table=DOC_Repaired_Geometry)
 =======
@@ -177,7 +173,7 @@ def DOC6(DOC_Ag_Standardized,
         arcpy.management.CopyFeatures(in_features=DOC_calc_src, 
                                       out_feature_class=DOC_Ag_Standardized.__str__().format(**locals(),**globals()))#[0]
 
-        # Process: 7a Enrichments Polygon (7a Enrichments Polygon) (PC414CWIMillionAcres)
+        # Process: 7a Enrichments Polygon (7a Enrichments Polygon)
 <<<<<<< HEAD
         enrich_polygons(enrich_out=DOC_Summarized_Polygons, 
 =======
@@ -191,7 +187,7 @@ def DOC6(DOC_Ag_Standardized,
         arcpy.management.CopyFeatures(in_features=DOC_Summarized_Polygons, 
                                       out_feature_class=DOC_Ag_enriched.__str__().format(**locals(),**globals()))#[0]
 
-        # Process: 2b Assign Domains (2b Assign Domains) (PC414CWIMillionAcres)
+        # Process: 2b Assign Domains (2b Assign Domains)
         print("step 24/24 assign domains...")
         WFR_TF_Template_2_ = AssignDomains(in_table=DOC_Ag_enriched.__str__().format(**locals(),**globals()))
 

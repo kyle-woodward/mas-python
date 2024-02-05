@@ -8,34 +8,29 @@
 # Date Created: Jan 24, 2024
 """
 import arcpy
-# import os
-# from sys import argv
+import os
 from .utils import init_gdb, delete_scratch_files, runner
 from ._2k_keep_fields import KeepFields
+# add 2j standardize domains
 import time
 
-original_gdb, workspace, scratch_workspace = init_gdb()
+workspace, scratch_workspace = init_gdb()
+# TODO add print steps, rename variables
 
-
-def ACCG(input_fc, output_standardized):  # 6p_ACCG_Stakeholder-Draft
+def ACCG(input_fc, output_standardized):
     start = time.time()
     print(f"Start Time {time.ctime()}")
-    arcpy.env.overwriteOutput = True
-
-    arcpy.ImportToolbox(
-        r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Data Management Tools.tbx"
-    )
+    
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
+        transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     ):
         # _scratchgdb_ = f"{arcpy.env.scratchGDB}" replaced with "scratch_workspace"
@@ -797,16 +792,3 @@ def ACCG(input_fc, output_standardized):  # 6p_ACCG_Stakeholder-Draft
         print(f"Time Elapsed: {(end-start)/60} minutes")
     return accg_copy
 
-
-# if __name__ == "__main__":
-#     runner(workspace, scratch_workspace, ACCG, "*argv[1:]")
-    # # Global Environment settings
-    # with arcpy.EnvManager(
-    # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
-    # preserveGlobalIds=True,
-    # qualifiedFieldNames=False,
-    # scratchWorkspace=scratch_workspace,
-    # transferDomains=True,
-    # transferGDBAttributeProperties=True,
-    # workspace=workspace):
-    #     ACCG(*argv[1:])

@@ -5,61 +5,47 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
+import os
 import arcpy
-
-# from ._2d_calculate_activity import Activity
-# from ._2f_calculate_category import Category
-# from ._2e_calculate_objective import Objective
-# from ._2g_calculate_residue_fate import Residue
 from ._2h_calculate_year import Year
 from ._2k_keep_fields import KeepFields
+from ._2m_counts_to_mas import CountsToMAS
 from ._2l_crosswalk import Crosswalk
-# from sys import argv
-from scripts.utils import init_gdb, delete_scratch_files, runner
-# import os
+from .utils import init_gdb
 
-original_gdb, workspace, scratch_workspace = init_gdb()
+workspace, scratch_workspace = init_gdb()
 
-
-# first arg is the output fc path and the other is the input fc you are enriching
 def enrich_polygons(
-    enrich_out, enrich_in, delete_scratch=False
-):  # 7a Enrichments Polygon
-    # arcpy.ImportToolbox(
-    #     r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Analysis Tools.tbx"
-    # )
-    # arcpy.ImportToolbox(
-    #     r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\GeoAnalytics Desktop Tools.tbx"
-    # )
-    # arcpy.ImportToolbox(
-    #     r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Data Management Tools.tbx"
-    # )
+    enrich_out, enrich_in
+):  
 
     # wrapping entire process within an arcpy.EnvManager() instance fixes the SummarizeWithin tool failed error
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
+        transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     ):
-        # define file paths to required input datasets (mostly from b_Reference featuredataset in original GDB)
-        Veg_Layer = os.path.join(workspace,'b_Reference','Broad_Vegetation_Types')
-        WUI_Layer = os.path.join(workspace,'b_Reference','WUI')
-        Ownership_Layer = os.path.join(workspace,'b_Reference','CALFIRE_Ownership_Update')
-        Regions_Layer = os.path.join(workspace,'b_Reference','WFRTF_Regions')
+        
+        # define file paths to required input datasets (mostly from a_Reference featuredataset in original GDB)
+        Veg_Layer = os.path.join(workspace,'a_Reference','Broad_Vegetation_Types')
+        WUI_Layer = os.path.join(workspace,'a_Reference','WUI')
+        Ownership_Layer = os.path.join(workspace,'a_Reference','CALFIRE_Ownership_Update')
+        Regions_Layer = os.path.join(workspace,'a_Reference','WFRTF_Regions')
         
         # define file paths to intermediary outputs in scratch gdb
         Veg_Summarized_Polygons = os.path.join(
             scratch_workspace, "Veg_Summarized_Polygons"
         )
-        WHR13NAME_Summary = os.path.join(scratch_workspace, "WHR13NAME_Summary")
+        WHR13NAME_Summary = os.path.join(
+            scratch_workspace, "WHR13NAME_Summary"
+        )
         WHR13NAME_Summary_SummarizeAttributes = os.path.join(
             scratch_workspace, "WHR13NAME_Summary_SummarizeAttributes"
         )
@@ -139,6 +125,8 @@ def enrich_polygons(
             z_tolerance=0,
         )
 
+        ## GetCount can be used for trouble shooting to determine if the correct
+        ## number of features are passed from tool to tool
         # Count1 = arcpy.management.GetCount(WHR13NAME_Summary_temp_2_)
         # print("{} has {} records".format(WHR13NAME_Summary_temp_2_, Count1[0]))
 
@@ -186,6 +174,7 @@ def enrich_polygons(
             invert_where_clause="",
         )
 
+#TODO Do I standardize domains here or in parent?
         # Process: Calculate Veg (Calculate Field) (management)
         print("     step 10/34 calculate veg domain code")
         Veg_Summarized_Polygons_Laye_2_ = arcpy.management.CalculateField(
@@ -251,6 +240,9 @@ def enrich_polygons(
         Layer_With_Join_Removed = arcpy.management.RemoveJoin(
             in_layer_or_view=Updated_Input_Table_4a_, join_name="WHR13NAME_Summary_temp"
         )
+
+        ## GetCount can be used for trouble shooting to determine if the correct
+        ## number of features are passed from tool to tool
         # Count2 = arcpy.management.GetCount(Layer_With_Join_Removed)
         # print("{} has {} records".format(Layer_With_Join_Removed, Count2[0]))
 
@@ -316,6 +308,9 @@ def enrich_polygons(
             where_clause="", 
             invert_where_clause=""
         )
+
+        ## GetCount can be used for trouble shooting to determine if the correct
+        ## number of features are passed from tool to tool
         # Count3 = arcpy.management.GetCount(Treatments_Merge3_California_5_)
         # print('{} has {} records'.format(Treatments_Merge3_California_5_, Count3[0]))
         
@@ -530,12 +525,12 @@ def enrich_polygons(
         Veg_Summarized_Polygons_Laye_6_ = arcpy.management.CalculateField(
             in_table=Veg_Summarized_Polygons_Laye2_4_,
             field="Veg_Summarized_Polygons.REGION",
-            expression="ifelse(!Veg_Summarized_Join2_RCD.Region!)",
+            expression="ifelse(!Veg_Summarized_Join2_RCD.Region_1!)",
             expression_type="PYTHON3",
             code_block="""def ifelse(Reg):
-                                        if Reg == \"Central Coast\":
+                                        if Reg == \"Central California\":
                                             return \"CENTRAL_COAST\"
-                                        if Reg == \"North Coast\":
+                                        if Reg == \"Northern California\":
                                             return \"NORTH_COAST\"
                                         if Reg == \"Sierra Nevada\":
                                             return \"SIERRA_NEVADA\"
@@ -554,11 +549,13 @@ def enrich_polygons(
             join_name="Veg_Summarized_Join2_RCD",
         )
 
+        ## GetCount can be used for trouble shooting to determine if the correct
+        ## number of features are passed from tool to tool
         # Count4 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye2)
         # print("{} has {} records".format(Veg_Summarized_Polygons_Laye2, Count4[0]))
 
         print("     step 27/34 Calculating Years...")
-        # Process: 2h Calculate Year (2h Calculate Year) (PC414CWIMillionAcres)
+        # Process: 2h Calculate Year (2h Calculate Year)
         Veg_Summarized_Polygons_Laye3_7_ = Year(Year_Input=Veg_Summarized_Polygons_Laye2)
         
         print("   step 28/34 Initiating Crosswalk...")
@@ -566,6 +563,8 @@ def enrich_polygons(
         crosswalk_table = Crosswalk(Input_Table=Veg_Summarized_Polygons_Laye3_7_)
         print("   Crosswalk Complete, Continuing Enrichment...")
 
+        ## GetCount can be used for trouble shooting to determine if the correct
+        ## number of features are passed from tool to tool
         # Count5 = arcpy.management.GetCount(crosswalk_table)
         # print('{} has {} records'.format(crosswalk_table, Count5[0]))
 
@@ -578,7 +577,7 @@ def enrich_polygons(
                 ["LONGITUDE", "INSIDE_X"]],
             length_unit="",
             area_unit="",
-            coordinate_system='GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+            coordinate_system=arcpy.SpatialReference("GCS_WGS_1984"), 
             coordinate_format="DD",
         )
 
@@ -589,14 +588,20 @@ def enrich_polygons(
             geometry_property=[["TREATMENT_AREA", "AREA"]],
             length_unit="",
             area_unit="ACRES_US",
-            coordinate_system='PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+            coordinate_system=arcpy.SpatialReference("NAD_1983_California_Teale_Albers"), 
             coordinate_format="SAME_AS_INPUT",
         )
 
+        print("     step 31/34 counts to MAS")
+        # Process: 2m Counts to MAS (2m Counts to MAS)
+        counts_ = CountsToMAS(Input_Table=Veg_Summarized_Polygons_Laye_8_)
+
         # # Process: Keep Fields (Delete Field) (management)
         print("     step 31/34 removing unnecessary fields")
-        Veg_Summarized_Polygons_Laye_11_ = KeepFields(Veg_Summarized_Polygons_Laye_8_)       
+        Veg_Summarized_Polygons_Laye_11_ = KeepFields(counts_)       
         
+        ## GetCount can be used for trouble shooting to determine if the correct
+        ## number of features are passed from tool to tool
         # Count6 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye_11_)
         # print('{} has {} records'.format(Veg_Summarized_Polygons_Laye_11_, Count6[0]))
 
@@ -608,46 +613,9 @@ def enrich_polygons(
             where_clause="County IS NOT NULL",
         )
 
+        ## GetCount can be used for trouble shooting to determine if the correct
+        ## number of features are passed from tool to tool
         # Count7 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye_13_)
         # print("{} has {} records".format(Veg_Summarized_Polygons_Laye_13_, Count7[0]))
 
-        print("     step 34/34 delete scratch files")
-
-        if delete_scratch:
-            print('Deleting Scratch Files')
-            delete_scratch_files(
-                gdb=scratch_workspace,
-                delete_fc="yes",
-                delete_table="yes",
-                delete_ds="yes",
-            )
-
         print("Enrich Polygons Complete...")
-
-# if __name__ == "__main__":
-#     runner(workspace, scratch_workspace, enrich_polygons, "*argv[1:]")
-    # # Global Environment settings
-    # with arcpy.EnvManager(
-    # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",
-    # outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
-    # preserveGlobalIds=True,
-    # qualifiedFieldNames=False,
-    # scratchWorkspace=scratch_workspace,
-    # transferDomains=True,
-    # transferGDBAttributeProperties=True,
-    # workspace=workspace):
-    #     enrich_polygons(*argv[1:])
-    # runner(workspace,scratch_workspace,aEnrichmentsPolygon1, '*argv[1:]')
-    # Global Environment settings
-
-    # with arcpy.EnvManager(
-    #     extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",
-    #     outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
-    #     preserveGlobalIds=True,
-    #     qualifiedFieldNames=False,
-    #     scratchWorkspace=scratch_workspace,
-    #     transferDomains=True,
-    #     transferGDBAttributeProperties=True,
-    #     workspace=workspace,
-    # ):
-    #     enrich_polygons(*argv[1:])

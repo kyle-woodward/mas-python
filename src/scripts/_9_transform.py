@@ -10,13 +10,11 @@ import arcpy
 from scripts._9a_Transform_Projects import TransformProjects
 from scripts._9b_Transform_Treatments import TransformTreatments
 from ._2k_keep_fields import KeepFields
-# from sys import argv
 from datetime import datetime
-from .utils import init_gdb, delete_scratch_files, runner
-# import os
+from .utils import init_gdb, delete_scratch_files
+import os
 
-original_gdb, workspace, scratch_workspace = init_gdb()
-
+workspace, scratch_workspace = init_gdb()
 
 def Transform2(
     Treat_n_harvests_polygons,
@@ -32,22 +30,20 @@ def Transform2(
     CNRA_Projects,
     CNRA_Treatments,
     CNRA_Treatments_3_,
-):  # 9 Transform 20230307
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
+    delete_scratch=False
+):
 
     # Model Environment settings
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
+        transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     ):
         scratch_gdb = scratch_workspace
@@ -129,7 +125,7 @@ def Transform2(
             where_clause="Source <> 'CNRA' Or Source <> 'CALMAPPER_poly'",
         )
 
-        # Process: 9b Transform Treatments (2) (9b Transform Treatments) (PC414CWIMillionAcres)
+        # Process: 9b Transform Treatments (2) (9b Transform Treatments)
         TransformTreatments(
             treatment_poly=Treatment_poly_Value_2_,
             Input_Features=Treat_n_harvests_pts_Select,
@@ -150,7 +146,7 @@ def Transform2(
             where_clause="Source <> 'CNRA' Or Source <> 'CALMAPPER_poly'",
         )
 
-        # Process: 9a Transform Projects (2) (9a Transform Projects) (PC414CWIMillionAcres)
+        # Process: 9a Transform Projects (2) (9a Transform Projects)
         TransformProjects(
             Input_Features=Treat_n_harvests_pts_Select,
             project_poly=Project_poly_Value_2_,
@@ -202,7 +198,7 @@ def Transform2(
             where_clause="Source <> 'CNRA' Or Source <> 'CALMAPPER_poly'",
         )
 
-        # Process: 9a Transform Projects (3) (9a Transform Projects) (PC414CWIMillionAcres)
+        # Process: 9a Transform Projects (3) (9a Transform Projects)
         TransformProjects(
             project_poly=Project_poly_Value_3_,
             Input_Features=Treat_n_harvests_ln_Select,
@@ -223,7 +219,7 @@ def Transform2(
             where_clause="Source <> 'CNRA' Or Source <> 'CALMAPPER_poly'",
         )
 
-        # Process: 9b Transform Treatments (3) (9b Transform Treatments) (PC414CWIMillionAcres)
+        # Process: 9b Transform Treatments (3) (9b Transform Treatments)
         TransformTreatments(
             treatment_poly=Treatment_poly_Value_3_,
             Input_Features=Treat_n_harvests_ln_Select,
@@ -275,7 +271,7 @@ def Transform2(
             where_clause="Source <> 'CNRA'",
         )
 
-        # Process: 9a Transform Projects (9a Transform Projects) (PC414CWIMillionAcres)
+        # Process: 9a Transform Projects (9a Transform Projects)
         TransformProjects(
             project_poly=Project_poly_Value_,
             Input_Features=Treat_n_harvests_poly_Select,
@@ -296,7 +292,7 @@ def Transform2(
             where_clause="Source <> 'CNRA'",
         )
 
-        # Process: 9b Transform Treatments (9b Transform Treatments) (PC414CWIMillionAcres)
+        # Process: 9b Transform Treatments (9b Transform Treatments)
         TransformTreatments(
             treatment_poly=Treatment_poly_Value_,
             Input_Features=Treat_n_harvests_poly_Select,
@@ -550,18 +546,10 @@ def Transform2(
                 origin_foreign_key="TRMTID_USER",
             )
 
+        if delete_scratch: delete_scratch_files(
+                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
+            )
+
         return Activities_Value_
 
 
-# if __name__ == "__main__":
-#     runner(workspace, scratch_workspace, Transform2, "*argv[1:]")
-#     # Global Environment settings
-#     with arcpy.EnvManager(
-#     extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
-#     preserveGlobalIds=True,
-#     qualifiedFieldNames=False,
-#     scratchWorkspace=scratch_workspace,
-#     transferDomains=True,
-#     transferGDBAttributeProperties=True,
-#     workspace=workspace):
-#         Transform2(*argv[1:])

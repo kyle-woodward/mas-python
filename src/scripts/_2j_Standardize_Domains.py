@@ -10,8 +10,8 @@
 import arcpy
 from scripts.utils import init_gdb
 
-original_gdb, workspace, scratch_workspace = init_gdb()
-
+workspace, scratch_workspace = init_gdb()
+# TODO add print steps, rename variables
 def StandardizeDomains(Input_Table): 
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = True
