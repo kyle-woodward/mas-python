@@ -10,9 +10,11 @@
 """
 import arcpy
 import time
+from .utils import init_gdb, delete_scratch_files
 
+workspace, scratch_workspace = init_gdb()
 
-def GetData():  # 1 Get Data
+def GetData():
     # Model Environment settings
     with arcpy.EnvManager(
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
@@ -211,15 +213,3 @@ def GetData():  # 1 Get Data
             )
 
 
-# if __name__ == "__main__":
-#     # Global Environment settings
-#     with arcpy.EnvManager(
-#         extent='-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
-#         preserveGlobalIds=True,
-#         qualifiedFieldNames=False,
-#         scratchWorkspace=r"C:\Users\sageg\Documents\ArcGIS\Projects\PC414 CWI Million Acres\scratch.gdb",
-#         transferDomains=True,
-#         transferGDBAttributeProperties=True,
-#         workspace=r"C:\Users\sageg\Documents\ArcGIS\Projects\PC414 CWI Million Acres\PC414 CWI Million Acres.gdb",
-#     ):
-#         Model1()

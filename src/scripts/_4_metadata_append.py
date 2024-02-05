@@ -4,10 +4,9 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
-import arcpy
-# from scripts.utils import init_gdb, runner
-from arcpy import metadata as md
 import shutil
+import arcpy
+from arcpy import metadata as md
 
 arcpy.env.overwriteOutput = True
 
