@@ -8,7 +8,6 @@
 import os
 import arcpy
 import yaml
-# from sys import argv
 from datetime import datetime
 
 def init_gdb():
@@ -159,4 +158,4 @@ def runner(workspace:str,scratch_workspace:str):
         transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     )
-# %%
+

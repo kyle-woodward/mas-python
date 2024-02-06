@@ -1,7 +1,8 @@
 # ArcGIS files
 *.aprx
 ImportLog
-Default.tbx
+# Default.tbx
+*.tbx
 Index
 .backups
 GpMessages
@@ -9,6 +10,8 @@ GpMessages
 # file data/databases
 *.gdb
 *.zip
+*.tif*
+*.tfw
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

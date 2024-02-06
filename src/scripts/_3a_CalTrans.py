@@ -10,35 +10,34 @@
 import os
 import time
 import arcpy
-from ._1b_add_fields import AddFields
-from ._2b_assign_domains import AssignDomains
-from ._2f_calculate_category import Category
-from ._2j_standardize_domains import StandardizeDomains
-from ._7c_enrichments_lines import enrich_lines
-from ._2k_keep_fields import KeepFields
+from ._1_add_fields import AddFields
+from ._1_assign_domains import AssignDomains
+from ._3_enrichments_lines import enrich_lines
+from ._3_keep_fields import KeepFields
 from .utils import init_gdb, delete_scratch_files
 
-workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
+original_gdb, workspace, scratch_workspace = init_gdb()
+# TODO add print steps
 
 def CalTrans(
     input_lines21,
     input_lines22,
     input_table21,
     input_table22,
+    output_lines_standardized,
     output_lines_enriched,
-    delete_scratch=False
 ):
     with arcpy.EnvManager(
-        workspace=workspace,
-        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
+        extent="""450000, -374900, 540100, -604500,
+                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=False, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
         overwriteOutput = True,
     ):
 
@@ -58,7 +57,7 @@ def CalTrans(
 
         ### BEGIN POLYLINE WORKFLOW
         # Process: Add Join (2) (Add Join) (management)
-        print("     step 1/?? add join")
+        print("     step 3/33 add join")
         input_table21_join = arcpy.management.AddJoin(
             in_layer_or_view=input_lines21,
             in_field="HIghwayID",
@@ -292,7 +291,7 @@ def CalTrans(
 
         # Process: Treatment User ID (Alter Field) (management)
         caltrans_poly_alterfield_v9 = arcpy.management.AlterField(
-            in_table=caltrans_poly_alterfield_v2,
+            in_table=caltrans_poly_copy_repaired_geom,
             field="TRMTID_USER",
             new_field_name="TRMTID_USER_2",
             new_field_alias="TRMTID_USER_2",
@@ -616,39 +615,37 @@ def CalTrans(
         # Process: Keep Fields (Delete Field) (management)
         caltrans_poly_keepfields = KeepFields(caltrans_poly_calc_field_v19)
 
-        output_lines_standardized = os.path.join(
-            scratch_workspace, "caltrans_scratch_standardized"
-        )
-        print(f"Saving Output Lines Standardized") #: {output_lines_standardized}")
+        print(f"Saving Output Lines Standardized: {output_lines_standardized}")
         # Process: Copy Features (3) (Copy Features) (management)
         arcpy.management.CopyFeatures(
             in_features=caltrans_poly_keepfields,
             out_feature_class=output_lines_standardized,
-            # config_keyword="",
-            # spatial_grid_1=None,
-            # spatial_grid_2=None,
-            # spatial_grid_3=None,
+            config_keyword="",
+            spatial_grid_1=None,
+            spatial_grid_2=None,
+            spatial_grid_3=None,
         )
 
         # Process: 2b Assign Domains (3) (2b Assign Domains)
-        # caltrans_line_standardized_assigndomains = AssignDomains(
-        #     in_table=output_lines_standardized
-        # )
+        caltrans_line_standardized_assigndomains = AssignDomains(
+            in_table=output_lines_standardized
+        )
 
+        print("Performing Lines Enrichments")
         # Process: 7c Enrichments Lines (2) (7c Enrichments Lines)
         caltrans_lines_enriched = enrich_lines(
-            line_fc=output_lines_standardized
-        )
+            line_fc=caltrans_line_standardized_assigndomains
+        )  # don't delete scratch
 
         print(f"Saving Output Lines Enriched: {output_lines_enriched}")
         # Process: Copy Features (4) (Copy Features) (management)
         arcpy.management.CopyFeatures(
             in_features=caltrans_lines_enriched,
             out_feature_class=output_lines_enriched,
-            # config_keyword="",
-            # spatial_grid_1=None,
-            # spatial_grid_2=None,
-            # spatial_grid_3=None,
+            config_keyword="",
+            spatial_grid_1=None,
+            spatial_grid_2=None,
+            spatial_grid_3=None,
         )
 
         # Process: Calculate Owner State (2) (Calculate Field) (management)
@@ -676,39 +673,29 @@ def CalTrans(
         #     enforce_domains="NO_ENFORCE_DOMAINS",
         # )
 
-        # Process: Calculate Treatment Geometry Field (Calculate Field) (management)
-        caltrans_lines_enriched_calc_field_v2 = arcpy.management.CalculateField(
-            in_table=caltrans_lines_enriched_calc_field_v1,
-            field="TRMT_GEOM",
-            expression='"LINE"',
-            expression_type="PYTHON3",
-            code_block="",
-            field_type="TEXT",
-            enforce_domains="NO_ENFORCE_DOMAINS",
-        )
-
-        print(f"Calculating Category")
-        # Process: Calculate Category
-        caltrans_lines_enriched_calc_field_v1a = Category(
-            Input_Table=caltrans_lines_enriched_calc_field_v2
-        )
-
-        print(f"Standardizing and Assigning Domains")
-        # Process: 2 Standardize Domain Values
-        caltrans_lines_enriched_calc_field_v1b = StandardizeDomains(
-            Input_Table=caltrans_lines_enriched_calc_field_v1a
-        )
-        
         # Process: 2b Assign Domains (4) (2b Assign Domains)
         caltrans_lines_enriched_assigndomains = AssignDomains(
-            in_table=caltrans_lines_enriched_calc_field_v1b
+            in_table=caltrans_lines_enriched_calc_field_v1
         )
 
-        if delete_scratch: delete_scratch_files(
-                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-            )
+        # print("Deleting Scratch Files")
+        # delete_scratch_files(
+        #     gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
+        # )
 
         end = time.time()
-        elapsed = str(round((end-start)/60, 1))
-        print(f"Time Elapsed: {elapsed} minutes")
+        print(f"Time Elapsed: {(end-start)/60} minutes")
 
+
+# if __name__ == "__main__":
+#     runner(workspace, scratch_workspace, CalTrans, "*argv[1:]")
+# # Global Environment settings
+#  with arcpy.EnvManager(
+# extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
+# preserveGlobalIds=True,
+# qualifiedFieldNames=False,
+# scratchWorkspace=scratch_workspace,
+# transferDomains=True,
+# transferGDBAttributeProperties=True,
+# workspace=workspace):
+#     CalTrans(*argv[1:])

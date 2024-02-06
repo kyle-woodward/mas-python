@@ -9,28 +9,29 @@
 """
 import arcpy
 import os
-from .utils import init_gdb, delete_scratch_files, runner
-from ._2k_keep_fields import KeepFields
-# add 2j standardize domains
+from .utils import init_gdb, delete_scratch_files
+from ._3_keep_fields import KeepFields
 import time
 
 workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
 
-def ACCG(input_fc, output_standardized):
+
+def ACCG(input_fc, output_standardized):  # 6p_ACCG_Stakeholder-Draft
     start = time.time()
     print(f"Start Time {time.ctime()}")
-    
+    arcpy.env.overwriteOutput = True
+
     with arcpy.EnvManager(
-        workspace=workspace,
-        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
+        extent="""450000, -374900, 540100, -604500,
+                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=False, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
         overwriteOutput = True,
     ):
         # _scratchgdb_ = f"{arcpy.env.scratchGDB}" replaced with "scratch_workspace"

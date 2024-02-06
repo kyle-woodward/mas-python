@@ -7,20 +7,20 @@
 """
 import arcpy
 from scripts.utils import init_gdb
+
 workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
-def CountsToMAS(Input_Table):
+
+def CountsToMAS(Input_Table):  
     arcpy.env.overwriteOutput = True
 
     # Process: Calculate No (Calculate Field) (management)
     CDFW_Enriched_Ln_Table_20230801_4_ = arcpy.management.CalculateField(
-                        in_table=Input_Table, 
-                        field="COUNTS_TO_MAS", 
-                        expression="'NO'"
-                        )
+                                                                        in_table=Input_Table, 
+                                                                         field="COUNTS_TO_MAS", expression="'NO'"
+                                                                         )
 
     # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
-    CDFW_Enriched_Ln_Table_20230801_5_, Count = arcpy.management.SelectLayerByAttribute(
+    CDFW_Enriched_Ln_Table_20230801_5_ = arcpy.management.SelectLayerByAttribute(
                         in_layer_or_view=CDFW_Enriched_Ln_Table_20230801_4_, 
                         where_clause="ACTIVITY_END >= timestamp '2020-01-01 00:00:00' And ACTIVITY_END < timestamp '2023-01-01 00:00:00'"
                         )
@@ -28,7 +28,9 @@ def CountsToMAS(Input_Table):
     # Process: Calculate Counts (Calculate Field) (management)
     Updated_Input_Table = arcpy.management.CalculateField(
                         in_table=CDFW_Enriched_Ln_Table_20230801_5_, 
-                        field="COUNTS_TO_MAS", expression="ifelse(!ACTIVITY_DESCRIPTION!)", code_block="""def ifelse(Act):
+                        field="COUNTS_TO_MAS", 
+                        expression="ifelse(!ACTIVITY_DESCRIPTION!)", 
+                        code_block="""def ifelse(Act):
                             if Act in ['BIOMASS_REMOVAL',
                             'BROADCAST_BURN',
                             'CHAIN_CRUSH',

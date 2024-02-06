@@ -8,33 +8,32 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
-import arcpy
-from ._1b_add_fields import AddFields
-from ._2b_assign_domains import AssignDomains
-# add 2j standardize domains, 2f Categories
-from ._7a_enrichments_polygon import enrich_polygons
-from ._2k_keep_fields import KeepFields
-from .utils import init_gdb, delete_scratch_files
 import os
 import time
+import arcpy
+from ._1_add_fields import AddFields
+from ._1_assign_domains import AssignDomains
+from ._3_enrichments_polygon import enrich_polygons
+from ._3_keep_fields import KeepFields
+from .utils import init_gdb, delete_scratch_files
 
-workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
+original_gdb, workspace, scratch_workspace = init_gdb()
 
 # def NPS(nps_flat_fuels_enriched_20221102="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\d_Enriched\\nps_flat_fuels_enriched_20221102", usfs_haz_fuels_treatments_standardized_20220713_2_="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\c_Standardized\\nps_flat_fuels_standardized_20221102"):  # 6r NPS 20221123
-def NPS(input_fc, output_standardized, output_enriched, delete_scratch=True):
+def NPS(input_fc, output_standardized, output_enriched):
     start = time.time()
     print(f"Start Time {time.ctime()}")
     with arcpy.EnvManager(
-        workspace=workspace,
-        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
+        extent="""450000, -374900, 540100, -604500,
+                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=False, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
         overwriteOutput = True,
     ):
 
@@ -454,9 +453,24 @@ def NPS(input_fc, output_standardized, output_enriched, delete_scratch=True):
         # nps_enriched_assign_domains =
         AssignDomains(in_table=output_enriched)
 
-        if delete_scratch: delete_scratch_files(
-                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-            )
+        print("Deleting Scratch Files")
+        delete_scratch_files(
+            gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
+        )
 
         end = time.time()
         print(f"Time Elapsed: {(end-start)/60} minutes")
+
+
+# if __name__ == "__main__":
+#     runner(workspace, scratch_workspace, NPS, "*argv[1:]")
+    # # Global Environment settings
+    # with arcpy.EnvManager(
+    # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
+    # preserveGlobalIds=True,
+    # qualifiedFieldNames=False,
+    # scratchWorkspace=scratch_workspace,
+    # transferDomains=True,
+    # transferGDBAttributeProperties=True,
+    # workspace=workspace):
+    #     NPS(*argv[1:])

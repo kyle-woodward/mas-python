@@ -11,17 +11,15 @@
 import os
 import time
 import arcpy
-from ._1b_add_fields import AddFields
-from ._2b_assign_domains import AssignDomains
-# add 2j standardize domains, 2f Categories
-from ._7b_enrichments_pts import enrich_points
-from ._2c_units_domain import Units
-from ._7a_enrichments_polygon import enrich_polygons
-from ._2k_keep_fields import KeepFields
+from ._1_add_fields import AddFields
+from ._1_assign_domains import AssignDomains
+from ._3_enrichments_pts import enrich_points
+from ._3_enrichments_polygon import enrich_polygons
+from ._3_keep_fields import KeepFields
 from .utils import init_gdb, delete_scratch_files
 
-workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
+original_gdb, workspace, scratch_workspace = init_gdb()
+
 def Model_NFPORS(
     input_original_polys,
     input_original_pts_BIA,
@@ -31,18 +29,18 @@ def Model_NFPORS(
     output_polys_enriched,
     output_pts_standardized,
     output_pts_enriched,
-    delete_scratch=True
 ):
     with arcpy.EnvManager(
-        workspace=workspace,
-        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
+        extent="""450000, -374900, 540100, -604500,
+                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=False, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
         overwriteOutput = True,
     ):
         
@@ -484,12 +482,9 @@ def Model_NFPORS(
                 enforce_domains="NO_ENFORCE_DOMAINS",
             )
 
-            # Process: 2c Units Domain (2c Units Domain)
-            bia_fws_ca_calc_units = Units(in_table=bia_fws_ca_calc_field_v7)
-
             # Process: Calculate Activity Quantity (2) (Calculate Field) (management)
             bia_fws_ca_calc_field_v8 = arcpy.management.CalculateField(
-                in_table=bia_fws_ca_calc_units,
+                in_table=bia_fws_ca_calc_field_v7,
                 field="ACTIVITY_QUANTITY",
                 expression="ifelse(!totalaccomplishment!, !plannedaccomplishment!)",
                 expression_type="PYTHON3",
@@ -638,12 +633,12 @@ def Model_NFPORS(
             # Process: 2b Assign Domains (3) (2b Assign Domains)
             WFR_TF_Template_2_ = AssignDomains(in_table=usfs_haz_fuels_treatments_reduction2_5_)
 
-            if delete_scratch: delete_scratch_files(
+            print("Deleting Scratch Files")
+            delete_scratch_files(
                 gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
             )
 
             end = time.time()
             print(f"Time Elapsed: {(end-start)/60} minutes")
-
 
 

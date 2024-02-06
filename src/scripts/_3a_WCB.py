@@ -8,22 +8,17 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
-import arcpy
-from scripts._1b_add_fields import AddFields
-from scripts._2b_assign_domains import AssignDomains
-# add 2j standardize domains, 2f Categories
-<<<<<<< HEAD
-from scripts._7a_enrichments_polygon import enrich_polygons
-from scripts.utils import runner, init_gdb
-=======
-from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
-from scripts.utils import runner, init_gdb, KeepFields
->>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
 import os
 import datetime
-workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
-def WCB(WCB_standardized, WCB_OG, delete_scratch=True):
+import arcpy
+from scripts._1_add_fields import AddFields
+from scripts._1_assign_domains import AssignDomains
+from scripts._3_enrichments_polygon import enrich_polygons
+from scripts.utils import init_gdb
+
+original_gdb, workspace, scratch_workspace = init_gdb()
+
+def WCB(WCB_standardized, WCB_OG): 
 
     date_id = datetime.datetime.now().strftime("%Y-%m-%d").replace('-','')
 
@@ -37,15 +32,16 @@ def WCB(WCB_standardized, WCB_OG, delete_scratch=True):
 
     # Model Environment settings
     with arcpy.EnvManager(
-        workspace=workspace,
-        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
+        extent="""450000, -374900, 540100, -604500,
+                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=False, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
         overwriteOutput = True,
     ):
 
@@ -100,12 +96,8 @@ def WCB(WCB_standardized, WCB_OG, delete_scratch=True):
                                                                new_field_name="County_")
 
         # Process: 1b Add Fields (1b Add Fields)
-<<<<<<< HEAD
-        WCB_add_fields = AddFields(Input_Table=WCB_Dissolve_alter_field_2)
-=======
         print("Executing Step 8/34 : Add Fields...")
-        WCB_add_fields = AddFields2(Input_Table=WCB_Dissolve_alter_field_2)
->>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
+        WCB_add_fields = AddFields(Input_Table=WCB_Dissolve_alter_field_2)
 
         # Process: Calculate Project ID User (Calculate Field) (management)
         print("Executing Step 9/34 : Calculate PROJECTID_USER...")
@@ -159,76 +151,76 @@ def WCB(WCB_standardized, WCB_OG, delete_scratch=True):
         print("Executing Step 17/34 : Calculate PRIMARY_OBJECTIVE...")
         WCB_calc_prim_obj = arcpy.management.CalculateField(in_table=WCB_calc_proj_start, 
                                                                  field="PRIMARY_OBJECTIVE", 
-                                                                 expression="!PrimPurp!")#[0]
+                                                                 expression="!PrimPurp!")
 
         # Process: Calculate Secondary Objective (Calculate Field) (management)
         print("Executing Step 18/34 : Calculate SECONDARY_OBJECTIVE...")
         WCB_calc_sec_obj = arcpy.management.CalculateField(in_table=WCB_calc_prim_obj, 
                                                                  field="SECONDARY_OBJECTIVE", 
-                                                                 expression="!Type!")#[0]
+                                                                 expression="!Type!")
 
         # Process: Calculate Tertiary Objective (Calculate Field) (management)
         print("Executing Step 19/34 : Calculate TERTIARY_OBJECTIVE...")
         WCB_calc_tert_obj = arcpy.management.CalculateField(in_table=WCB_calc_sec_obj, 
                                                                  field="TERTIARY_OBJECTIVE", 
                                                                  expression="!Function!", 
-                                                                 enforce_domains="NO_ENFORCE_DOMAINS")#[0]
+                                                                 enforce_domains="NO_ENFORCE_DOMAINS")
 
         # Process: Calculate Primary Funding Source (Calculate Field) (management)
         print("Executing Step 20/34 : Calculate PRIMARY_FUNDING_SOURCE...")
         WCB_calc_prim_fund_src = arcpy.management.CalculateField(in_table=WCB_calc_tert_obj, 
                                                                  field="PRIMARY_FUNDING_SOURCE", 
                                                                  expression="!Program!", 
-                                                                 enforce_domains="NO_ENFORCE_DOMAINS")#[0]
+                                                                 enforce_domains="NO_ENFORCE_DOMAINS")
 
         # Process: Calculate Activity Acres (Calculate Field) (management)
         print("Executing Step 21/34 : Calculate ACTIVITY_QUANTITY...")
         WCB_calc_act_ac = arcpy.management.CalculateField(in_table=WCB_calc_prim_fund_src, 
                                                                  field="ACTIVITY_QUANTITY", 
-                                                                 expression="!TotalAcres!")#[0]
+                                                                 expression="!TotalAcres!")
 
         # Process: Calculate UOM (Calculate Field) (management)
         print("Executing Step 22/34 : Calculate ACTIVITY_UOM...")
         WCB_calc_uom = arcpy.management.CalculateField(in_table=WCB_calc_act_ac, 
                                                                   field="ACTIVITY_UOM", 
-                                                                  expression="\"AC\"")#[0]
+                                                                  expression="\"AC\"")
 
         # Process: Calculate Activity End Date (Calculate Field) (management)
         print("Executing Step 23/34 : Calculate ACTIVITY_END...")
         WCB_calc_act_end_date = arcpy.management.CalculateField(in_table=WCB_calc_uom, 
                                                                   field="ACTIVITY_END", 
-                                                                  expression="!dtmBoardAp!")#[0]
+                                                                  expression="!dtmBoardAp!")
 
         # Process: Calculate Activity Status (Calculate Field) (management)
         print("Executing Step 24/34 : Calculate ACTIVITY_STATUS...")
         WCB_calc_act_stat = arcpy.management.CalculateField(in_table=WCB_calc_act_end_date, 
                                                                    field="ACTIVITY_STATUS", 
-                                                                   expression="\"ACTIVE\"")#[0]
+                                                                   expression="\"ACTIVE\"")
 
         # Process: Calculate Implementing Org (Calculate Field) (management)
         print("Executing Step 25/34 : Calculate IMPLEM_ORG_NAME...")
         WCB_calc_imp_org = arcpy.management.CalculateField(in_table=WCB_calc_act_stat, 
                                                                  field="IMPLEM_ORG_NAME", 
-                                                                 expression="!PrimGrante!")#[0]
+                                                                 expression="!PrimGrante!")
 
         # Process: Calculate Source (Calculate Field) (management)
         print("Executing Step 26/34 : Calculate Source...")
         WCB_calc_src = arcpy.management.CalculateField(in_table=WCB_calc_imp_org, 
                                                             field="Source", 
-                                                            expression="\"WCB\"")#[0]
+                                                            expression="\"WCB\"")
 
         # Process: Calculate Crosswalk (Calculate Field) (management)
         print("Executing Step 27/34 : Calculate Crosswalk...")
         WCB_calc_xwalk = arcpy.management.CalculateField(in_table=WCB_calc_src, 
                                                                   field="Crosswalk", 
-                                                                  expression="!Function! + \" \" + !PrimPurp!")#[0]
+                                                                  expression="!Function! + \" \" + !PrimPurp!")
 
         # Process: Calculate Year (Calculate Field) (management)
         print("Executing Step 28/34 : Calculate Year...")
         WCB_calc_year = arcpy.management.CalculateField(in_table=WCB_calc_xwalk, 
                                                                   field="Year", 
                                                                   expression="Year($feature.dtmBoardAp)", 
-                                                                  expression_type="ARCADE")#[0]
+                                                                  expression_type="ARCADE")
 
         # Process: Copy Features (Copy Features) (management)
         print("Executing Step 29/34 : Copy Features...")
@@ -242,12 +234,8 @@ def WCB(WCB_standardized, WCB_OG, delete_scratch=True):
         WCB_w_domains = AssignDomains(in_table=WCB_standardized_keep_fields)
 
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon)
-<<<<<<< HEAD
-        enrich_polygons(enrich_out=WCB_enriched_scratch, 
-=======
         print("Executing Step 31/34 : Enrich Polygons...")
-        aEnrichmentsPolygon1(enrich_out=WCB_enriched_scratch, 
->>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
+        enrich_polygons(enrich_out=WCB_enriched_scratch, 
                              enrich_in=WCB_w_domains)
 
         # Process: Select Layer By Attribute (3) (Select Layer By Attribute) (management)
@@ -264,8 +252,5 @@ def WCB(WCB_standardized, WCB_OG, delete_scratch=True):
         print("Executing Step 34/34 : AssignDomains to enriched...")
         WFR_TF_Template_4_ = AssignDomains(in_table=WCB_enriched)
 
-        if delete_scratch: delete_scratch_files(
-                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-            )
-
+        #delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
 

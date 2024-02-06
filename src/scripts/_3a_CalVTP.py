@@ -10,30 +10,29 @@
 """
 import os
 import arcpy
-from scripts._1b_add_fields import AddFields
-from scripts._2b_assign_domains import AssignDomains
-# add 2j standardize domains, 2f Categories
-from scripts._7a_enrichments_polygon import enrich_polygons
-from scripts.utils import init_gdb
+from scripts._1_add_fields import AddFields
+from scripts._1_assign_domains import AssignDomains
+from scripts._3_enrichments_polygon import enrich_polygons
+from scripts.utils import  init_gdb
 
 workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
+
 def CalVTP(CalVTP_enriched,
            CalVTP_standardized,
-           CalVTP_OG,
-           delete_scratch=False
+           CalVTP_OG
            ):
-    
+
     with arcpy.EnvManager(
-        workspace=workspace,
-        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
+        extent="""450000, -374900, 540100, -604500,
+                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=False, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
         overwriteOutput = True,
     ):
 
@@ -55,57 +54,53 @@ def CalVTP(CalVTP_enriched,
         # Process: Repair Geometry (Repair Geometry) (management)
         print("step 3/30 repair geometry...")
         CALVTP_repair_geom = arcpy.management.RepairGeometry(in_features=CALVTP_select_2, 
-                                                        delete_null="KEEP_NULL")[0]
+                                                        delete_null="KEEP_NULL")
 
         # Process: Alter Field (Alter Field) (management)
         print("step 4/30 alter field...")
         CALVTP_alter_field = arcpy.management.AlterField(in_table=CALVTP_repair_geom, 
                                                 field="County", 
-                                                new_field_name="County_")[0]
+                                                new_field_name="County_")
 
-        # Process: 1b Add Fields (1b Add Fields)
-    <<<<<<< HEAD
-        CalVTP_add_fields = AddFields(Input_Table=CALVTP_alter_field)[0]
-    =======
+        # Process: 1b Add Fields (1b Add Fields) 
         print("step 5/30 add fields...")
-        CalVTP_add_fields = AddFields2(Input_Table=CALVTP_alter_field)
-    >>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
+        CalVTP_add_fields = AddFields(Input_Table=CALVTP_alter_field)
 
         # Process: Calculate Project User ID (Calculate Field) (management)
         print("step 6/30 calculate field...")
         CALVTP_calc_proj_user_id = arcpy.management.CalculateField(in_table=CalVTP_add_fields, 
                                                                     field="PROJECTID_USER", 
-                                                                    expression="!PROJECT_ID!")[0]
+                                                                    expression="!PROJECT_ID!")
 
         # Process: Calculate Agency (Calculate Field) (management)
         print("step 7/30 calculate field...")
         CalVTP_calc_agency = arcpy.management.CalculateField(in_table=CALVTP_calc_proj_user_id, 
                                                                 field="AGENCY", 
-                                                                expression="\"CNRA\"")[0]
+                                                                expression="\"CNRA\"")
 
         # Process: Calculate Org Steward (Calculate Field) (management)
         print("step 8/30 calculate field...")
         CalVTP_calc_org_stew = arcpy.management.CalculateField(in_table=CalVTP_calc_agency, 
                                                                 field="ORG_ADMIN_p", 
-                                                                expression="\"BOF\"")[0]
+                                                                expression="\"BOF\"")
 
         # Process: Calculate Prj Contact (Calculate Field) (management)
         print("step 9/30 calculate field...")
         CalVTP_calc_proj_contact = arcpy.management.CalculateField(in_table=CalVTP_calc_org_stew, 
                                                                 field="PROJECT_CONTACT", 
-                                                                expression="\"Kristina Wolf\"")[0]
+                                                                expression="\"Kristina Wolf\"")
 
         # Process: Calculate Prj Email (Calculate Field) (management)
         print("step 10/30 calculate field...")
         CALVTP_calc_proj_email = arcpy.management.CalculateField(in_table=CalVTP_calc_proj_contact, 
                                                         field="PROJECT_EMAIL", 
-                                                        expression="\"Kristina.Wolf@bof.ca.gov\"")[0]
+                                                        expression="\"Kristina.Wolf@bof.ca.gov\"")
 
         # Process: Calculate Admin Org (Calculate Field) (management)
         print("step 11/30 calculate field...")
         CalVTP_calc_admin_org = arcpy.management.CalculateField(in_table=CALVTP_calc_proj_email, 
                                                                 field="ADMINISTERING_ORG", 
-                                                                expression="\"BOF\"")[0]
+                                                                expression="\"BOF\"")
 
         # Process: Calculate Primary Funding Source (Calculate Field) (management)
         print("step 12/30 calculate field...")
@@ -122,13 +117,13 @@ def CalVTP(CalVTP_enriched,
         elif Fund == \"3\":
             return \"CAL FIRE Urban Forestry\"
         else:
-            return Fund""")[0]
+            return Fund""")
 
         # Process: Calculate Primary Funding Org (Calculate Field) (management)
         print("step 13/30 calculate field...")
         CalVTP_calc_prim_fund_org = arcpy.management.CalculateField(in_table=CalVTP_calc_prim_fund_src, 
                                                                 field="PRIMARY_FUNDING_ORG", 
-                                                                expression="\"BOF\"")[0]
+                                                                expression="\"BOF\"")
 
         # Process: Calculate Objective (Calculate Field) (management)
         print("step 14/30 calculate field...")
@@ -143,26 +138,26 @@ def CalVTP(CalVTP_enriched,
         elif Treat == \"3\":
             return \"ECO_RESTOR\"
         else:
-            return Treat""")[0]
+            return Treat""")
 
         # Process: Calculate Implementing Org (Calculate Field) (management)
         print("step 15/30 calculate field...")
         CalVTP_calc_imp_org = arcpy.management.CalculateField(in_table=CalVTP_calc_obj, 
                                                                 field="IMPLEMENTING_ORG", 
-                                                                expression="\"BOF\"")[0]
+                                                                expression="\"BOF\"")
 
         # Process: Calculate Geometry Attributes (Calculate Geometry Attributes) (management)
         print("step 16/30 calculkate geometry attributes...")
         CALVTP_calc_geom_att = arcpy.management.CalculateGeometryAttributes(in_features=CalVTP_calc_imp_org, 
                                                                     geometry_property=[["LATITUDE", "INSIDE_Y"], ["LONGITUDE", "INSIDE_X"]], 
                                                                     coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]", 
-                                                                    coordinate_format="DD")[0]
+                                                                    coordinate_format="DD")
 
         # Process: Calculate Geometry Attributes (2) (Calculate Geometry Attributes) (management)
         print("step 17/30 calculate geometry attributes...")
         CALVTP_calc_geom_att_2 = arcpy.management.CalculateGeometryAttributes(in_features=CALVTP_calc_geom_att, 
                                                                     geometry_property=[["TREATMENT_AREA", "AREA"]], 
-                                                                    area_unit="ACRES_US")[0]
+                                                                    area_unit="ACRES_US")
 
         # Process: Calculate Veg (Calculate Field) (management)
         print("step 18/30 calculate field...")
@@ -177,7 +172,7 @@ def CalVTP(CalVTP_enriched,
         elif Veg == \"3\":
             return \"FOREST\"
         else:
-            return Veg""")[0]
+            return Veg""")
 
         # Process: Calculate Activity Status (Calculate Field) (management)
         print("step 19/30 calculate field...")
@@ -194,31 +189,31 @@ def CalVTP(CalVTP_enriched,
         elif Status == \"4\":
             return \"PROPOSED\"
         else:
-            return Status""")[0]
+            return Status""")
 
         # Process: Calculate Activity Quantity (Calculate Field) (management)
         print("step 20/30 calculate field...")
         CalVTP_calc_act_quant = arcpy.management.CalculateField(in_table=CalVTP_calc_act_stat, 
                                                                 field="ACTIVITY_QUANTITY", 
-                                                                expression="!Treatment_Acres!")[0]
+                                                                expression="!Treatment_Acres!")
 
         # Process: Calculate Activity Units (Calculate Field) (management)
         print("step 21/30 calculate field...")
         CalVTP_calc_act_units = arcpy.management.CalculateField(in_table=CalVTP_calc_act_quant, 
                                                                 field="ACTIVITY_UOM", 
-                                                                expression="\"AC\"")[0]
+                                                                expression="\"AC\"")
 
         # Process: Calculate Activity end (Calculate Field) (management)
         print("step 22/30 calculate field...")
         CalVTP_calc_act_end = arcpy.management.CalculateField(in_table=CalVTP_calc_act_units, 
                                                                 field="ACTIVITY_END", 
-                                                                expression="!DATE_COMPLETED!")[0]
+                                                                expression="!DATE_COMPLETED!")
 
         # Process: Calculate Source (Calculate Field) (management)
         print("step 23/30 calculate field...")
         CALVTP_calc_src = arcpy.management.CalculateField(in_table=CalVTP_calc_act_end, 
                                                         field="Source", 
-                                                        expression="\"calvtp\"")[0]
+                                                        expression="\"calvtp\"")
 
         # Process: Calculate Crosswalk (Calculate Field) (management)
         print("step 24/30 calculate field...")
@@ -236,44 +231,38 @@ def CalVTP(CalVTP_enriched,
             return \"Manual Treatment\"
         else:
             return Act
-        """)[0]
+        """)
 
         # Process: Copy Features (2) (Copy Features) (management)
         print("step 25/30 copy features...")
         arcpy.management.CopyFeatures(in_features=CalVTP_calc_xwalk, 
-                                    out_feature_class=CalVTP_standardized.__str__().format(**locals(),**globals()))
+                                    out_feature_class=CalVTP_standardized)
 
-        # Process: 2b Assign Domains (2b Assign Domains)
+        # Process: 2b Assign Domains (2b Assign Domains) 
         print("step 26/30 assign domains...")
-        CalVTP_Standardized = AssignDomains(in_table=CalVTP_standardized.__str__().format(**locals(),**globals()))[0]
+        CalVTP_Standardized = AssignDomains(in_table=CalVTP_standardized)
 
-        # Process: 7a Enrichments Polygon (7a Enrichments Polygon)
-    <<<<<<< HEAD
-        enrich_polygons(enrich_out=CalVTP_enriched_scratch, 
-    =======
+        # Process: 7a Enrichments Polygon (7a Enrichments Polygon) 
         print("step 27/30 enrich polygons...")
-        aEnrichmentsPolygon1(enrich_out=CalVTP_enriched_scratch, 
-    >>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
-                            enrich_in=CalVTP_Standardized)
+        enrich_polygons(enrich_out=CalVTP_enriched_scratch, 
+                                enrich_in=CalVTP_Standardized)
 
         # Process: Copy Features (3) (Copy Features) (management)
         print("step 28/30 copy features...")
         arcpy.management.CopyFeatures(in_features=CalVTP_enriched_scratch, 
-                                    out_feature_class=CalVTP_enriched.__str__().format(**locals(),**globals()))
+                                    out_feature_class=CalVTP_enriched)
 
         # Process: Calculate Treatment ID (Calculate Field) (management)
         print("step 29/30 calculate field...")
-        Updated_Input_Table_6_ = arcpy.management.CalculateField(in_table=CalVTP_enriched.__str__().format(**locals(),**globals()), 
+        Updated_Input_Table_6_ = arcpy.management.CalculateField(in_table=CalVTP_enriched, 
                                                                 field="TRMTID_USER", 
-                                                                expression="!PROJECTID_USER![:7]+'-'+(!IN_WUI![:3])+'-'+(!PRIMARY_OWNERSHIP_GROUP![:1])")[0]
+                                                                expression="!PROJECTID_USER![:7]+'-'+(!IN_WUI![:3])+'-'+(!PRIMARY_OWNERSHIP_GROUP![:1])")
 
-        # Process: 2b Assign Domains (2) (2b Assign Domains)
+        # Process: 2b Assign Domains (2) (2b Assign Domains) 
         print("step 30/30 assign domains...")
-        CalVTP_Enriched = AssignDomains(in_table=Updated_Input_Table_6_)[0]
-
-        if delete_scratch: delete_scratch_files(
-                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-            )
+        CalVTP_Enriched = AssignDomains(in_table=Updated_Input_Table_6_)
 
         print("6y complete...")
+
+        #delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
 

@@ -77,3 +77,4 @@ def Residue(Input_Table):  # 2g Calculate Residue Fate
 #         workspace=workspace,
 #     ):
 #         Residue(Input_Table=os.path.join(workspace, "WFR_TF_Template"))
+

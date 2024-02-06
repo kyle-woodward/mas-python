@@ -8,38 +8,36 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
-import arcpy
-from ._1b_add_fields import AddFields
-from ._2b_assign_domains import AssignDomains
-# add 2j standardize domains, 2f Categories
-from ._7b_enrichments_pts import enrich_points
-from ._2k_keep_fields import KeepFields
-# import os
-# from sys import argv
-from .utils import init_gdb, delete_scratch_files, runner
+import os
 import time
+import arcpy
+from ._1_add_fields import AddFields
+from ._1_assign_domains import AssignDomains
+from ._3_enrichments_pts import enrich_points
+from ._3_keep_fields import KeepFields
+from .utils import init_gdb, delete_scratch_files
 
-workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
+original_gdb, workspace, scratch_workspace = init_gdb()
 
-def PFIRS(input_fc, output_standardized, output_enriched, treat_poly, delete_scratch=True):
+
+def PFIRS(input_fc, output_standardized, output_enriched, treat_poly):
     start = time.time()
     print(f"Start Time {time.ctime()}")
 
     # Model Environment settings
     with arcpy.EnvManager(
-        workspace=workspace,
-        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
+        extent="""450000, -374900, 540100, -604500,
+                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=False, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
         overwriteOutput = True,
     ):
-        
         print("Performing Standardization")
         # Process: Select Layer By Attribute (3) (Select Layer By Attribute) (management)
         pfirs_agencies = arcpy.management.SelectLayerByAttribute(
@@ -425,9 +423,10 @@ def PFIRS(input_fc, output_standardized, output_enriched, treat_poly, delete_scr
         # pfirs_enriched_assign_domains =
         AssignDomains(in_table=output_enriched)
 
-        if delete_scratch: delete_scratch_files(
-                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-            )
-
+        print("Deleting Scratch Files")
+        delete_scratch_files(
+            gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
+        )
         end = time.time()
         print(f"Time Elapsed: {(end-start)/60} minutes")
+

@@ -11,24 +11,21 @@
 import os
 import time
 import arcpy
-from ._1b_add_fields import AddFields
-from ._2b_assign_domains import AssignDomains
-from ._2f_calculate_category import Category
-from ._2j_standardize_domains import StandardizeDomains
-from ._7a_enrichments_polygon import enrich_polygons
-from ._2k_keep_fields import KeepFields
+from ._1_add_fields import AddFields
+from ._1_assign_domains import AssignDomains
+from ._3_standardize_domains import StandardizeDomains
+from ._3_enrichments_polygon import enrich_polygons
+from ._3_keep_fields import KeepFields
 from .utils import init_gdb, delete_scratch_files
 
-workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
+original_gdb, workspace, scratch_workspace = init_gdb()
+
 
 def Model_BLM(
-    output_enriched, input_fc, startyear, endyear, California,
-    delete_scratch=True
+    output_enriched, output_standardized, input_fc, startyear, endyear, California
 ):
     start = time.time()
     print(f"Start Time {time.ctime()}")
-    arcpy.env.overwriteOutput = True
 
     # define intermediary objects in scratch
     BLM_clip = os.path.join(scratch_workspace, "BLM_clip")
@@ -36,15 +33,16 @@ def Model_BLM(
 
     # Model Environment settings
     with arcpy.EnvManager(
-        workspace=workspace,
-        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
+        extent="""450000, -374900, 540100, -604500,
+                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=False, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
         overwriteOutput = True,
     ):
         
@@ -129,7 +127,7 @@ def Model_BLM(
         BLM_standardized_12 = arcpy.management.CalculateField(
             in_table=BLM_standardized_11,
             field="PRIMARY_FUNDING_ORG",
-            expression='"BLM"',
+            expression='"NPS"',
         )
 
         # Process: Calculate Imp Org (Calculate Field) (management)
@@ -244,7 +242,6 @@ def Model_BLM(
             # expression="!TRTMNT_COMMENTS!.lower()"
             expression="!TRTMNT_COMMENTS!",
         )
-
         print("   step 9/13 Adding original activity description to Crosswalk Field...")
         # Process: Calculate Crosswalk (Calculate Field) (management)
         BLM_standardized_29 = arcpy.management.CalculateField(
@@ -331,9 +328,6 @@ def Model_BLM(
                                 return cross""",
         )
         
-        output_standardized = os.path.join(
-            scratch_workspace, "BLM_standardized" #f"BLM_standardized_{date_id}"
-)
         print(f"Saving Standardized Output: {output_standardized}")
         # Process: Select by Years (Select) (analysis)
         arcpy.analysis.Select(
@@ -341,7 +335,6 @@ def Model_BLM(
             out_feature_class=output_standardized,
             where_clause="Year >= %d And Year <= %d" % (startyear, endyear),
         )
-
         print("   step 10/13 Calculate Geometry...")
         # Process: Calculate Geometry (Calculate Field) (management)
         BLM_standardized_32 = arcpy.management.CalculateField(
@@ -356,7 +349,7 @@ def Model_BLM(
 
         print("   step 11/13 Enriching Dataset...")
         # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon) 
-        enrich_polygons(enrich_in=BLM_standardized_33, enrich_out=output_enriched)
+        enrich_polygons(enrich_in=Output_Table, enrich_out=output_enriched)
         print(f"Saving Enriched Output: {output_enriched}")
 
         print("   step 12/13 Calculate Treatment ID...")
@@ -367,22 +360,15 @@ def Model_BLM(
             expression="!PROJECTID_USER![:7]+'-'+!COUNTY![:3]+'-'+!PRIMARY_OWNERSHIP_GROUP![:4]+'-'+!IN_WUI![:3]+'-'+!PRIMARY_OBJECTIVE![:8]"
         )
 
-        print(f"Calculating Category")
-        # Process: Calculate Category
-        BLM_standardized_35 = Category(
-            Input_Table=BLM_standardized_34
-        )
-
         print("   step 13/13 Assign Domains...")
         # Process: 2b Assign Domains (2b Assign Domains) 
-        BLM_standardized_36 = AssignDomains(in_table=BLM_standardized_35)
+        BLM_standardized_35 = AssignDomains(in_table=BLM_standardized_34)
 
-        if delete_scratch:
-            delete_scratch_files(
-                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-            )
+        print('   Deleting Scratch Files')
+        delete_scratch_files(
+            gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
+        )
 
         end = time.time()
         print(f"Time Elapsed: {(end-start)/60} minutes")
-
 

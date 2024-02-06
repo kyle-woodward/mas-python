@@ -6,12 +6,11 @@
 # Date Created: Jan 24, 2024
 """
 import arcpy
-# import os
 from scripts.utils import init_gdb
-# TODO add print steps, rename variables
+
 workspace, scratch_workspace = init_gdb()
 
-def Year(Year_Input):  # 2h Calculate Year
+def Year(Year_Input):
     arcpy.env.overwriteOutput = True
 
     # Process: Calculate Calendar Year (Calculate Field) (management)
@@ -197,3 +196,4 @@ def Year(Year_Input):  # 2h Calculate Year
     )
 
     return year_final
+

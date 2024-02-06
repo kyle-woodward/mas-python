@@ -12,36 +12,36 @@ import os
 import time
 import datetime
 import arcpy
-from ._2b_assign_domains import AssignDomains
-from ._2f_calculate_category import Category
-# add 2j standardize domains
-from ._2m_counts_to_mas import CountsToMAS
-from ._7b_enrichments_pts import enrich_points
-from ._2j_standardize_domains import StandardizeDomains
+from ._1_assign_domains import AssignDomains
+from ._3_calculate_category import Category
+from ._4_counts_to_mas import CountsToMAS
+from ._3_enrichments_pts import enrich_points
+from ._3_standardize_domains import StandardizeDomains
 from .utils import init_gdb, delete_scratch_files
 
+
 date_id = datetime.datetime.now().strftime("%Y-%m-%d").replace("-", "")  # like 20221216
-# TODO add print steps, rename variables
-workspace, scratch_workspace = init_gdb()
+
+original_gdb, workspace, scratch_workspace = init_gdb()
 
 def CNRA_pts_Model(
-    input_pt_fc, Activity_Table, Project_Poly, WFR_TF_Template, output_pt_enriched,
-    delete_scratch=True
+    input_pt_fc, Activity_Table, Project_Poly, WFR_TF_Template, output_pt_enriched
 ):
     start = time.time()
     print(f"Start Time {time.ctime()}")
     
     # Model Environment settings
     with arcpy.EnvManager(
-        workspace=workspace,
-        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
+        extent="""450000, -374900, 540100, -604500,
+                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=False, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
         overwriteOutput = True,
     ):
 
@@ -53,7 +53,7 @@ def CNRA_pts_Model(
         arcpy.management.CopyFeatures(input_pt_fc, Input_Features_1)
         # Input_Features_3 = arcpy.DefineProjection_management(Input_Features_2, "NAD 1983 California (Teale) Albers (Meters)") # WKID 3310
         
-        # ## Attribute Validation (if needed)
+        # ## Attribute Validation
         # # Process: Calculate Project ID User Field (4) (Calculate Field) (management)
         # Input_Features_2a = arcpy.management.CalculateField(
         #     in_table=Input_Features_1,
@@ -730,9 +730,10 @@ def CNRA_pts_Model(
         # Process: 2b Assign Domains (5) (2b Assign Domains) 
         output_pt_enriched = AssignDomains(in_table=output_pt_enriched)
 
-        if delete_scratch: delete_scratch_files(
-                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-            )
+        print("Deleting Scratch Files")
+        delete_scratch_files(
+            gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
+        )
 
         end = time.time()
         print(f"Time Elapsed: {(end-start)/60} minutes")

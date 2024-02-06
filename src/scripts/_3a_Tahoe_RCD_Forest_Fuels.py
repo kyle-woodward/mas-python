@@ -7,27 +7,18 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
-import arcpy
-from scripts._1b_add_fields import AddFields
-from scripts._2b_assign_domains import AssignDomains
-# add 2j standardize domains, 2f Categories
-<<<<<<< HEAD
-from scripts._7a_enrichments_polygon import enrich_polygons
-from scripts.utils import runner, init_gdb
-=======
-from scripts._7a_enrichments_polygon import aEnrichmentsPolygon1
-from scripts.utils import runner, init_gdb, delete_scratch_files, KeepFields
->>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
 import os
-original_gdb, workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
-def TahoeFF6(TahoeFF_Tx_enriched,
-             TahoeFF_Tx_standardized,
-             TahoeFF_Tx_OG,
-             delete_scratch=True): 
+import arcpy
+from scripts._1_add_fields import AddFields
+from scripts._1_assign_domains import AssignDomains
+from scripts._3_enrichments_polygon import enrich_polygons
+from scripts.utils import init_gdb
 
-    # To allow overwriting outputs change overwriteOutput option to True.
-    arcpy.env.overwriteOutput = False
+workspace, scratch_workspace = init_gdb()
+
+def TahoeFFG(TahoeFF_Tx_enriched,
+             TahoeFF_Tx_standardized,
+             TahoeFF_Tx_OG): 
 
     # scratch outputs
     TahoeFF_pairwiseclip = os.path.join(scratch_workspace, 'TahoeFF_pairwiseclip')
@@ -37,17 +28,19 @@ def TahoeFF6(TahoeFF_Tx_enriched,
 
     # Model Environment settings
     with arcpy.EnvManager(
-        workspace=workspace,
-        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
+        extent="""450000, -374900, 540100, -604500,
+                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=False, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
         overwriteOutput = True,
     ):
+        
         California = os.path.join(workspace, 'b_Reference', 'California')
         CPAD_Ownership_Update = os.path.join(workspace, 'b_Reference', 'CPAD_Ownership_Update')
 
@@ -76,12 +69,8 @@ def TahoeFF6(TahoeFF_Tx_enriched,
                                                                              new_field_alias="YEAR_")
 
         # Process: 1b Add Fields (2) (1b Add Fields)
-<<<<<<< HEAD
-        TahoeFF_add_fields = AddFields(Input_Table=TahoeFF_alter_year)
-=======
         print("Executing Step 5/40 : Add Fields...")
-        TahoeFF_add_fields = AddFields2(Input_Table=TahoeFF_alter_year)
->>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
+        TahoeFF_add_fields = AddFields(Input_Table=TahoeFF_alter_year)
 
         # Process: Calculate Project ID (Calculate Field) (management)
         print("Executing Step 5/40 : Calculate PROJECT_ID...")
@@ -348,26 +337,19 @@ def Reclass(JURIS):
         #                               out_feature_class = check_this_out.__str__().format(**locals(),**globals()))
         
         # Process: 7a Enrichments Polygon (7a Enrichments Polygon)
-<<<<<<< HEAD
-        enrich_polygons(enrich_out=TahoeFF_enriched_scratch, 
-=======
         print("Executing Step 38/40 : Enrich Polygons...")
-        aEnrichmentsPolygon1(enrich_out=TahoeFF_enriched_scratch, 
->>>>>>> 1f899f8affb0c4abb79e4204a32d440344232227
+        enrich_polygons(enrich_out=TahoeFF_enriched_scratch, 
                              enrich_in=TahoeFF_Tx_standardized_keep_fields)
 
         # Process: Copy Features (2) (Copy Features) (management)
         print("Executing Step 39/40 : Calculate Copy Features...")
         arcpy.management.CopyFeatures(in_features=TahoeFF_enriched_scratch, 
-                                      out_feature_class=TahoeFF_Tx_enriched.__str__().format(**locals(),**globals()))
+                                      out_feature_class=TahoeFF_Tx_enriched)
 
         # Process: 2b Assign Domains (2b Assign Domains)
         print("Executing Step 40/40 : AssignDomains...")
-        WFR_TF_Template_2_ = AssignDomains(in_table=TahoeFF_Tx_enriched.__str__().format(**locals(),**globals()))
-
-        if delete_scratch: delete_scratch_files(
-                gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-            )
+        WFR_TF_Template_2_ = AssignDomains(in_table=TahoeFF_Tx_enriched)
 
         print("completed step 40/40")
-        
+        #delete_scratch_files(gdb = scratch_workspace, delete_fc = 'yes', delete_table = 'yes', delete_ds = 'yes')
+

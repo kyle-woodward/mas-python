@@ -6,12 +6,12 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
-import arcpy
-from scripts._9c_Transform_Check_Duplicates import TransformCheck
-from datetime import datetime
-import time
-from .utils import init_gdb
 import os
+import time
+import arcpy
+from ._7c_transform_check_duplicates import TransformCheck
+from datetime import datetime
+from .utils import init_gdb, delete_scratch_files
 
 workspace, scratch_workspace = init_gdb()
 
@@ -27,18 +27,19 @@ def TransformProjects(
     Output_Duplicate_Projects=os.path.join(
         scratch_workspace, rf"Duplicate_Projects_{Value2}"
     ),
-):  # 9a Transform Projects
+):
     # To allow overwriting outputs change overwriteOutput option to True.
     with arcpy.EnvManager(
-        workspace=workspace,
-        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
+        extent="""450000, -374900, 540100, -604500,
+                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
+        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=False, 
+        transferGDBAttributeProperties=True, 
+        workspace=workspace,
         overwriteOutput = True,
     ):
 
@@ -156,7 +157,7 @@ def TransformProjects(
                 field_mapping='PROJECTID_USER "PROJECT ID USER" true true false 40 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,PROJECTID_USER,0,50;AGENCY "AGENCY/DEPARTMENT" true true false 55 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,AGENCY,0,150;ORG_ADMIN_p "ORG DATA STEWARD" true true false 55 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,ORG_ADMIN_p,0,150;PROJECT_CONTACT "PROJECT CONTACT" true true false 40 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,PROJECT_CONTACT,0,100;PROJECT_EMAIL "PROJECT EMAIL" true true false 40 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,PROJECT_EMAIL,0,100;ADMINISTERING_ORG "ADMINISTERING ORG" true true false 55 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,ADMINISTERING_ORG,0,150;PROJECT_NAME "PROJECT NAME" true true false 125 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,PROJECT_NAME,0,150;PROJECT_STATUS "PROJECT STATUS" true true false 25 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,PROJECT_STATUS,0,25;PROJECT_START "PROJECT START" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,PROJECT_START,-1,-1;PROJECT_END "PROJECT END" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,PROJECT_END,-1,-1;PRIMARY_FUNDING_SOURCE "PRIMARY_FUNDING_SOURCE" true true false 130 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,PRIMARY_FUNDING_SOURCE,0,130;PRIMARY_FUNDING_ORG "PRIMARY_FUNDING_ORG" true true false 130 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,PRIMARY_FUNDING_ORG,0,130;IMPLEMENTING_ORG "IMPLEMENTING_ORG" true true false 55 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,IMPLEMENTING_ORG,0,150;BatchID_p "Batch ID" true true false 40 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,BATCHID_p,0,40;Val_Status_p "Validation Status" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,VAL_STATUS_p,0,15;Val_Message_p "Validation Message" true true false 15 Text 0 0,First,#;Val_RunDate_p "Validation Run Date" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,VAL_RUNDATE_p,-1,-1;Review_Status_p "Review Status" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,REVIEW_STATUS_p,0,15;Review_Message_p "Review Message" true true false 15 Text 0 0,First,#;Review_RunDate_p "Review Run Date" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,REVIEW_RUNDATE_p,-1,-1;Source "Source" true true false 65 Text 0 0,First,#;GlobalID "PROJECTID" true true false 38 Guid 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Projects_2022121_Select,GlobalID,-1,-1',
             )
 
-        # Process: 9c Transform Check Duplicates (9c Transform Check Duplicates)
+        # Process: 9c Transform Check Duplicates (9c Transform Check Duplicates) (PC414CWIMillionAcres)
         if Treat_n_harves_Project_SpatialJoin1_2_ and Updated_Datasets_4_ and Value:
             TransformCheck(
                 Input_Table=project_poly.__str__().format(**locals(), **globals()),
@@ -165,15 +166,3 @@ def TransformProjects(
                 ),
             )
 
-    # if __name__ == "__main__":
-    #     runner(workspace, scratch_workspace, TransformProjects, "*argv[1:]")
-    # # Global Environment settings
-    #     with arcpy.EnvManager(
-    #     extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
-    #     preserveGlobalIds=True,
-    #     qualifiedFieldNames=False,
-    #     scratchWorkspace=scratch_workspace,
-    #     transferDomains=True,
-    #     transferGDBAttributeProperties=True,
-    #     workspace=workspace):
-    #         TransformProjects(*argv[1:])

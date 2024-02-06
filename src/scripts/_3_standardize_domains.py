@@ -8,17 +8,17 @@
 # Date Created: Jan 24, 2024
 """
 import arcpy
-from scripts.utils import init_gdb
+from .utils import init_gdb
 
 workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
+
 def StandardizeDomains(Input_Table): 
     # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = True
 
     # Process: Calculate Agency (Calculate Field) (management)
     update_agency = arcpy.management.CalculateField(
-        in_table=Input_Table.__str__().format(**locals(), **globals()),
+        in_table=Input_Table,
         field="AGENCY",
         expression="ifelse(!AGENCY!)",
         code_block="""def ifelse(Ag):
