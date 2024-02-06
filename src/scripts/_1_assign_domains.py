@@ -6,8 +6,8 @@
 """
 import arcpy
 from scripts.utils import init_gdb
-
-original_gdb, workspace, scratch_workspace = init_gdb()
+# TODO add print steps, rename variables
+workspace, scratch_workspace = init_gdb()
 
 def AssignDomains(in_table):  # 2b Assign Domains
     arcpy.env.overwriteOutput = True

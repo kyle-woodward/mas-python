@@ -8,8 +8,8 @@ import arcpy
 from scripts._1_assign_domains import AssignDomains
 from scripts.utils import init_gdb
 
-original_gdb, workspace, scratch_workspace = init_gdb()
-
+workspace, scratch_workspace = init_gdb()
+# TODO add print steps, rename variables
 
 def FieldExists(
     featureclass, fieldname
@@ -189,7 +189,7 @@ def AddFields(Input_Table, alter_fields=False):  # 1b Add Fields
         in_table=Input_Table, field_description=schema
     )
 
-    # Process: 2b Assign Domains (4) (2b Assign Domains) (PC414CWIMillionAcres)
+    # Process: 2b Assign Domains (4) (2b Assign Domains)
     Assign_Domains_ = AssignDomains(in_table=add_fields)
 
     return Assign_Domains_

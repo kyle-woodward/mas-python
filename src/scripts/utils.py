@@ -12,9 +12,10 @@ from datetime import datetime
 
 def init_gdb():
     """
-    Returns local paths to original, current version, and scratch .gdb's and makes the last two if they don't exist.
+    Returns local paths to current version and scratch .gdb's and makes them 
+    if they don't exist.
     usage: insert this line of code into all other scripts at the top:
-    original_gdb, workspace, scratch_workspace = init_gdb()
+    workspace, scratch_workspace = init_gdb()
     """
     three_up = os.path.abspath(os.path.join(__file__, "../../.."))
     # print(three_up)
@@ -25,16 +26,16 @@ def init_gdb():
     # versioned_gdb = settings.get("gdb").get("versions")[0]
 
     # make original gdb workspace and scratchWorkspace dynamic, not-hardcoded paths
-    original_gdb = os.path.join(three_up,"Interagency Tracking System.gdb")
-    workspace = os.path.join(three_up,original_gdb)
-    scratch_workspace = os.path.join(three_up,"scratch.gdb")
+    # original_gdb = os.path.join(three_up,"Interagency Tracking System.gdb")
+    workspace = os.path.join(three_up, "Interagency Tracking System.gdb")
+    scratch_workspace = os.path.join(three_up, "scratch.gdb")
     
     for w in [workspace, scratch_workspace]:
         if not os.path.exists(w):
             # print(f'Creating new FileGDB: {w}')
             arcpy.management.CreateFileGDB(os.path.dirname(w), os.path.basename(w))
 
-    return original_gdb, workspace, scratch_workspace
+    return workspace, scratch_workspace
 
 
 def unique_rename(scratch_fc: str, input_fc: str):
@@ -74,25 +75,25 @@ def delete_scratch_files(gdb, delete_fc, delete_table, delete_ds):
     fc_list = arcpy.ListFeatureClasses()
     tables = arcpy.ListTables()
     ds_list = arcpy.ListDatasets()
-    [print(f"Deleting files from {gdb}")]
+    [print(f"   Deleting Scratch Files from {gdb}")]
     # feature classes
     if delete_fc == "yes":
         for fc in fc_list:
             arcpy.Delete_management(fc)
     else:
-        print("did not delete fc")
+        print("did not delete scratch feature classes")
     # tables
     if delete_table == "yes":
         for table in tables:
             arcpy.Delete_management(table)
     else:
-        print("did not delete tables")
+        print("did not delete scratch tables")
     # data sets
     if delete_ds == "yes":
         for ds in ds_list:
             arcpy.Delete_management(ds)
     else:
-        print("did not delete ds")
+        print("did not delete scratch datasets")
 
 
 def check_exists(fc_list: list, workspace):
@@ -146,16 +147,15 @@ def check_schema_lock(input):
 #TODO fix and insert runner into scripts
 def runner(workspace:str,scratch_workspace:str):
     arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
+        transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     )
 

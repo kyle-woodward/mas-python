@@ -14,22 +14,21 @@ from .Category import Category
 from .CountsToMAS import CountsToMAS
 from .StandardizeDomains import StandardizeDomains
 from .aEnrichmentsLines1 import aEnrichmentsLines1
-# from sys import argv
-
+# add 2j standardize domains, 2f Categories
+# TODO add print steps, rename variables
 def CNRA_lns_Model(Project_Poly="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Project_Poly", Treatment_Line="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230819.gdb\\Treatment_Line"):  # 6o CNRA_Lines_20230821
 
     # Model Environment settings
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
+        transferGDBAttributeProperties=False, 
         overwriteOutput = True,
     ):
 
