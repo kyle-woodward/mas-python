@@ -13,6 +13,7 @@ from ._3_crosswalk import Crosswalk
 from .utils import init_gdb
 
 workspace, scratch_workspace = init_gdb()
+
 #TODO add print steps
 
 def enrich_points(
@@ -55,10 +56,10 @@ def enrich_points(
         arcpy.management.CopyFeatures(
             in_features=enrich_pts_in,
             out_feature_class=Pts_enrichment_copy,
-            config_keyword="",
-            spatial_grid_1=None,
-            spatial_grid_2=None,
-            spatial_grid_3=None,
+            # config_keyword="",
+            # spatial_grid_1=None,
+            # spatial_grid_2=None,
+            # spatial_grid_3=None,
         )
 
         print("   Calculating WUI...")

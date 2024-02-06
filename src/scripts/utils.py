@@ -18,12 +18,10 @@ def init_gdb():
     workspace, scratch_workspace = init_gdb()
     """
     three_up = os.path.abspath(os.path.join(__file__, "../../.."))
-    # print(three_up)
+
     # parse settings file
     with open(os.path.join(three_up, "settings.yml")) as file:
         settings = yaml.full_load(file)
-
-    # versioned_gdb = settings.get("gdb").get("versions")[0]
 
     # make original gdb workspace and scratchWorkspace dynamic, not-hardcoded paths
     # original_gdb = os.path.join(three_up,"Interagency Tracking System.gdb")
@@ -32,7 +30,7 @@ def init_gdb():
     
     for w in [workspace, scratch_workspace]:
         if not os.path.exists(w):
-            # print(f'Creating new FileGDB: {w}')
+            print(f'Creating new FileGDB: {w}')
             arcpy.management.CreateFileGDB(os.path.dirname(w), os.path.basename(w))
 
     return workspace, scratch_workspace
@@ -53,7 +51,6 @@ def unique_rename(scratch_fc: str, input_fc: str):
         input_fc
     )  # for now, keep the whole basename including the date string
     date_id = datetime.utcnow().strftime("%Y-%m-%d").replace("-", "")  # like 20221216
-    # new_name = f"{scratch_id}_{input_id}_{date_id}"
     new_name = f"{input_id}_{scratch_id}_{date_id}"
     renamed = arcpy.management.Rename(scratch_fc, new_name)
     return new_name
@@ -106,7 +103,7 @@ def check_exists(fc_list: list, workspace):
 
 def og_file_input(prefix: str, filetype: str, gdb):
     """
-    Finds input file in the "a_Originals" folder in the workspace
+    Finds input file in the "b_Originals" folder in the workspace
     args:
     gdb: full file path to GDB from which you want to delete all files
     prefix: prefix of desired file

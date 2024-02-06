@@ -10,7 +10,7 @@ import arcpy
 from ._3_calculate_year import Year
 from ._3_keep_fields import KeepFields
 from ._3_crosswalk import Crosswalk
-from scripts.utils import init_gdb, delete_scratch_files
+from .utils import init_gdb, delete_scratch_files
 
 workspace, scratch_workspace = init_gdb()
 
