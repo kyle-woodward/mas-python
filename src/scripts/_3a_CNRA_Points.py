@@ -8,53 +8,57 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
-import os
-import time
 import datetime
+start1 = datetime.datetime.now()
+
+import os
 import arcpy
 from ._1_assign_domains import AssignDomains
-from ._3_calculate_category import Category
-from ._4_counts_to_mas import CountsToMAS
 from ._3_enrichments_pts import enrich_points
-from ._3_standardize_domains import StandardizeDomains
 from .utils import init_gdb, delete_scratch_files
-
 
 date_id = datetime.datetime.now().strftime("%Y-%m-%d").replace("-", "")  # like 20221216
 
-original_gdb, workspace, scratch_workspace = init_gdb()
+workspace, scratch_workspace = init_gdb()
 
 def CNRA_pts_Model(
-    input_pt_fc, Activity_Table, Project_Poly, WFR_TF_Template, output_pt_enriched
+    input_pt_fc, 
+    Activity_Table, 
+    Project_Poly, 
+    WFR_TF_Template, 
+    output_pt_enriched,
+    delete_scratch=True
 ):
-    start = time.time()
-    print(f"Start Time {time.ctime()}")
-    
     # Model Environment settings
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
-        overwriteOutput = True,
+        transferGDBAttributeProperties=False, 
+        overwriteOutput = True
     ):
+        
+        print(f"Start Time {start1}")
+
+        # define intermediary objects in scratch
+        Input_Features_1 = os.path.join(scratch_workspace, "CNRA_Treatment_Point")
+        pts_enriched = os.path.join(scratch_workspace, "Enriched_pts")
+        Output_Table_1 = os.path.join(scratch_workspace, "CNRA_Activity_Table")
+        join_2 = os.path.join(scratch_workspace, "Features_Join_Activities_2")
+        Input_Projects_1 = os.path.join(scratch_workspace, "Project_Poly_CopyFeatures")
+        CNRA_Flat_2 = os.path.join(scratch_workspace, "CNRA_Treatments_pt_Copy")
+        to_point = os.path.join(scratch_workspace, "CNRA_Standardized_FeatureToPoint")
 
         print("Part 1 Prepare Features")
-        # Process: Copy Features (9) (Copy Features) (management)
-        Input_Features_1 = os.path.join(
-            scratch_workspace, "CNRA_Treatment_Point"
-        )
         arcpy.management.CopyFeatures(input_pt_fc, Input_Features_1)
-        # Input_Features_3 = arcpy.DefineProjection_management(Input_Features_2, "NAD 1983 California (Teale) Albers (Meters)") # WKID 3310
+        # arcpy.DefineProjection_management(Input_Features_1, "NAD 1983 California (Teale) Albers (Meters)") # WKID 3310
         
-        # ## Attribute Validation
-        # # Process: Calculate Project ID User Field (4) (Calculate Field) (management)
+        # ## Attribute Validation (execute if needed)
         # Input_Features_2a = arcpy.management.CalculateField(
         #     in_table=Input_Features_1,
         #     field="TRMTID_USER",
@@ -66,8 +70,7 @@ def CNRA_pts_Model(
         #                         return ID""",
         # )
 
-        # ## Attribute Validation
-        # # Process: Calculate Project ID User Field (4) (Calculate Field) (management)
+        # ## Attribute Validation (execute if needed)
         # Input_Features_2B = arcpy.management.CalculateField(
         #     in_table=Input_Features_2a,
         #     field="PROJECTID_USER",
@@ -79,32 +82,28 @@ def CNRA_pts_Model(
         #                         return ID""",
         # )
 
+        print("   step 1/17 edit ID's")
         ## Eliminates numaric Project ID's that may be the same as in other datasets
-        # Process: Calculate Project ID User Field (4) (Calculate Field) (management)
-        Input_Features_2C = arcpy.management.CalculateField(
+        calc_field_1 = arcpy.management.CalculateField(
             in_table=Input_Features_1,
             field="PROJECTID_USER",
-            expression="!PROJECTID_USER![:45]+'-CNRA'",
+            expression="str(!PROJECTID_USER!)[:45]+'-CNRA'",
         )
 
         ## Eliminates numaric Treatment ID's that may be the same as in other datasets
-        # Process: Calculate Treatment ID User Field (3) (Calculate Field) (management)
-        Input_Features_3a = arcpy.management.CalculateField(
-            in_table=Input_Features_2C,
+        calc_field_2 = arcpy.management.CalculateField(
+            in_table=calc_field_1,
             field="TRMTID_USER",
-            expression="!TRMTID_USER![:45]+'-CNRA'",
+            expression="str(!TRMTID_USER!)[:45]+'-CNRA'",
         )
 
         print("Part 2 Prepare Activity Table")
-        # Process: Export Table (Export Table) (conversion)
-        Output_Table_1 = os.path.join(scratch_workspace, "CNRA_Activity_Table")
         arcpy.conversion.ExportTable(Activity_Table, Output_Table_1)
 
-        # Process: Calculate Field (Calculate Field) (management)
-        Output_Table_2 = arcpy.management.CalculateField(
+        calc_field_3 = arcpy.management.CalculateField(
             in_table=Output_Table_1,
             field="TREATMENTID_",
-            expression="ifelse(!TREATMENTID_!,!TREATMENTID_LN!,!TREATMENTID_PT!)",
+            expression="ifelse(!TREATMENTID_POLY!,!TREATMENTID_LN!,!TREATMENTID_PT!)",
             code_block="""def ifelse(poly, ln, pt):
                             if ln != None:
                                 return ln
@@ -114,9 +113,8 @@ def CNRA_pts_Model(
                                 return poly""",
         )
 
-        # Process: Calculate Field (Calculate Field) (management)
-        Output_Table_3A = arcpy.management.CalculateField(
-            in_table=Output_Table_2,
+        calc_field_4 = arcpy.management.CalculateField(
+            in_table=calc_field_3,
             field="TRMTID_USER",
             expression="ifelse(!TRMTID_USER!, !ACTIVID_USER!)",
             code_block="""def ifelse(ID, Act):
@@ -126,9 +124,8 @@ def CNRA_pts_Model(
             expression_type = "PYTHON3"
         )
         
-        # Process: Calculate Field (Calculate Field) (management)
-        Output_Table_3B = arcpy.management.CalculateField(
-            in_table=Output_Table_3A,
+        calc_field_5 = arcpy.management.CalculateField(
+            in_table=calc_field_4,
             field="TRMTID_USER",
             expression="ifelse(!TRMTID_USER!, !ACTIVITY_NAME!)",
             code_block="""def ifelse(ID, Act):
@@ -138,8 +135,9 @@ def CNRA_pts_Model(
             expression_type = "PYTHON3"
         )
         
+        print("   step 2/17 remove miliseconds from dates")
         ## To eliminate miliseconds in date field
-        MiliSeconds_1 = arcpy.AlterField_management(Output_Table_3B, "ACTIVITY_END", "ACTIVITY_END_1")
+        MiliSeconds_1 = arcpy.AlterField_management(calc_field_5, "ACTIVITY_END", "ACTIVITY_END_1")
         MiliSeconds_2 = arcpy.AddField_management(MiliSeconds_1, "ACTIVITY_END", "DATEONLY")
         MiliSeconds_3 = arcpy.CalculateField_management(MiliSeconds_2, "ACTIVITY_END", "!ACTIVITY_END_1!", "PYTHON3")
         MiliSeconds_4 = arcpy.DeleteField_management(MiliSeconds_3, "ACTIVITY_END_1")
@@ -148,14 +146,13 @@ def CNRA_pts_Model(
         MiliSeconds_7 = arcpy.CalculateField_management(MiliSeconds_6, "ACTIVITY_START", "!ACTIVITY_START_1!", "PYTHON3")
         MiliSeconds_8 = arcpy.DeleteField_management(MiliSeconds_7, "ACTIVITY_START_1")
 
-        # Process: Create Table (Create Table) (management)
-        WFRTF_Act_Template_1 = arcpy.management.CreateTable(
+        print("   step 3/17 create standardized activity table")
+        Template_1 = arcpy.management.CreateTable(
             scratch_workspace, "CNRA_Activity_Table_2"
         )
 
-        # Process: Add Activities Fields (multiple) (Add Fields (multiple)) (management)
-        WFRTF_Act_Template_2 = arcpy.management.AddFields(
-            WFRTF_Act_Template_1,
+        addfields_1 = arcpy.management.AddFields(
+            Template_1,
             [
                 ["ACTIVID_USER", "TEXT", "ACTIVITYID USER", "50", "", ""],
                 ["TREATMENTID_", "TEXT", "TREATMENTID", "50", "", ""],
@@ -204,21 +201,22 @@ def CNRA_pts_Model(
             ],
         )
 
-        # Process: Append (4) (Append) (management)
+        print("   step 4/17 import activities")
+        ## Use this append or the following append with field mapping depending on the situation.
         ## Appending the CNRA table to the table we created ensures the schema is correct
-        Output_Table_4 = arcpy.management.Append(
-            inputs=[Output_Table_3B], 
-            target=WFRTF_Act_Template_2, 
+        append_1 = arcpy.management.Append(
+            inputs=[calc_field_5], 
+            target=addfields_1, 
             schema_type="NO_TEST", 
             field_mapping="", 
             subtype="", 
             expression=""
             )
         
-        # # Append with Field Mapping if Append wiht NO_TEST doesn't work
-        # Output_Table_4 = arcpy.management.Append(
-        #     [Output_Table_3],
-        #     WFRTF_Act_Template_2,
+        # ## Append with Field Mapping if Append wiht NO_TEST doesn't work
+        # append_1 = arcpy.management.Append(
+        #     [calc_field_5],
+        #     addfields_1,
         #     schema_type="NO_TEST",
         #     field_mapping="""'ACTIVID_USER "ACTIVITYID USER" true true false 50 Text 0 0,First,#,output_pt_enriched,ACTIVID_USER,0,50;
         #                     TREATMENTID_ "TREATMENTID" true true false 50 Text 0 0,First,#,output_pt_enriched,TREATMENTID_,0,50;
@@ -266,10 +264,12 @@ def CNRA_pts_Model(
         #                     COUNTS_TO_MAS "COUNTS TOWARDS MAS" true true false 3 Text 0 0,First,#,output_pt_enriched,COUNTS_TO_MAS,0,3',"""
         # )
 
-        print("   Calculate unique Treatment ID -CNRA")
-        # Process: Calculate Treatment ID User Field (4) (Calculate Field) (management)
-        Output_Table_5 = arcpy.management.CalculateField(
-            in_table=Output_Table_4,
+        Count1 = arcpy.management.GetCount(append_1)
+        print("     activities have {} records".format(Count1[0]))
+
+        print("   step 5/17 calculate unique Treatment ID -CNRA")
+        calc_field_6 = arcpy.management.CalculateField(
+            in_table=append_1,
             field="TRMTID_USER",
             expression="ifelse(!TRMTID_USER!)",
             code_block="""def ifelse(ID):
@@ -279,43 +279,22 @@ def CNRA_pts_Model(
             expression_type = "PYTHON3"
         )
 
-        print("Part 3 - Combine CNRA Features and Activity Table") # One to Many
-        # # Process: Add Join (5) (Add Join) (management)
-        # Features_Join_Activities_1 = arcpy.management.AddJoin(
-        #     Input_Features_3,
-        #     "TRMTID_USER",
-        #     Output_Table_5,
-        #     join_field="TRMTID_USER",
-        #     index_join_fields="INDEX_JOIN_FIELDS",
-        # )
-
-        print("   Join Points and Table")
-        # Process: Add Join (5) (Add Join) (management)
-        Features_Join_Activities_1 = arcpy.management.AddJoin(
-            Input_Features_3a,
+        print("Part 3 - Combine CNRA Features and Activity Table")
+        print("   step 6/17 join points and table") # One to Many Join
+        join_1 = arcpy.management.AddJoin(
+            calc_field_2,
             "GlobalID",
-            Output_Table_4,
+            append_1,
             join_field="TREATMENTID_",
             index_join_fields="INDEX_JOIN_FIELDS",
         )
 
-        # Process: Copy Features (3) (Copy Features) (management)
-        Features_Join_Activities_2 = os.path.join(
-            scratch_workspace, "Features_Join_Activities_2"
-        )
-        arcpy.management.CopyFeatures(
-            Features_Join_Activities_1, Features_Join_Activities_2
-        )
+        arcpy.management.CopyFeatures(join_1, join_2)
 
         print("Part 4 Prepare Project Table")
-        # Process: Copy Features (8) (Copy Features) (management)
-        Input_Projects_1 = os.path.join(
-            scratch_workspace, "Project_Poly_CopyFeatures"
-        )
         arcpy.management.CopyFeatures(Project_Poly, Input_Projects_1)
 
-        # Process: Calculate Agency CALFIRE (Calculate Field) (management)
-        Input_Projects_2a = arcpy.management.CalculateField(
+        calc_field_7 = arcpy.management.CalculateField(
             Input_Projects_1,
             field="AGENCY",
             expression="ifelse(!AGENCY!)",
@@ -327,9 +306,8 @@ def CNRA_pts_Model(
         )
 
         ## Attribute Validation
-        # Process: Calculate Project ID User Field (4) (Calculate Field) (management)
-        Input_Projects_2b = arcpy.management.CalculateField(
-            in_table=Input_Projects_2a,
+        calc_field_8 = arcpy.management.CalculateField(
+            in_table=calc_field_7,
             field="PROJECTID_USER",
             expression="ifelse(!PROJECTID_USER!, !PROJECT_NAME!)",
             code_block="""def ifelse(ID, NAME):
@@ -339,10 +317,9 @@ def CNRA_pts_Model(
                                 return ID""",
         )
 
-        print("   Calculate unique Project ID -CNRA")
-        # Process: Calculate Project ID User Field (Calculate Field) (management)
-        Input_Projects_3 = arcpy.management.CalculateField(
-            in_table=Input_Projects_2b,
+        print("   step 7/17 calculate unique Project ID if null")
+        calc_field_9 = arcpy.management.CalculateField(
+            in_table=calc_field_8,
             field="PROJECTID_USER",
             expression="ifelse(!PROJECTID_USER!)",
             code_block="""def ifelse(ID):
@@ -353,48 +330,47 @@ def CNRA_pts_Model(
         )
 
         print("Part 5 Join Project Table to Features/Activites") # Many to One
-        # Process: Add Join (6) (Add Join) (management)
         CNRA_Flat_1 = arcpy.management.AddJoin(
-            in_layer_or_view=Features_Join_Activities_2,
+            in_layer_or_view=join_2,
             in_field="PROJECTID_USER",
-            join_table=Input_Projects_3,
+            join_table=calc_field_9,
             join_field="PROJECTID_USER",
             index_join_fields="INDEX_JOIN_FIELDS",
         )
-        print("   Copy Featurs")
-        # Process: Copy Features (11) (Copy Features) (management)
-        CNRA_Flat_2 = os.path.join(
-            scratch_workspace, "CNRA_Treatments_pt_Copy_Laye_CopyFeatures"
-        )
+
+        print("   step 8/17 copy features")
         arcpy.management.CopyFeatures(
             in_features=CNRA_Flat_1,
             out_feature_class=CNRA_Flat_2,
         )
-        print("   Create Features")
-        # Process: Create Feature Class (3) (Create Feature Class) (management)
-        CNRA_Standardized_pt_Value_ = arcpy.management.CreateFeatureclass(
+
+        print("   step 9/17 create Features")
+        standardized_1 = arcpy.management.CreateFeatureclass(
             out_path=scratch_workspace,
-            out_name=f"CNRA_Standardized_pt_{date_id}",
+            out_name=f"CNRA_Standardized_pt",
             # geometry_type="MULTIPOINT",
             geometry_type="POINT",
             template=WFR_TF_Template
         )
-        print("   Append")
-        # Process: Append (3) (Append) (management)
+
+        print("   step 10/17 append")
         ## Appending the CNRA table to the table we created ensures the schema is correct
-        CNRA_Standardized_pt_Value_3_ = arcpy.management.Append(
+        append_2 = arcpy.management.Append(
             inputs=[CNRA_Flat_2], 
-            target=CNRA_Standardized_pt_Value_, 
+            target=standardized_1, 
             schema_type="NO_TEST", 
             field_mapping="", 
             subtype="", 
             expression=""
             )
         
-        ## Append with Field Mapping if Append wiht NO_TEST doesn't work
-        # CNRA_Standardized_pt_Value_3_ = arcpy.management.Append(
+        Count2 = arcpy.management.GetCount(append_2)
+        print("     standardized has {} records".format(Count2[0]))
+
+        ## Append with Field Mapping if Append with NO_TEST doesn't work
+        # append_2 = arcpy.management.Append(
         #     inputs=[CNRA_Flat_2],
-        #     target=CNRA_Standardized_pt_Value_,
+        #     target=standardized_1,
         #     schema_type="NO_TEST",
         #     field_mapping="""'PROJECTID_USER "PROJECT ID USER" true true false 40 Text 0 0,First,#,CNRA_Flat_2,PROJECTID_USER,0,50;
         #                     AGENCY "AGENCY/DEPARTMENT" true true false 55 Text 0 0,First,#,CNRA_Flat_2,AGENCY,0,150;
@@ -489,32 +465,21 @@ def CNRA_pts_Model(
         # )
 
         print("Part 6 Standardize and Enrich")
-        print("   Standardize Domains")
-        # Process: 2j Standardize Domains (3) (2j Standardize Domains) 
-        Updated_Input_Table_31_ = StandardizeDomains(
-            Input_Table=CNRA_Standardized_pt_Value_3_
-        )
-        print("   Calc Cross")
-        # Process: Calculate Crosswalk (3) (Calculate Field) (management)
-        CNRA_Standardized_20221108_7_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_31_,
+        print("   step 11/17 calc cross")
+        calc_field_10 = arcpy.management.CalculateField(
+            in_table=append_2,
             field="Crosswalk",
             expression="!ACTIVITY_DESCRIPTION!",
         )
-        print("   Calc Category")
-        # Process: 2f Calculate Category (2) (2f Calculate Category) 
-        Updated_Input_Table_42_ = Category(Input_Table=CNRA_Standardized_20221108_7_)
-        print("   Calc Source")
 
-        # Process: Calculate Source (3) (Calculate Field) (management)
-        Updated_Input_Table_3_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_42_, field="Source", expression='"CNRA"'
+        print("   step 12/17 calc source")
+        calc_field_11 = arcpy.management.CalculateField(
+            in_table=calc_field_10, field="Source", expression='"CNRA"'
         )
 
-        print("   Calc admin")
-        # Process: Calculate Org A Null (3) (Calculate Field) (management)
-        Updated_Input_Table_6_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_3_,
+        print("   step 13/17 calc admin")
+        calc_field_12 = arcpy.management.CalculateField(
+            in_table=calc_field_11,
             field="ORG_ADMIN_a",
             expression="ifelse(!ORG_ADMIN_a!,!ORG_ADMIN_t!)",
             code_block="""def ifelse(Org_a, Org_t):
@@ -524,9 +489,8 @@ def CNRA_pts_Model(
                                 return Org_a""",
         )
 
-        # Process: Calculate Org P Null (3) (Calculate Field) (management)
-        Updated_Input_Table_7_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_6_,
+        calc_field_13 = arcpy.management.CalculateField(
+            in_table=calc_field_12,
             field="ORG_ADMIN_p",
             expression="ifelse(!ORG_ADMIN_p!,!ORG_ADMIN_t!)",
             code_block="""def ifelse(Org_p, Org_t):
@@ -536,9 +500,8 @@ def CNRA_pts_Model(
                                 return Org_p""",
         )
         
-        # Process: Calculate Admin Null (3) (Calculate Field) (management)
-        Updated_Input_Table_9_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_7_,
+        calc_field_14 = arcpy.management.CalculateField(
+            in_table=calc_field_13,
             field="ADMINISTERING_ORG",
             expression="ifelse(!ADMINISTERING_ORG!,!ORG_ADMIN_t!)",
             code_block="""def ifelse(Admin, Org_t):
@@ -548,9 +511,8 @@ def CNRA_pts_Model(
                                 return Admin""",
         )
 
-        # Process: Calculate Agency Null (3) (Calculate Field) (management)
-        Updated_Input_Table_10_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_9_,
+        calc_field_15 = arcpy.management.CalculateField(
+            in_table=calc_field_14,
             field="AGENCY",
             expression="ifelse(!AGENCY!)",
             code_block="""def ifelse(Agency):
@@ -560,9 +522,8 @@ def CNRA_pts_Model(
                                 return Agency""",
         )
 
-        # Process: Calculate Status (Calculate Field) (management)
-        Updated_Input_Table_5_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_10_,
+        calc_field_16 = arcpy.management.CalculateField(
+            in_table=calc_field_15,
             field="ACTIVITY_STATUS",
             expression="ifelse(!ACTIVITY_STATUS!)",
             code_block="""def ifelse(Stat):
@@ -571,10 +532,10 @@ def CNRA_pts_Model(
                             else:
                                 return Stat""",
         )
-        print("   Status")
-        # Process: Calculate End Date (4) (Calculate Field) (management)
-        Updated_Input_Table_5a_ = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_5_,
+
+        print("   step 14/17 status")
+        calc_field_17 = arcpy.management.CalculateField(
+            in_table=calc_field_16,
             field="ACTIVITY_END",
             expression="ifelse(!ACTIVITY_STATUS!, !ACTIVITY_START!, !ACTIVITY_END!)",
             code_block="""def ifelse(Stat, Start, End):
@@ -589,154 +550,149 @@ def CNRA_pts_Model(
                             else:
                                 return End""",
         )
-        print("   Activity End Date")
+        print("   step 15/17 activity end date")
 
-        # Process: Feature To Point (Feature To Point) (management)
-        Output_Feature_Class_5_ = os.path.join(
-            scratch_workspace, "CNRA_Standardi_FeatureToPoin1"
-        )
-        arcpy.management.FeatureToPoint(
-            in_features=Updated_Input_Table_5a_,
-            out_feature_class=Output_Feature_Class_5_,
+        to_pt = arcpy.management.FeatureToPoint(
+            in_features=calc_field_17,
+            out_feature_class=to_point,
         )
 
-        # Process: 7b Enrichments pts (7b Enrichments pts) 
-        Pts_enrichment_Veg2_3_ = os.path.join(scratch_workspace, "Pts_enrichment_Veg2")
         enrich_points(
-            enrich_pts_out=Pts_enrichment_Veg2_3_,
-            enrich_pts_in=Output_Feature_Class_5_,
+            enrich_pts_in=to_pt,
+            enrich_pts_out=pts_enriched            
         )
 
         print("Enrichment Complete")
-        # Process: Calculate GEOM (3) (Calculate Field) (management)
-        Updated_Input_Table_18_ = arcpy.management.CalculateField(
-            in_table=Pts_enrichment_Veg2_3_, field="TRMT_GEOM", expression="'POINT'"
-        )
+        Count3 = arcpy.management.GetCount(pts_enriched)
+        print("     enriched has {} records".format(Count3[0]))
 
-        print("   Counts")
-        # Process: 2m Counts to MAS (2m Counts to MAS) 
-        CDFW_Enriched_Ln_Table_20230801_3_ = CountsToMAS(
-            Input_Table=Updated_Input_Table_18_
-        )
-
-        print("   Delete Identical")
-        # Process: Delete Identical (Delete Identical) (management)
-        Pts_enrichment_Veg2_Layer = arcpy.management.DeleteIdentical(
-            in_dataset=CDFW_Enriched_Ln_Table_20230801_3_,
-            fields=[
-                "PROJECTID_USER",
-                "AGENCY",
-                "ORG_ADMIN_p",
-                "PROJECT_CONTACT",
-                "PROJECT_EMAIL",
-                "ADMINISTERING_ORG",
-                "PROJECT_NAME",
-                "PROJECT_STATUS",
-                "PROJECT_START",
-                "PROJECT_END",
-                "PRIMARY_FUNDING_SOURCE",
-                "PRIMARY_FUNDING_ORG",
-                "IMPLEMENTING_ORG",
-                "LATITUDE",
-                "LONGITUDE",
-                "BatchID_p",
-                "Val_Status_p",
-                "Val_Message_p",
-                "Val_RunDate_p",
-                "Review_Status_p",
-                "Review_Message_p",
-                "Review_RunDate_p",
-                "Dataload_Status_p",
-                "Dataload_Msg_p",
-                "TRMTID_USER",
-                "PROJECTID",
-                "PROJECTNAME_",
-                "ORG_ADMIN_t",
-                "PRIMARY_OWNERSHIP_GROUP",
-                "PRIMARY_OBJECTIVE",
-                "SECONDARY_OBJECTIVE",
-                "TERTIARY_OBJECTIVE",
-                "TREATMENT_STATUS",
-                "COUNTY",
-                "IN_WUI",
-                "REGION",
-                "TREATMENT_AREA",
-                "TREATMENT_START",
-                "TREATMENT_END",
-                "RETREATMENT_DATE_EST",
-                "TREATMENT_NAME",
-                "BatchID",
-                "Val_Status_t",
-                "Val_Message_t",
-                "Val_RunDate_t",
-                "Review_Status_t",
-                "Review_Message_t",
-                "Review_RunDate_t",
-                "Dataload_Status_t",
-                "Dataload_Msg_t",
-                "ACTIVID_USER",
-                "TREATMENTID_",
-                "ORG_ADMIN_a",
-                "ACTIVITY_DESCRIPTION",
-                "ACTIVITY_CAT",
-                "BROAD_VEGETATION_TYPE",
-                "BVT_USERD",
-                "ACTIVITY_STATUS",
-                "ACTIVITY_QUANTITY",
-                "ACTIVITY_UOM",
-                "ACTIVITY_START",
-                "ACTIVITY_END",
-                "ADMIN_ORG_NAME",
-                "IMPLEM_ORG_NAME",
-                "PRIMARY_FUND_SRC_NAME",
-                "PRIMARY_FUND_ORG_NAME",
-                "SECONDARY_FUND_SRC_NAME",
-                "SECONDARY_FUND_ORG_NAME",
-                "TERTIARY_FUND_SRC_NAME",
-                "TERTIARY_FUND_ORG_NAME",
-                "ACTIVITY_PRCT",
-                "RESIDUE_FATE",
-                "RESIDUE_FATE_QUANTITY",
-                "RESIDUE_FATE_UNITS",
-                "ACTIVITY_NAME",
-                "VAL_STATUS_a",
-                "VAL_MSG_a",
-                "VAL_RUNDATE_a",
-                "REVIEW_STATUS_a",
-                "REVIEW_MSG_a",
-                "REVIEW_RUNDATE_a",
-                "DATALOAD_STATUS_a",
-                "DATALOAD_MSG_a",
-                "Source",
-                "Year",
-                "Year_txt",
-                "Act_Code",
-                "Crosswalk",
-                "Federal_FY",
-                "State_FY",
-                "Shape",
-                "TRMT_GEOM",
-                "COUNTS_TO_MAS",
-            ],
-        )
+        # print("   step 16/17 delete identical")
+        # deleteidentical_1 = arcpy.management.DeleteIdentical(
+        #     in_dataset=pts_enriched,
+        #     fields=[
+        #         "PROJECTID_USER",
+        #         "AGENCY",
+        #         "ORG_ADMIN_p",
+        #         "PROJECT_CONTACT",
+        #         "PROJECT_EMAIL",
+        #         "ADMINISTERING_ORG",
+        #         "PROJECT_NAME",
+        #         "PROJECT_STATUS",
+        #         "PROJECT_START",
+        #         "PROJECT_END",
+        #         "PRIMARY_FUNDING_SOURCE",
+        #         "PRIMARY_FUNDING_ORG",
+        #         "IMPLEMENTING_ORG",
+        #         "LATITUDE",
+        #         "LONGITUDE",
+        #         "BatchID_p",
+        #         "Val_Status_p",
+        #         "Val_Message_p",
+        #         "Val_RunDate_p",
+        #         "Review_Status_p",
+        #         "Review_Message_p",
+        #         "Review_RunDate_p",
+        #         "Dataload_Status_p",
+        #         "Dataload_Msg_p",
+        #         "TRMTID_USER",
+        #         "PROJECTID",
+        #         "PROJECTNAME_",
+        #         "ORG_ADMIN_t",
+        #         "PRIMARY_OWNERSHIP_GROUP",
+        #         "PRIMARY_OBJECTIVE",
+        #         "SECONDARY_OBJECTIVE",
+        #         "TERTIARY_OBJECTIVE",
+        #         "TREATMENT_STATUS",
+        #         "COUNTY",
+        #         "IN_WUI",
+        #         "REGION",
+        #         "TREATMENT_AREA",
+        #         "TREATMENT_START",
+        #         "TREATMENT_END",
+        #         "RETREATMENT_DATE_EST",
+        #         "TREATMENT_NAME",
+        #         "BatchID",
+        #         "Val_Status_t",
+        #         "Val_Message_t",
+        #         "Val_RunDate_t",
+        #         "Review_Status_t",
+        #         "Review_Message_t",
+        #         "Review_RunDate_t",
+        #         "Dataload_Status_t",
+        #         "Dataload_Msg_t",
+        #         "ACTIVID_USER",
+        #         "TREATMENTID_",
+        #         "ORG_ADMIN_a",
+        #         "ACTIVITY_DESCRIPTION",
+        #         "ACTIVITY_CAT",
+        #         "BROAD_VEGETATION_TYPE",
+        #         "BVT_USERD",
+        #         "ACTIVITY_STATUS",
+        #         "ACTIVITY_QUANTITY",
+        #         "ACTIVITY_UOM",
+        #         "ACTIVITY_START",
+        #         "ACTIVITY_END",
+        #         "ADMIN_ORG_NAME",
+        #         "IMPLEM_ORG_NAME",
+        #         "PRIMARY_FUND_SRC_NAME",
+        #         "PRIMARY_FUND_ORG_NAME",
+        #         "SECONDARY_FUND_SRC_NAME",
+        #         "SECONDARY_FUND_ORG_NAME",
+        #         "TERTIARY_FUND_SRC_NAME",
+        #         "TERTIARY_FUND_ORG_NAME",
+        #         "ACTIVITY_PRCT",
+        #         "RESIDUE_FATE",
+        #         "RESIDUE_FATE_QUANTITY",
+        #         "RESIDUE_FATE_UNITS",
+        #         "ACTIVITY_NAME",
+        #         "VAL_STATUS_a",
+        #         "VAL_MSG_a",
+        #         "VAL_RUNDATE_a",
+        #         "REVIEW_STATUS_a",
+        #         "REVIEW_MSG_a",
+        #         "REVIEW_RUNDATE_a",
+        #         "DATALOAD_STATUS_a",
+        #         "DATALOAD_MSG_a",
+        #         "Source",
+        #         "Year",
+        #         "Year_txt",
+        #         "Act_Code",
+        #         "Crosswalk",
+        #         "Federal_FY",
+        #         "State_FY",
+        #         "Shape",
+        #         "TRMT_GEOM",
+        #         "COUNTS_TO_MAS",
+        #     ],
+        # )
 
         print("Export Final")
-        # Process: Copy Enriched Features (3) (Copy Features) (management)
         arcpy.management.CopyFeatures(
-            in_features=Pts_enrichment_Veg2_Layer, out_feature_class=output_pt_enriched
+            in_features=pts_enriched, 
+            out_feature_class=output_pt_enriched
         )
+        
+        Count4 = arcpy.management.GetCount(output_pt_enriched)
+        print("     final has {} records".format(Count4[0]))
 
-        print("   Assign Domains")
-        # Process: 2b Assign Domains (5) (2b Assign Domains) 
-        output_pt_enriched = AssignDomains(in_table=output_pt_enriched)
+        print("   step 17/17 assign domains")
+        AssignDomains(in_table=output_pt_enriched)
 
-        print("Deleting Scratch Files")
-        delete_scratch_files(
-            gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-        )
+        if delete_scratch:
+            print('Deleting Scratch Files')
+            delete_scratch_files(
+                gdb=scratch_workspace,
+                delete_fc="yes",
+                delete_table="yes",
+                delete_ds="yes",
+            )
 
-        end = time.time()
-        print(f"Time Elapsed: {(end-start)/60} minutes")
+        end1 = datetime.datetime.now()
+        elapsed1 = (end1-start1)
+        hours, remainder1 = divmod(elapsed1.total_seconds(), 3600)
+        minutes, remainder2 = divmod(remainder1, 60)
+        seconds, remainder3 = divmod(remainder2, 1)
+        print(f"CNRA Points script took: {int(hours)}h, {int(minutes)}m, {seconds}s to complete")
 
     return output_pt_enriched 
 

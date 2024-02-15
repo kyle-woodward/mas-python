@@ -15,7 +15,6 @@ from .utils import init_gdb, delete_scratch_files
 workspace, scratch_workspace = init_gdb()
 
 def GetData():
-    # Model Environment settings
     with arcpy.EnvManager(
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
@@ -62,7 +61,6 @@ def GetData():
         a_Originals = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\a_Originals"
         Tahoe_Forest_Fuels_Tx = "Treatments-Source\\Tahoe_Forest_Fuels_Tx"
 
-        # Process: Select (12) (Select) (analysis)
         Output_Feature_Class_5_ = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\EDWFinalFirePerimeterAllYear"
         arcpy.analysis.Select(
             in_features=EDW_Final_Fire_Perimeter_All_Years_,
@@ -70,7 +68,6 @@ def GetData():
             where_clause="",
         )
 
-        # Process: Select (11) (Select) (analysis)
         Output_Feature_Class_11_ = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\BLMVegetationTreatmentAreaCo"
         arcpy.analysis.Select(
             in_features=BLM_Vegetation_Treatment_Area_Completed_Polygons,
@@ -78,7 +75,6 @@ def GetData():
             where_clause="",
         )
 
-        # Process: Select (10) (Select) (analysis)
         Output_Feature_Class_10_ = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\NPSFuelsTreatmentPerimetersT"
         arcpy.analysis.Select(
             in_features=NPS_Fuels_Treatment_Perimeters_Treatment_Type,
@@ -86,7 +82,6 @@ def GetData():
             where_clause="",
         )
 
-        # Process: Select (9) (Select) (analysis)
         Output_Feature_Class_9_ = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CALFIRETimberHarvestingPlans"
         arcpy.analysis.Select(
             in_features=CAL_FIRE_Timber_Harvesting_Plans_WGS84,
@@ -94,7 +89,6 @@ def GetData():
             where_clause="",
         )
 
-        # Process: Select (8) (Select) (analysis)
         CalFireTreatment_Select = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC381 FirstStreet\\Scratch.gdb\\CalFireTreatment_Select"
         arcpy.analysis.Select(
             in_features=CalFire_Treatment_Polygons,
@@ -102,7 +96,6 @@ def GetData():
             where_clause="",
         )
 
-        # Process: Select (15) (Select) (analysis)
         Output_Feature_Class_13_ = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\ForestHealth_AwardedProjects"
         arcpy.analysis.Select(
             in_features=ForestHealth_AwardedProjects_2018_2019,
@@ -110,7 +103,6 @@ def GetData():
             where_clause="",
         )
 
-        # Process: Select (17) (Select) (analysis)
         South_Yuba_Stakeholder_projects_Select = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC381 FirstStreet\\Scratch.gdb\\South_Yuba_Stakeholder_projects_Select"
         arcpy.analysis.Select(
             in_features=Stakeholder_projects,
@@ -118,7 +110,6 @@ def GetData():
             where_clause="Source <> 'CAL FIRE' And Source <> 'USDA Forest Service Tahoe'",
         )
 
-        # Process: Select (2) (Select) (analysis)
         usfs_haz_fuels_treatments_reduction_20220607 = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\a_Originals\\usfs_haz_fuels_treatments_reduction_20220607"
         arcpy.analysis.Select(
             in_features=EDW_Hazardous_Fuel_Treatment_Reduction_Polygon_2_,
@@ -126,7 +117,6 @@ def GetData():
             where_clause="",
         )
 
-        # Process: Select (Select) (analysis)
         Output_Feature_Class = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\EDWTimberHarvestAllYears_Sel"
         arcpy.analysis.Select(
             in_features=EDW_Timber_Harvest_All_Years_,
@@ -134,7 +124,6 @@ def GetData():
             where_clause="",
         )
 
-        # Process: Select (3) (Select) (analysis)
         nfpors_fuels_treatments_20220304 = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\Originals\\nfpors_fuels_treatments_20220304"
         arcpy.analysis.Select(
             in_features=NFPORS_Fuel_Treatment_Polygons,
@@ -142,7 +131,6 @@ def GetData():
             where_clause="",
         )
 
-        # Process: Copy Features (2) (Copy Features) (management)
         CALFIRE_Timber_Harvest_Proposed_20220616 = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\a_Originals\\CALFIRE_Timber_Harvest_Proposed_20220616"
         arcpy.management.CopyFeatures(
             in_features=CAL_FIRE_Proposed_Harvest_Plans_TA83,
@@ -153,14 +141,12 @@ def GetData():
             spatial_grid_3=None,
         )
 
-        # Process: Repair Geometry (Repair Geometry) (management)
         Repaired_Input_Features = arcpy.management.RepairGeometry(
             in_features=CALFIRE_Timber_Harvest_Proposed_20220616,
             delete_null="DELETE_NULL",
             validation_method="ESRI",
         )
 
-        # Process: Copy Features (Copy Features) (management)
         nfpors_fuels_treatments_20220304_2_ = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\Originals\\nfpors_fuels_treatments_20220304"
         arcpy.management.CopyFeatures(
             in_features=NFPORS_Fuel_Treatment_Polygons,
@@ -171,7 +157,6 @@ def GetData():
             spatial_grid_3=None,
         )
 
-        # Process: Select (4) (Select) (analysis)
         CALFIRE_Timber_Harvest_Proposed_20220616_2_ = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\a_Originals\\CALFIRE_Timber_Harvest_Proposed_20220616"
         arcpy.analysis.Select(
             in_features=CAL_FIRE_Proposed_Harvest_Plans_TA83,
@@ -179,7 +164,6 @@ def GetData():
             where_clause="",
         )
 
-        # Process: Select (5) (Select) (analysis)
         CalVTP_20220915 = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\a_Originals\\CalVTP_20220915"
         arcpy.analysis.Select(
             in_features=CalVTP_Treatment_Areas,
@@ -187,7 +171,6 @@ def GetData():
             where_clause="Affiliation = 'non-CAL FIRE'",
         )
 
-        # Process: Feature Class To Feature Class (Feature Class To Feature Class) (conversion)
         CalVTP_20220923 = arcpy.conversion.FeatureClassToFeatureClass(
             in_features=CalVTP_Treatment_Areas_3_,
             out_path=a_Originals,
@@ -197,19 +180,13 @@ def GetData():
             config_keyword="",
         )
 
-        # Process: Calculate Value (Calculate Value) ()
         Value = time.strftime("%Y%m%d")
 
-        # Process: Copy Features (3) (Copy Features) (management)
         Tahoe_Forest_Fuels_Tx_value_ = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\a_Originals\\Tahoe_Forest_Fuels_Tx_%value%"
         if Value:
             arcpy.management.CopyFeatures(
                 in_features=Tahoe_Forest_Fuels_Tx,
-                out_feature_class=Tahoe_Forest_Fuels_Tx_value_,
-                config_keyword="",
-                spatial_grid_1=None,
-                spatial_grid_2=None,
-                spatial_grid_3=None,
+                out_feature_class=Tahoe_Forest_Fuels_Tx_value_
             )
 
 

@@ -8,187 +8,686 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
+import datetime
+start1 = datetime.datetime.now()
+
+import os
 import arcpy
-from .AssignDomains import AssignDomains
-from .Category import Category
-from .CountsToMAS import CountsToMAS
-from .StandardizeDomains import StandardizeDomains
-from .aEnrichmentsPolygon1 import aEnrichmentsPolygon1
+from ._1_assign_domains import AssignDomains
+from ._3_enrichments_polygon import enrich_polygons
+from .utils import init_gdb, delete_scratch_files
 
-def oCNRAModel202308213(Project_Poly="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Project_Poly", Treatment_Poly="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Treatment_Poly"):  # 6o CNRA_Polygons_20230821
+date_id = datetime.datetime.now().strftime("%Y-%m-%d").replace("-", "")  # like 20221216
 
+workspace, scratch_workspace = init_gdb()
+
+def CNRA_poly_Model(
+    input_poly_fc, 
+    Activity_Table, 
+    Project_Poly, 
+    WFR_TF_Template, 
+    output_poly_enriched,
+    delete_scratch=False
+):
     # Model Environment settings
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
-        overwriteOutput = True,
-        ):
+        transferGDBAttributeProperties=False, 
+        overwriteOutput = True
+    ):
         
-        Activity_Table = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table"
-        scratch_gdb = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb"
-        scratch_gdb_2_ = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb"
-        WFR_TF_Template = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\b_Reference\\WFR_TF_Template"
+        print(f"Start Time {start1}")
 
-        # Process: Copy Features (7) (Copy Features) (management)
-        Output_Feature_Class_2_ = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Treatment_Poly_CopyFeatures"
-        arcpy.management.CopyFeatures(in_features=Treatment_Poly, out_feature_class=Output_Feature_Class_2_)
+        # define intermediary objects in scratch
+        Input_Features_1 = os.path.join(scratch_workspace, "CNRA_Treatment_Poly")
+        Output_Table_1 = os.path.join(scratch_workspace, "CNRA_Activity_Table")
+        join_2 = os.path.join(scratch_workspace, "Features_Join_Activities_2")
+        Input_Projects_1 = os.path.join(scratch_workspace, "Project_Poly_CopyFeatures")
+        CNRA_Flat_2 = os.path.join(scratch_workspace, "CNRA_Treatments_poly_Copy_Laye_CopyFeatures")
+        Enrich_Out = os.path.join(scratch_workspace, "CNRA_Enriched_Poly")
 
-        # Process: Calculate Treatment ID User Field (Calculate Field) (management)
-        CNRA_Act_Table_5_ = arcpy.management.CalculateField(in_table=Output_Feature_Class_2_, field="TRMTID_USER", expression="!TRMTID_USER![:45]+'-CNRA'")
+        print("Part 1 Prepare Features")
+        arcpy.management.CopyFeatures(input_poly_fc, Input_Features_1)
+        # arcpy.DefineProjection_management(Input_Features_1, "NAD 1983 California (Teale) Albers (Meters)") # WKID 3310
+        
+        # ## Attribute Validation (execute if needed)
+        # Input_Features_2a = arcpy.management.CalculateField(
+        #     in_table=Input_Features_1,
+        #     field="TRMTID_USER",
+        #     expression="ifelse(!TRMTID_USER!, !TREATMENT_NAME!)",
+        #     code_block="""def ifelse(ID, NAME):
+        #                     if ID != None or ID == '' or ID == ' ':
+        #                         return NAME
+        #                     else:
+        #                         return ID""",
+        # )
 
-        # Process: Calculate Project ID User Field (2) (Calculate Field) (management)
-        Treatment_Poly_2_ = arcpy.management.CalculateField(in_table=CNRA_Act_Table_5_, field="PROJECTID_USER", expression="!PROJECTID_USER![:45]+'-CNRA'")
+        # ## Attribute Validation (execute if needed)
+        # Input_Features_2B = arcpy.management.CalculateField(
+        #     in_table=Input_Features_2a,
+        #     field="PROJECTID_USER",
+        #     expression="ifelse(!PROJECTID_USER!, !TRMTID_USER!)",
+        #     code_block="""def ifelse(ID, NAME):
+        #                     if ID != None or ID == '' or ID == ' ':
+        #                         return NAME
+        #                     else:
+        #                         return ID""",
+        # )
 
-        # Process: Export Table (Export Table) (conversion)
-        Output_Table = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable"
-        arcpy.conversion.ExportTable(in_table=Activity_Table, out_table=Output_Table, field_mapping="ACTIVID_USER \"ACTIVITYID USER\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,ACTIVID_USER,0,50;TRMTID_USER \"TREATMENT ID USER\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,TRMTID_USER,0,50;TREATMENTID_ \"TREATMENTID POLYGON\" true true false 38 Guid 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,TREATMENTID_,-1,-1;ORG_ADMIN_a \"ORG DATA STEWARD\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,ORG_ADMIN_a,0,150;PRIMARY_OBJECTIVE \"PRIMARY OBJECTIVE\" true true false 65 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,PRIMARY_OBJECTIVE,0,65;ACTIVITY_DESCRIPTION \"ACTIVITY DESCRIPTION\" true true false 70 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,ACTIVITY_DESCRIPTION,0,70;ACTIVITY_CAT \"ACTIVITY CATEGORY\" true true false 40 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,ACTIVITY_CAT,0,40;BROAD_VEGETATION_TYPE \"BROAD VEGETATION TYPE\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,BROAD_VEGETATION_TYPE,0,50;BVT_USERD \"IS BVT USER DEFINED\" true true false 3 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,BVT_USERD,0,3;ACTIVITY_STATUS \"ACTIVITY STATUS\" true true false 25 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,ACTIVITY_STATUS,0,25;ACTIVITY_QUANTITY \"ACTIVITY QUANTITY\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,ACTIVITY_QUANTITY,-1,-1;ACTIVITY_UOM \"ACTIVITY UNITS\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,ACTIVITY_UOM,0,15;ACTIVITY_START \"ACTIVITY START\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,ACTIVITY_START,-1,-1;ACTIVITY_END \"ACTIVITY END\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,ACTIVITY_END,-1,-1;ADMIN_ORG_NAME \"ADMINISTRATION ORGANIZATION NAME\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,ADMIN_ORG_NAME,0,150;IMPLEM_ORG_NAME \"IMPLEMENTATION ORGANIZATION NAME\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,IMPLEM_ORG_NAME,0,150;PRIMARY_FUND_SRC_NAME \"PRIMARY FUND SOURCE NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,PRIMARY_FUND_SRC_NAME,0,100;PRIMARY_FUND_ORG_NAME \"PRIMARY FUND ORGANIZATION NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,PRIMARY_FUND_ORG_NAME,0,100;SECONDARY_FUND_SRC_NAME \"SECONDARY FUND SOURCE NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,SECONDARY_FUND_SRC_NAME,0,100;SECONDARY_FUND_ORG_NAME \"SECONDARY FUND ORGANIZATION NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,SECONDARY_FUND_ORG_NAME,0,100;TERTIARY_FUND_SRC_NAME \"TERTIARY FUND SOURCE NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,TERTIARY_FUND_SRC_NAME,0,100;TERTIARY_FUND_ORG_NAME \"TERTIARY FUND ORGANIZATION NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,TERTIARY_FUND_ORG_NAME,0,100;ACTIVITY_PRCT \"ACTIVITY PERCENT\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,ACTIVITY_PRCT,-1,-1;RESIDUE_FATE \"RESIDUE FATE\" true true false 35 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,RESIDUE_FATE,0,35;RESIDUE_FATE_QUANTITY \"RESIDUE FATE QUANTITY\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,RESIDUE_FATE_QUANTITY,-1,-1;RESIDUE_FATE_UNITS \"RESIDUE FATE UNITS\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,RESIDUE_FATE_UNITS,0,15;ACTIVITY_NAME \"ACTIVITY NAME\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,ACTIVITY_NAME,0,150;TRMT_GEOM \"TREATMENT GEOMETRY\" true true false 10 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,TRMT_GEOM,0,10;GlobalID \"ACTIVITYID\" false false true 38 GlobalID 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,GlobalID,-1,-1;created_user \"created_user\" true true false 255 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,created_user,0,255;created_date \"created_date\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,created_date,-1,-1;last_edited_user \"last_edited_user\" true true false 255 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,last_edited_user,0,255;last_edited_date \"last_edited_date\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,last_edited_date,-1,-1;TREATMENTID_LN \"TREATMENTID LINE\" true true false 38 Guid 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,TREATMENTID_LN,-1,-1;TREATMENTID_PT \"TREATMENTID POINT\" true true false 38 Guid 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,TREATMENTID_PT,-1,-1;COUNTS_TO_MAS \"COUNTS TOWARDS MAS\" true true false 3 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\1-Spatial Data\\CNRA\\CNRA_TRMTTRACKER_20230821.gdb\\Activity_Table,COUNTS_TO_MAS,0,3")
+        print("   step 1/17 edit ID's")
+        ## Eliminates numaric Project ID's that may be the same as in other datasets
+        calc_field_1 = arcpy.management.CalculateField(
+            in_table=Input_Features_1,
+            field="PROJECTID_USER",
+            expression="str(!PROJECTID_USER!)[:45]+'-CNRA'",
+        )
 
-        # Process: Calculate Field (Calculate Field) (management)
-        Activity_Table_2_ = arcpy.management.CalculateField(in_table=Output_Table, field="TREATMENTID_", expression="ifelse(!TREATMENTID_!,!TREATMENTID_LN!,!TREATMENTID_PT!)", code_block="""def ifelse(poly, ln, pt):
-    if ln != None:
-        return ln
-    if pt != None:
-        return pt
-    else:
-        return poly""")
+        ## Eliminates numaric Treatment ID's that may be the same as in other datasets
+        calc_field_2 = arcpy.management.CalculateField(
+            in_table=calc_field_1,
+            field="TRMTID_USER",
+            expression="str(!TRMTID_USER!)[:45]+'-CNRA'",
+        )
 
-        # Process: Create Table (Create Table) (management)
-        CNRA_Act_Table = arcpy.management.CreateTable(out_path=scratch_gdb, out_name="CNRA_Act_Table")
+        print("Part 2 Prepare Activity Table")
+        arcpy.conversion.ExportTable(Activity_Table, Output_Table_1)
 
-        # Process: Add Activities Fields (multiple) (Add Fields (multiple)) (management)
-        WFRTF_Template_5_ = arcpy.management.AddFields(in_table=CNRA_Act_Table, field_description=[["ACTIVID_USER", "TEXT", "ACTIVITYID USER", "50", "", ""], ["TREATMENTID_", "TEXT", "TREATMENTID", "50", "", ""], ["ORG_ADMIN_a", "TEXT", "ORG DATA STEWARD", "150", "", ""], ["ACTIVITY_DESCRIPTION", "TEXT", "ACTIVITY DESCRIPTION", "70", "", ""], ["ACTIVITY_CAT", "TEXT", "ACTIVITY CATEGORY", "40", "", ""], ["BROAD_VEGETATION_TYPE", "TEXT", "BROAD VEGETATION TYPE", "50", "", ""], ["BVT_USERD", "TEXT", "IS BVT USER DEFINED", "3", "", ""], ["ACTIVITY_STATUS", "TEXT", "ACTIVITY STATUS", "25", "", ""], ["ACTIVITY_QUANTITY", "DOUBLE", "ACTIVITY QUANTITY", "8", "", ""], ["ACTIVITY_UOM", "TEXT", "ACTIVITY UNITS", "15", "", ""], ["ACTIVITY_START", "DATE", "ACTIVITY START", "8", "", ""], ["ACTIVITY_END", "DATE", "ACTIVITY END", "8", "", ""], ["ADMIN_ORG_NAME", "TEXT", "ADMINISTRATION ORGANIZATION NAME", "150", "", ""], ["IMPLEM_ORG_NAME", "TEXT", "IMPLEMENTATION ORGANIZATION NAME", "150", "", ""], ["PRIMARY_FUND_SRC_NAME", "TEXT", "PRIMARY FUND SOURCE NAME", "100", "", ""], ["PRIMARY_FUND_ORG_NAME", "TEXT", "PRIMARY FUND ORGANIZATION NAME", "100", "", ""], ["SECONDARY_FUND_SRC_NAME", "TEXT", "SECONDARY FUND SOURCE NAME", "100", "", ""], ["SECONDARY_FUND_ORG_NAME", "TEXT", "SECONDARY FUND ORGANIZATION NAME", "100", "", ""], ["TERTIARY_FUND_SRC_NAME", "TEXT", "TERTIARY FUND SOURCE NAME", "100", "", ""], ["TERTIARY_FUND_ORG_NAME", "TEXT", "TERTIARY FUND ORGANIZATION NAME", "100", "", ""], ["ACTIVITY_PRCT", "SHORT", "ACTIVITY PERCENT", "3", "", ""], ["RESIDUE_FATE", "TEXT", "RESIDUE FATE", "35", "", ""], ["RESIDUE_FATE_QUANTITY", "DOUBLE", "RESIDUE FATE QUANTITY", "8", "", ""], ["RESIDUE_FATE_UNITS", "TEXT", "RESIDUE FATE UNITS", "5", "", ""], ["ACTIVITY_NAME", "TEXT", "ACTIVITY NAME", "150", "", ""], ["VAL_STATUS_a", "TEXT", "VALIDATION STATUS", "15", "", ""], ["VAL_MSG_a", "TEXT", "VALIDATION MESSAGE", "15", "", ""], ["VAL_RUNDATE_a", "DATE", "VALIDATION RUN DATE", "8", "", ""], ["REVIEW_STATUS_a", "TEXT", "REVIEW STATUS", "15", "", ""], ["REVIEW_MSG_a", "TEXT", "REVIEW MESSAGE", "15", "", ""], ["REVIEW_RUNDATE_a", "DATE", "REVIEW RUN DATE", "8", "", ""], ["DATALOAD_STATUS_a", "TEXT", "DATALOAD STATUS", "15", "", ""], ["DATALOAD_MSG_a", "TEXT", "DATALOAD MESSAGE", "15", "", ""], ["Source", "TEXT", "Source", "65", "", ""], ["Year", "LONG", "Calendar Year", "", "", ""], ["Year_txt", "TEXT", "Year as Text", "255", "", ""], ["Act_Code", "LONG", "USFS Activity Code", "", "", ""], ["Crosswalk", "TEXT", "Crosswalk Activities", "150", "", ""], ["Federal_FY", "LONG", "Federal FY", "", "", ""], ["State_FY", "LONG", "State FY", "", "", ""], ["TRMTID_USER", "TEXT", "", "50", "", ""], ["BATCHID_a", "TEXT", "BATCH ID (ACTIVITY)", "40", "", ""], ["TRMT_GEOM", "TEXT", "TREATMENT GEOMETRY", "10", "", ""], ["COUNTS_TO_MAS", "TEXT", "COUNTS TOWARDS MAS", "3", "", ""]])
+        calc_field_3 = arcpy.management.CalculateField(
+            in_table=Output_Table_1,
+            field="TREATMENTID_",
+            expression="ifelse(!TREATMENTID_!,!TREATMENTID_POLY!,!TREATMENTID_LN!,!TREATMENTID_PT!)",
+            code_block="""def ifelse(id, poly, ln, pt):
+                            if id != None:
+                                return id
+                            if ln != None:
+                                return ln
+                            if pt != None:
+                                return pt
+                            else:
+                                return poly""",
+        )
 
-        # Process: Append (4) (Append) (management)
-        CNRA_Act_Table_4_ = arcpy.management.Append(inputs=[Activity_Table_2_], target=WFRTF_Template_5_, schema_type="NO_TEST", field_mapping="ACTIVID_USER \"ACTIVITYID USER\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,ACTIVID_USER,0,50;TREATMENTID_ \"TREATMENTID\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,TREATMENTID_,0,50;ORG_ADMIN_a \"ORG DATA STEWARD\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,ORG_ADMIN_a,0,150;ACTIVITY_DESCRIPTION \"ACTIVITY DESCRIPTION\" true true false 70 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,ACTIVITY_DESCRIPTION,0,70;ACTIVITY_CAT \"ACTIVITY CATEGORY\" true true false 40 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,ACTIVITY_CAT,0,40;BROAD_VEGETATION_TYPE \"BROAD VEGETATION TYPE\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,BROAD_VEGETATION_TYPE,0,50;BVT_USERD \"IS BVT USER DEFINED\" true true false 3 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,BVT_USERD,0,3;ACTIVITY_STATUS \"ACTIVITY STATUS\" true true false 25 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,ACTIVITY_STATUS,0,25;ACTIVITY_QUANTITY \"ACTIVITY QUANTITY\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,ACTIVITY_QUANTITY,-1,-1;ACTIVITY_UOM \"ACTIVITY UNITS\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,ACTIVITY_UOM,0,15;ACTIVITY_START \"ACTIVITY START\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,ACTIVITY_START,-1,-1;ACTIVITY_END \"ACTIVITY END\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,ACTIVITY_END,-1,-1;ADMIN_ORG_NAME \"ADMINISTRATION ORGANIZATION NAME\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,ADMIN_ORG_NAME,0,150;IMPLEM_ORG_NAME \"IMPLEMENTATION ORGANIZATION NAME\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,IMPLEM_ORG_NAME,0,150;PRIMARY_FUND_SRC_NAME \"PRIMARY FUND SOURCE NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,PRIMARY_FUND_SRC_NAME,0,100;PRIMARY_FUND_ORG_NAME \"PRIMARY FUND ORGANIZATION NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,PRIMARY_FUND_ORG_NAME,0,100;SECONDARY_FUND_SRC_NAME \"SECONDARY FUND SOURCE NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,SECONDARY_FUND_SRC_NAME,0,100;SECONDARY_FUND_ORG_NAME \"SECONDARY FUND ORGANIZATION NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,SECONDARY_FUND_ORG_NAME,0,100;TERTIARY_FUND_SRC_NAME \"TERTIARY FUND SOURCE NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,TERTIARY_FUND_SRC_NAME,0,100;TERTIARY_FUND_ORG_NAME \"TERTIARY FUND ORGANIZATION NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,TERTIARY_FUND_ORG_NAME,0,100;ACTIVITY_PRCT \"ACTIVITY PERCENT\" true true false 3 Short 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,ACTIVITY_PRCT,-1,-1;RESIDUE_FATE \"RESIDUE FATE\" true true false 35 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,RESIDUE_FATE,0,35;RESIDUE_FATE_QUANTITY \"RESIDUE FATE QUANTITY\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,RESIDUE_FATE_QUANTITY,-1,-1;RESIDUE_FATE_UNITS \"RESIDUE FATE UNITS\" true true false 5 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,RESIDUE_FATE_UNITS,0,15;ACTIVITY_NAME \"ACTIVITY NAME\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,ACTIVITY_NAME,0,150;VAL_STATUS_a \"VALIDATION STATUS\" true true false 15 Text 0 0,First,#;VAL_MSG_a \"VALIDATION MESSAGE\" true true false 15 Text 0 0,First,#;VAL_RUNDATE_a \"VALIDATION RUN DATE\" true true false 8 Date 0 0,First,#;REVIEW_STATUS_a \"REVIEW STATUS\" true true false 15 Text 0 0,First,#;REVIEW_MSG_a \"REVIEW MESSAGE\" true true false 15 Text 0 0,First,#;REVIEW_RUNDATE_a \"REVIEW RUN DATE\" true true false 8 Date 0 0,First,#;DATALOAD_STATUS_a \"DATALOAD STATUS\" true true false 15 Text 0 0,First,#;DATALOAD_MSG_a \"DATALOAD MESSAGE\" true true false 15 Text 0 0,First,#;Source \"Source\" true true false 65 Text 0 0,First,#;Year \"Calendar Year\" true true false 0 Long 0 0,First,#;Year_txt \"Year as Text\" true true false 255 Text 0 0,First,#;Act_Code \"USFS Activity Code\" true true false 0 Long 0 0,First,#;Crosswalk \"Crosswalk Activities\" true true false 150 Text 0 0,First,#;Federal_FY \"Federal FY\" true true false 0 Long 0 0,First,#;State_FY \"State FY\" true true false 0 Long 0 0,First,#;TRMTID_USER \"TRMTID_USER\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,TRMTID_USER,0,50;BATCHID_a \"BATCH ID (ACTIVITY)\" true true false 40 Text 0 0,First,#;TRMT_GEOM \"TREATMENT GEOMETRY\" true true false 10 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,TRMT_GEOM,0,10;COUNTS_TO_MAS \"COUNTS TOWARDS MAS\" true true false 3 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Activity_Table_ExportTable,COUNTS_TO_MAS,0,3")
+        calc_field_4 = arcpy.management.CalculateField(
+            in_table=calc_field_3,
+            field="TRMTID_USER",
+            expression="ifelse(!TRMTID_USER!, !ACTIVID_USER!)",
+            code_block="""def ifelse(ID, Act):
+                            if ID is None:
+                                return Act
+                            """,
+            expression_type = "PYTHON3"
+        )
+        
+        calc_field_5 = arcpy.management.CalculateField(
+            in_table=calc_field_4,
+            field="TRMTID_USER",
+            expression="ifelse(!TRMTID_USER!, !ACTIVITY_NAME!)",
+            code_block="""def ifelse(ID, Act):
+                            if ID is None:
+                                return Act
+                            """,
+            expression_type = "PYTHON3"
+        )
+        
+        print("   step 2/17 remove miliseconds from dates")
+        ## To eliminate miliseconds in date field
+        MiliSeconds_1 = arcpy.AlterField_management(calc_field_5, "ACTIVITY_END", "ACTIVITY_END_1")
+        MiliSeconds_2 = arcpy.AddField_management(MiliSeconds_1, "ACTIVITY_END", "DATEONLY")
+        MiliSeconds_3 = arcpy.CalculateField_management(MiliSeconds_2, "ACTIVITY_END", "!ACTIVITY_END_1!", "PYTHON3")
+        MiliSeconds_4 = arcpy.DeleteField_management(MiliSeconds_3, "ACTIVITY_END_1")
+        MiliSeconds_5 = arcpy.AlterField_management(MiliSeconds_4, "ACTIVITY_START", "ACTIVITY_START_1")
+        MiliSeconds_6 = arcpy.AddField_management(MiliSeconds_5, "ACTIVITY_END", "DATEONLY")
+        MiliSeconds_7 = arcpy.CalculateField_management(MiliSeconds_6, "ACTIVITY_START", "!ACTIVITY_START_1!", "PYTHON3")
+        MiliSeconds_8 = arcpy.DeleteField_management(MiliSeconds_7, "ACTIVITY_START_1")
 
-        # Process: Calculate Treatment ID User Field (4) (Calculate Field) (management)
-        CNRA_Act_Table_7_ = arcpy.management.CalculateField(in_table=CNRA_Act_Table_4_, field="TRMTID_USER", expression="!TRMTID_USER![:45]+'-CNRA'")
+        print("   step 3/17 create standardized activity table")
+        Template_1 = arcpy.management.CreateTable(
+            scratch_workspace, "CNRA_Activity_Table_2"
+        )
 
-        # Process: Add Join (Add Join) (management)
-        Treatment_Poly_CopyFeatures_1 = arcpy.management.AddJoin(in_layer_or_view=Treatment_Poly_2_, in_field="GlobalID", join_table=CNRA_Act_Table_7_, join_field="TREATMENTID_", index_join_fields="INDEX_JOIN_FIELDS")
+        addfields_1 = arcpy.management.AddFields(
+            Template_1,
+            [
+                ["ACTIVID_USER", "TEXT", "ACTIVITYID USER", "50", "", ""],
+                ["TREATMENTID_", "TEXT", "TREATMENTID", "50", "", ""],
+                ["ORG_ADMIN_a", "TEXT", "ORG DATA STEWARD", "150", "", ""],
+                ["ACTIVITY_DESCRIPTION", "TEXT", "ACTIVITY DESCRIPTION", "70", "", ""],
+                ["ACTIVITY_CAT", "TEXT", "ACTIVITY CATEGORY", "40", "", ""],
+                ["BROAD_VEGETATION_TYPE", "TEXT", "BROAD VEGETATION TYPE", "50", "", ""],
+                ["BVT_USERD", "TEXT", "IS BVT USER DEFINED", "3", "", ""],
+                ["ACTIVITY_STATUS", "TEXT", "ACTIVITY STATUS", "25", "", ""],
+                ["ACTIVITY_QUANTITY", "DOUBLE", "ACTIVITY QUANTITY", "8", "", ""],
+                ["ACTIVITY_UOM", "TEXT", "ACTIVITY UNITS", "15", "", ""],
+                ["ACTIVITY_START", "DATE", "ACTIVITY START", "8", "", ""],
+                ["ACTIVITY_END", "DATE", "ACTIVITY END", "8", "", ""],
+                ["ADMIN_ORG_NAME", "TEXT", "ADMINISTRATION ORGANIZATION NAME", "150", "", ""],
+                ["IMPLEM_ORG_NAME", "TEXT", "IMPLEMENTATION ORGANIZATION NAME", "150", "", ""],
+                ["PRIMARY_FUND_SRC_NAME", "TEXT", "PRIMARY FUND SOURCE NAME", "100", "", ""],
+                ["PRIMARY_FUND_ORG_NAME", "TEXT", "PRIMARY FUND ORGANIZATION NAME", "100", "", ""],
+                ["SECONDARY_FUND_SRC_NAME", "TEXT", "SECONDARY FUND SOURCE NAME", "100", "", ""],
+                ["SECONDARY_FUND_ORG_NAME", "TEXT", "SECONDARY FUND ORGANIZATION NAME", "100", "", ""],
+                ["TERTIARY_FUND_SRC_NAME", "TEXT", "TERTIARY FUND SOURCE NAME", "100", "", ""],
+                ["TERTIARY_FUND_ORG_NAME", "TEXT", "TERTIARY FUND ORGANIZATION NAME", "100", "", ""],
+                ["ACTIVITY_PRCT", "SHORT", "ACTIVITY PERCENT", "3", "", ""],
+                ["RESIDUE_FATE", "TEXT", "RESIDUE FATE", "35", "", ""],
+                ["RESIDUE_FATE_QUANTITY", "DOUBLE", "RESIDUE FATE QUANTITY", "8", "", ""],
+                ["RESIDUE_FATE_UNITS", "TEXT", "RESIDUE FATE UNITS", "5", "", ""],
+                ["ACTIVITY_NAME", "TEXT", "ACTIVITY NAME", "150", "", ""],
+                ["VAL_STATUS_a", "TEXT", "VALIDATION STATUS", "15", "", ""],
+                ["VAL_MSG_a", "TEXT", "VALIDATION MESSAGE", "15", "", ""],
+                ["VAL_RUNDATE_a", "DATE", "VALIDATION RUN DATE", "8", "", ""],
+                ["REVIEW_STATUS_a", "TEXT", "REVIEW STATUS", "15", "", ""],
+                ["REVIEW_MSG_a", "TEXT", "REVIEW MESSAGE", "15", "", ""],
+                ["REVIEW_RUNDATE_a", "DATE", "REVIEW RUN DATE", "8", "", ""],
+                ["DATALOAD_STATUS_a", "TEXT", "DATALOAD STATUS", "15", "", ""],
+                ["DATALOAD_MSG_a", "TEXT", "DATALOAD MESSAGE", "15", "", ""],
+                ["Source", "TEXT", "Source", "65", "", ""],
+                ["Year", "LONG", "Calendar Year", "", "", ""],
+                ["Year_txt", "TEXT", "Year as Text", "255", "", ""],
+                ["Act_Code", "LONG", "USFS Activity Code", "", "", ""],
+                ["Crosswalk", "TEXT", "Crosswalk Activities", "150", "", ""],
+                ["Federal_FY", "LONG", "Federal FY", "", "", ""],
+                ["State_FY", "LONG", "State FY", "", "", ""],
+                ["TRMTID_USER", "TEXT", "", "50", "", ""],
+                ["BATCHID_a", "TEXT", "BATCH ID (ACTIVITY)", "40", "", ""],
+                ["TRMT_GEOM", "TEXT", "TREATMENT GEOMETRY", "10", "", ""],
+                ["COUNTS_TO_MAS", "TEXT", "COUNTS TOWARDS MAS", "3", "", ""],
+            ],
+        )
 
-        # Process: Copy Features (5) (Copy Features) (management)
-        CNRA_Treatments_Copy = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy"
-        arcpy.management.CopyFeatures(in_features=Treatment_Poly_CopyFeatures_1, out_feature_class=CNRA_Treatments_Copy)
+        print("   step 4/17 import activities")
+        ## Use this append or the following append with field mapping depending on the situation.
+        ## Appending the CNRA table to the table we created ensures the schema is correct
+        append_1 = arcpy.management.Append(
+            inputs=[calc_field_5], 
+            target=addfields_1, 
+            schema_type="NO_TEST", 
+            field_mapping="", 
+            subtype="", 
+            expression=""
+            )
+        
+        # ## Append with Field Mapping if Append wiht NO_TEST doesn't work
+        # append_1 = arcpy.management.Append(
+        #     [calc_field_5],
+        #     addfields_1,
+        #     schema_type="NO_TEST",
+        #     field_mapping="""'ACTIVID_USER "ACTIVITYID USER" true true false 50 Text 0 0,First,#,output_pt_enriched,ACTIVID_USER,0,50;
+        #                     TREATMENTID_ "TREATMENTID" true true false 50 Text 0 0,First,#,output_pt_enriched,TREATMENTID_,0,50;
+        #                     ORG_ADMIN_a "ORG DATA STEWARD" true true false 150 Text 0 0,First,#,output_pt_enriched,ORG_ADMIN_a,0,150;
+        #                     ACTIVITY_DESCRIPTION "ACTIVITY DESCRIPTION" true true false 70 Text 0 0,First,#,output_pt_enriched,ACTIVITY_DESCRIPTION,0,70;
+        #                     ACTIVITY_CAT "ACTIVITY CATEGORY" true true false 40 Text 0 0,First,#,output_pt_enriched,ACTIVITY_CAT,0,40;
+        #                     BROAD_VEGETATION_TYPE "BROAD VEGETATION TYPE" true true false 50 Text 0 0,First,#,output_pt_enriched,BROAD_VEGETATION_TYPE,0,50;
+        #                     BVT_USERD "IS BVT USER DEFINED" true true false 3 Text 0 0,First,#,output_pt_enriched,BVT_USERD,0,3;
+        #                     ACTIVITY_STATUS "ACTIVITY STATUS" true true false 25 Text 0 0,First,#,output_pt_enriched,ACTIVITY_STATUS,0,25;
+        #                     ACTIVITY_QUANTITY "ACTIVITY QUANTITY" true true false 8 Double 0 0,First,#,output_pt_enriched,ACTIVITY_QUANTITY,-1,-1;
+        #                     ACTIVITY_UOM "ACTIVITY UNITS" true true false 15 Text 0 0,First,#,output_pt_enriched,ACTIVITY_UOM,0,15;
+        #                     ACTIVITY_START "ACTIVITY START" true true false 8 Date 0 0,First,#,output_pt_enriched,ACTIVITY_START,-1,-1;
+        #                     ACTIVITY_END "ACTIVITY END" true true false 8 Date 0 0,First,#,output_pt_enriched,ACTIVITY_END,-1,-1;
+        #                     ADMIN_ORG_NAME "ADMINISTRATION ORGANIZATION NAME" true true false 150 Text 0 0,First,#,output_pt_enriched,ADMIN_ORG_NAME,0,150;
+        #                     IMPLEM_ORG_NAME "IMPLEMENTATION ORGANIZATION NAME" true true false 150 Text 0 0,First,#,output_pt_enriched,IMPLEM_ORG_NAME,0,150;
+        #                     PRIMARY_FUND_SRC_NAME "PRIMARY FUND SOURCE NAME" true true false 100 Text 0 0,First,#,output_pt_enriched,PRIMARY_FUND_SRC_NAME,0,100;
+        #                     PRIMARY_FUND_ORG_NAME "PRIMARY FUND ORGANIZATION NAME" true true false 100 Text 0 0,First,#,output_pt_enriched,PRIMARY_FUND_ORG_NAME,0,100;
+        #                     SECONDARY_FUND_SRC_NAME "SECONDARY FUND SOURCE NAME" true true false 100 Text 0 0,First,#,output_pt_enriched,SECONDARY_FUND_SRC_NAME,0,100;
+        #                     SECONDARY_FUND_ORG_NAME "SECONDARY FUND ORGANIZATION NAME" true true false 100 Text 0 0,First,#,output_pt_enriched,SECONDARY_FUND_ORG_NAME,0,100;
+        #                     TERTIARY_FUND_SRC_NAME "TERTIARY FUND SOURCE NAME" true true false 100 Text 0 0,First,#,output_pt_enriched,TERTIARY_FUND_SRC_NAME,0,100;
+        #                     TERTIARY_FUND_ORG_NAME "TERTIARY FUND ORGANIZATION NAME" true true false 100 Text 0 0,First,#,output_pt_enriched,TERTIARY_FUND_ORG_NAME,0,100;
+        #                     ACTIVITY_PRCT "ACTIVITY PERCENT" true true false 3 Short 0 0,First,#,output_pt_enriched,ACTIVITY_PRCT,-1,-1;
+        #                     RESIDUE_FATE "RESIDUE FATE" true true false 35 Text 0 0,First,#,output_pt_enriched,RESIDUE_FATE,0,35;
+        #                     RESIDUE_FATE_QUANTITY "RESIDUE FATE QUANTITY" true true false 8 Double 0 0,First,#,output_pt_enriched,RESIDUE_FATE_QUANTITY,-1,-1;
+        #                     RESIDUE_FATE_UNITS "RESIDUE FATE UNITS" true true false 5 Text 0 0,First,#,output_pt_enriched,RESIDUE_FATE_UNITS,0,15;
+        #                     ACTIVITY_NAME "ACTIVITY NAME" true true false 150 Text 0 0,First,#,output_pt_enriched,ACTIVITY_NAME,0,150;
+        #                     VAL_STATUS_a "VALIDATION STATUS" true true false 15 Text 0 0,First,#;
+        #                     VAL_MSG_a "VALIDATION MESSAGE" true true false 15 Text 0 0,First,#;
+        #                     VAL_RUNDATE_a "VALIDATION RUN DATE" true true false 8 Date 0 0,First,#;
+        #                     REVIEW_STATUS_a "REVIEW STATUS" true true false 15 Text 0 0,First,#;
+        #                     REVIEW_MSG_a "REVIEW MESSAGE" true true false 15 Text 0 0,First,#;
+        #                     REVIEW_RUNDATE_a "REVIEW RUN DATE" true true false 8 Date 0 0,First,#;
+        #                     DATALOAD_STATUS_a "DATALOAD STATUS" true true false 15 Text 0 0,First,#;
+        #                     DATALOAD_MSG_a "DATALOAD MESSAGE" true true false 15 Text 0 0,First,#;
+        #                     Source "Source" true true false 65 Text 0 0,First,#;
+        #                     Year "Calendar Year" true true false 0 Long 0 0,First,#;
+        #                     Year_txt "Year as Text" true true false 255 Text 0 0,First,#;
+        #                     Act_Code "USFS Activity Code" true true false 0 Long 0 0,First,#;
+        #                     Crosswalk "Crosswalk Activities" true true false 150 Text 0 0,First,#;
+        #                     Federal_FY "Federal FY" true true false 0 Long 0 0,First,#;
+        #                     State_FY "State FY" true true false 0 Long 0 0,First,#;
+        #                     TRMTID_USER "TRMTID_USER" true true false 50 Text 0 0,First,#,output_pt_enriched,TRMTID_USER,0,50;
+        #                     BATCHID_a "BATCH ID (ACTIVITY)" true true false 40 Text 0 0,First,#;
+        #                     TRMT_GEOM "TREATMENT GEOMETRY" true true false 10 Text 0 0,First,#,output_pt_enriched,TRMT_GEOM,0,10;
+        #                     COUNTS_TO_MAS "COUNTS TOWARDS MAS" true true false 3 Text 0 0,First,#,output_pt_enriched,COUNTS_TO_MAS,0,3',"""
+        # )
 
-        # Process: Copy Features (8) (Copy Features) (management)
-        Output_Feature_Class_3_ = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\Project_Poly_CopyFeatures"
-        arcpy.management.CopyFeatures(in_features=Project_Poly, out_feature_class=Output_Feature_Class_3_)
+        Count1 = arcpy.management.GetCount(append_1)
+        print("     activities have {} records".format(Count1[0]))
 
-        # Process: Calculate Agency CALFIRE (Calculate Field) (management)
-        Project_Poly_CopyFeatures = arcpy.management.CalculateField(in_table=Output_Feature_Class_3_, field="AGENCY", expression="ifelse(!AGENCY!)", code_block="""def ifelse(agency):
-    if agency == 'CALFIRE':
-        return 'CNRA'
-    else:
-        return agency""")
+        print("   step 5/17 calculate unique Treatment ID -CNRA")
+        calc_field_6 = arcpy.management.CalculateField(
+            in_table=append_1,
+            field="TRMTID_USER",
+            expression="ifelse(!TRMTID_USER!)",
+            code_block="""def ifelse(ID):
+                            if ID != None:
+                                return ID[:45]+'-CNRA'
+                            """,
+            expression_type = "PYTHON3"
+        )
 
-        # Process: Calculate Project ID User Field (Calculate Field) (management)
-        Project_Poly_4_ = arcpy.management.CalculateField(in_table=Project_Poly_CopyFeatures, field="PROJECTID_USER", expression="!PROJECTID_USER![:45]+'-CNRA'")
+        print("Part 3 - Combine CNRA Features and Activity Table")
+        print("   step 6/17 join poly and table") # One to Many Join
+        join_1 = arcpy.management.AddJoin(
+            calc_field_2,
+            "GlobalID",
+            append_1,
+            join_field="TREATMENTID_",
+            index_join_fields="INDEX_JOIN_FIELDS",
+        )
 
-        # Process: Add Join (2) (Add Join) (management)
-        CNRA_Treatments_Copy_Layer3 = arcpy.management.AddJoin(in_layer_or_view=CNRA_Treatments_Copy, in_field="PROJECTID", join_table=Project_Poly_4_, join_field="GlobalID", index_join_fields="INDEX_JOIN_FIELDS")
+        arcpy.management.CopyFeatures(join_1, join_2)
 
-        # Process: Copy Features (4) (Copy Features) (management)
-        Output_Feature_Class_9_ = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures"
-        arcpy.management.CopyFeatures(in_features=CNRA_Treatments_Copy_Layer3, out_feature_class=Output_Feature_Class_9_)
+        print("Part 4 Prepare Project Table")
+        arcpy.management.CopyFeatures(Project_Poly, Input_Projects_1)
 
-        # Process: Repair Geometry (Repair Geometry) (management)
-        CNRA_Treatments_20221212_2_ = arcpy.management.RepairGeometry(in_features=Output_Feature_Class_9_, delete_null="KEEP_NULL")
+        calc_field_7 = arcpy.management.CalculateField(
+            Input_Projects_1,
+            field="AGENCY",
+            expression="ifelse(!AGENCY!)",
+            code_block="""def ifelse(agency):
+                            if agency == 'CALFIRE':
+                                return 'CNRA'
+                            else:
+                                return agency""",
+        )
 
-        # Process: Create Feature Class (Create Feature Class) (management)
-        with arcpy.EnvManager(XYDomain="-16909700 -8597000 900703015774.099 900711328474.099"):
-            CNRA_Enriched_poly_scratch = arcpy.management.CreateFeatureclass(out_path=scratch_gdb_2_, out_name="CNRA_Enriched_poly_scratch")
+        ## Attribute Validation
+        calc_field_8 = arcpy.management.CalculateField(
+            in_table=calc_field_7,
+            field="PROJECTID_USER",
+            expression="ifelse(!PROJECTID_USER!, !PROJECT_NAME!)",
+            code_block="""def ifelse(ID, NAME):
+                            if ID != None or ID == '' or ID == ' ':
+                                return NAME
+                            else:
+                                return ID""",
+        )
 
-        # Process: Append (Append) (management)
-        with arcpy.EnvManager(extent="-454912.6877 -684967.9687 620505.8279 530489.4069 PROJCS[\"NAD_1983_California_Teale_Albers\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",-4000000.0],PARAMETER[\"Central_Meridian\",-120.0],PARAMETER[\"Standard_Parallel_1\",34.0],PARAMETER[\"Standard_Parallel_2\",40.5],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]", maintainAttachments=False, preserveGlobalIds=False):
-            CNRA_Enriched_poly_scratch_3_ = arcpy.management.Append(inputs=[CNRA_Treatments_20221212_2_], target=CNRA_Enriched_poly_scratch, schema_type="NO_TEST", field_mapping="PROJECTID_USER \"PROJECT ID USER\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PROJECTID_USER,0,50;AGENCY \"AGENCY_DEPARTMENT\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,AGENCY,0,150;ORG_ADMIN_p \"ORG DATA STEWARD\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ORG_ADMIN_p,0,150;PROJECT_CONTACT \"PROJECT CONTACT\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PROJECT_CONTACT,0,100;PROJECT_EMAIL \"PROJECT EMAIL\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PROJECT_EMAIL,0,100;ADMINISTERING_ORG \"ADMINISTERING ORG\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ADMINISTERING_ORG,0,150;PROJECT_NAME \"PROJECT NAME\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PROJECT_NAME,0,150;PROJECT_STATUS \"PROJECT STATUS\" true true false 25 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PROJECT_STATUS,0,25;PROJECT_START \"PROJECT START\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PROJECT_START,-1,-1;PROJECT_END \"PROJECT END\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PROJECT_END,-1,-1;PRIMARY_FUNDING_SOURCE \"PRIMARY_FUNDING_SOURCE\" true true false 130 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PRIMARY_FUNDING_SOURCE,0,130;PRIMARY_FUNDING_ORG \"PRIMARY_FUNDING_ORG\" true true false 130 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PRIMARY_FUNDING_ORG,0,130;IMPLEMENTING_ORG \"IMPLEMENTING_ORG\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,IMPLEMENTING_ORG,0,150;LATITUDE \"LATITUDE CENTROID\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,LATITUDE,-1,-1;LONGITUDE \"LONGITUDE CENTROID\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,LONGITUDE,-1,-1;BatchID_p \"Batch ID\" true true false 40 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,BATCHID_p,0,40;Val_Status_p \"Validation Status\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,VAL_STATUS_p,0,15;Val_Message_p \"Validation Message\" true true false 15 Text 0 0,First,#;Val_RunDate_p \"Validation Run Date\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,VAL_RUNDATE_p,-1,-1;Review_Status_p \"Review Status\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,REVIEW_STATUS_p,0,15;Review_Message_p \"Review Message\" true true false 15 Text 0 0,First,#;Review_RunDate_p \"Review Run Date\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,REVIEW_RUNDATE_p,-1,-1;Dataload_Status_p \"Dataload Status\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,DATALOAD_STATUS_p,0,15;Dataload_Msg_p \"Dataload Message\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,DATALOAD_MSG_p,0,15;TRMTID_USER \"TREATMENT ID USER\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,TRMTID_USER,0,50;PROJECTID \"PROJECTID\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PROJECTID,-1,-1;PROJECTNAME_ \"PROJECT NAME\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PROJECTNAME_,0,150;ORG_ADMIN_t \"ORG DATA STEWARD\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ORG_ADMIN_t,0,150;PRIMARY_OWNERSHIP_GROUP \"PRIMARY OWNERSHIP GROUP\" true true false 25 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PRIMARY_OWNERSHIP_GROUP,0,25;PRIMARY_OBJECTIVE \"PRIMARY OBJECTIVE\" true true false 65 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PRIMARY_OBJECTIVE,0,65;SECONDARY_OBJECTIVE \"SECONDARY OBJECTIVE\" true true false 65 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,SECONDARY_OBJECTIVE,0,65;TERTIARY_OBJECTIVE \"TERTIARY OBJECTIVE\" true true false 65 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,TERTIARY_OBJECTIVE,0,65;TREATMENT_STATUS \"TREATMENT STATUS\" true true false 25 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,TREATMENT_STATUS,0,25;COUNTY \"COUNTY\" true true false 35 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,COUNTY,0,35;IN_WUI \"IN WUI\" true true false 30 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,IN_WUI,0,30;REGION \"TASK FORCE REGION\" true true false 25 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,REGION,0,25;TREATMENT_AREA \"TREATMENT AREA (GIS ACRES)\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,TREATMENT_AREA,-1,-1;TREATMENT_START \"TREATMENT START\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,TREATMENT_START,-1,-1;TREATMENT_END \"TREATMENT END\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,TREATMENT_END,-1,-1;RETREATMENT_DATE_EST \"RETREATMENT DATE ESTIMATE\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,RETREATMENT_DATE_EST,-1,-1;TREATMENT_NAME \"TREATMENT NAME\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,TREATMENT_NAME,0,150;BatchID \"BATCH ID (TREATMENT)\" true true false 40 Text 0 0,First,#;Val_Status_t \"Validation Status\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,VAL_STATUS_t,0,15;Val_Message_t \"Validation Message\" true true false 15 Text 0 0,First,#;Val_RunDate_t \"Validation Run Date\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,VAL_RUNDATE_t,-1,-1;Review_Status_t \"Review Status\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,REVIEW_STATUS_t,0,15;Review_Message_t \"Review Message\" true true false 15 Text 0 0,First,#;Review_RunDate_t \"Review Run Date\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,REVIEW_RUNDATE_t,-1,-1;Dataload_Status_t \"Dataload Status\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,DATALOAD_STATUS_t,0,15;Dataload_Msg_t \"Dataload Message\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,DATALOAD_MSG_t,0,15;ACTIVID_USER \"ACTIVITYID USER\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ACTIVID_USER,0,50;TREATMENTID_ \"TREATMENTID\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,TREATMENTID_,0,50;ORG_ADMIN_a \"ORG DATA STEWARD\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ORG_ADMIN_a,0,150;ACTIVITY_DESCRIPTION \"ACTIVITY DESCRIPTION\" true true false 70 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ACTIVITY_DESCRIPTION,0,70;ACTIVITY_CAT \"ACTIVITY CATEGORY\" true true false 40 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ACTIVITY_CAT,0,40;BROAD_VEGETATION_TYPE \"BROAD VEGETATION TYPE\" true true false 50 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,BROAD_VEGETATION_TYPE,0,50;BVT_USERD \"IS BVT USER DEFINED\" true true false 3 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,BVT_USERD,0,3;ACTIVITY_STATUS \"ACTIVITY STATUS\" true true false 25 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ACTIVITY_STATUS,0,25;ACTIVITY_QUANTITY \"ACTIVITY QUANTITY\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ACTIVITY_QUANTITY,-1,-1;ACTIVITY_UOM \"ACTIVITY UNITS\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ACTIVITY_UOM,0,15;ACTIVITY_START \"ACTIVITY START\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ACTIVITY_START,-1,-1;ACTIVITY_END \"ACTIVITY END\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ACTIVITY_END,-1,-1;ADMIN_ORG_NAME \"ADMINISTRATION ORGANIZATION NAME\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ADMIN_ORG_NAME,0,150;IMPLEM_ORG_NAME \"IMPLEMENTATION ORGANIZATION NAME\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,IMPLEM_ORG_NAME,0,150;PRIMARY_FUND_SRC_NAME \"PRIMARY FUND SOURCE NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PRIMARY_FUND_SRC_NAME,0,100;PRIMARY_FUND_ORG_NAME \"PRIMARY FUND ORGANIZATION NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,PRIMARY_FUND_ORG_NAME,0,100;SECONDARY_FUND_SRC_NAME \"SECONDARY FUND SOURCE NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,SECONDARY_FUND_SRC_NAME,0,100;SECONDARY_FUND_ORG_NAME \"SECONDARY FUND ORGANIZATION NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,SECONDARY_FUND_ORG_NAME,0,100;TERTIARY_FUND_SRC_NAME \"TERTIARY FUND SOURCE NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,TERTIARY_FUND_SRC_NAME,0,100;TERTIARY_FUND_ORG_NAME \"TERTIARY FUND ORGANIZATION NAME\" true true false 100 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,TERTIARY_FUND_ORG_NAME,0,100;ACTIVITY_PRCT \"ACTIVITY PERCENT\" true true false 2 Short 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ACTIVITY_PRCT,-1,-1;RESIDUE_FATE \"RESIDUE FATE\" true true false 35 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,RESIDUE_FATE,0,35;RESIDUE_FATE_QUANTITY \"RESIDUE FATE QUANTITY\" true true false 8 Double 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,RESIDUE_FATE_QUANTITY,-1,-1;RESIDUE_FATE_UNITS \"RESIDUE FATE UNITS\" true true false 5 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,RESIDUE_FATE_UNITS,0,5;ACTIVITY_NAME \"ACTIVITY NAME\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,ACTIVITY_NAME,0,150;VAL_STATUS_a \"VALIDATION STATUS\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,VAL_STATUS_a,0,15;VAL_MSG_a \"VALIDATION MESSAGE\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,VAL_MSG_a,0,15;VAL_RUNDATE_a \"VALIDATION RUN DATE\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,VAL_RUNDATE_a,-1,-1;REVIEW_STATUS_a \"REVIEW STATUS\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,REVIEW_STATUS_a,0,15;REVIEW_MSG_a \"REVIEW MESSAGE\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,REVIEW_MSG_a,0,15;REVIEW_RUNDATE_a \"REVIEW RUN DATE\" true true false 8 Date 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,REVIEW_RUNDATE_a,-1,-1;DATALOAD_STATUS_a \"DATALOAD STATUS\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,DATALOAD_STATUS_a,0,15;DATALOAD_MSG_a \"DATALOAD MESSAGE\" true true false 15 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,DATALOAD_MSG_a,0,15;Source \"Source\" true true false 65 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,Source,0,65;Year \"Calendar Year\" true true false 4 Long 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,Year,-1,-1;Year_txt \"Year as Text\" true true false 255 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,Year_txt,0,255;Act_Code \"USFS Activity Code\" true true false 4 Long 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,Act_Code,-1,-1;Crosswalk \"Crosswalk Activities\" true true false 150 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,Crosswalk,0,150;Federal_FY \"Federal FY\" true true false 4 Long 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,Federal_FY,-1,-1;State_FY \"State FY\" true true false 4 Long 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,State_FY,-1,-1;TRMT_GEOM \"TREATMENT GEOMETRY\" true true false 10 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,TRMT_GEOM,0,10;COUNTS_TO_MAS \"COUNTS TOWARDS MAS\" true true false 3 Text 0 0,First,#,C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb\\CNRA_Treatments_Copy_Layer_CopyFeatures,COUNTS_TO_MAS,0,3")
+        print("   step 7/17 calculate unique Project ID if null")
+        calc_field_9 = arcpy.management.CalculateField(
+            in_table=calc_field_8,
+            field="PROJECTID_USER",
+            expression="ifelse(!PROJECTID_USER!)",
+            code_block="""def ifelse(ID):
+                            if ID != None:
+                                return ID[:45]+'-CNRA'
+                            """,
+            expression_type = "PYTHON3"
+        )
 
-        # Process: 2j Standardize Domains (2j Standardize Domains) 
-        Updated_Input_Table_26_ = StandardizeDomains(Input_Table=CNRA_Enriched_poly_scratch_3_)
+        print("Part 5 Join Project Table to Features/Activites") # Many to One
+        CNRA_Flat_1 = arcpy.management.AddJoin(
+            in_layer_or_view=join_2,
+            in_field="PROJECTID_USER",
+            join_table=calc_field_9,
+            join_field="PROJECTID_USER",
+            index_join_fields="INDEX_JOIN_FIELDS",
+        )
 
-        # Process: Calculate Crosswalk (Calculate Field) (management)
-        CNRA_Standardized_20221108_3_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_26_, field="Crosswalk", expression="!ACTIVITY_DESCRIPTION!")
+        print("   step 8/17 copy features")
+        arcpy.management.CopyFeatures(
+            in_features=CNRA_Flat_1,
+            out_feature_class=CNRA_Flat_2,
+        )
 
-        # Process: 2f Calculate Category (3) (2f Calculate Category) 
-        Updated_Input_Table_43_ = Category(Input_Table=CNRA_Standardized_20221108_3_)
+        print("   step 9/17 create Features")
+        standardized_1 = arcpy.management.CreateFeatureclass(
+            out_path=scratch_workspace,
+            out_name=f"CNRA_Standardized_poly",
+            geometry_type="POLYGON",
+            template=WFR_TF_Template
+        )
 
-        # Process: Calculate Source (Calculate Field) (management)
-        Updated_Input_Table = arcpy.management.CalculateField(in_table=Updated_Input_Table_43_, field="Source", expression="\"CNRA\"")
+        print("   step 10/17 append")
+        ## Appending the CNRA table to the table we created ensures the schema is correct
+        append_2 = arcpy.management.Append(
+            inputs=[CNRA_Flat_2], 
+            target=standardized_1, 
+            schema_type="NO_TEST", 
+            field_mapping="", 
+            subtype="", 
+            expression=""
+            )
+        
+        Count2 = arcpy.management.GetCount(append_2)
+        print("     standardized has {} records".format(Count2[0]))
 
-        # Process: Calculate Org A Null (Calculate Field) (management)
-        Updated_Input_Table_19_ = arcpy.management.CalculateField(in_table=Updated_Input_Table, field="ORG_ADMIN_a", expression="ifelse(!ORG_ADMIN_a!,!ORG_ADMIN_t!)", code_block="""def ifelse(Org_a, Org_t):
-    if Org_a is None:
-        return Org_t
-    else:
-        return Org_a""")
+        ## Append with Field Mapping if Append with NO_TEST doesn't work
+        # append_2 = arcpy.management.Append(
+        #     inputs=[CNRA_Flat_2],
+        #     target=standardized_1,
+        #     schema_type="NO_TEST",
+        #     field_mapping="""'PROJECTID_USER "PROJECT ID USER" true true false 40 Text 0 0,First,#,CNRA_Flat_2,PROJECTID_USER,0,50;
+        #                     AGENCY "AGENCY/DEPARTMENT" true true false 55 Text 0 0,First,#,CNRA_Flat_2,AGENCY,0,150;
+        #                     ORG_ADMIN_p "ORG DATA STEWARD" true true false 55 Text 0 0,First,#,CNRA_Flat_2,ORG_ADMIN_p,0,150;
+        #                     PROJECT_CONTACT "PROJECT CONTACT" true true false 40 Text 0 0,First,#,CNRA_Flat_2,PROJECT_CONTACT,0,100;
+        #                     PROJECT_EMAIL "PROJECT EMAIL" true true false 40 Text 0 0,First,#,CNRA_Flat_2,PROJECT_EMAIL,0,100;
+        #                     ADMINISTERING_ORG "ADMINISTERING ORG" true true false 55 Text 0 0,First,#,CNRA_Flat_2,ADMINISTERING_ORG,0,150;
+        #                     PROJECT_NAME "PROJECT NAME" true true false 125 Text 0 0,First,#,CNRA_Flat_2,PROJECT_NAME,0,150;
+        #                     PROJECT_STATUS "PROJECT STATUS" true true false 25 Text 0 0,First,#,CNRA_Flat_2,PROJECT_STATUS,0,25;
+        #                     PROJECT_START "PROJECT START" true true false 8 Date 0 0,First,#,CNRA_Flat_2,PROJECT_START,-1,-1;
+        #                     PROJECT_END "PROJECT END" true true false 8 Date 0 0,First,#,CNRA_Flat_2,PROJECT_END,-1,-1;
+        #                     PRIMARY_FUNDING_SOURCE "PRIMARY_FUNDING_SOURCE" true true false 130 Text 0 0,First,#,CNRA_Flat_2,PRIMARY_FUNDING_SOURCE,0,130;
+        #                     PRIMARY_FUNDING_ORG "PRIMARY_FUNDING_ORG" true true false 130 Text 0 0,First,#,CNRA_Flat_2,PRIMARY_FUNDING_ORG,0,130;
+        #                     IMPLEMENTING_ORG "IMPLEMENTING_ORG" true true false 55 Text 0 0,First,#,CNRA_Flat_2,IMPLEMENTING_ORG,0,150;
+        #                     LATITUDE "LATITUDE CENTROID" true true false 8 Double 0 0,First,#,CNRA_Flat_2,LATITUDE,-1,-1;
+        #                     LONGITUDE "LONGITUDE CENTROID" true true false 8 Double 0 0,First,#,CNRA_Flat_2,LONGITUDE,-1,-1;
+        #                     BatchID_p "Batch ID" true true false 40 Text 0 0,First,#,CNRA_Flat_2,BATCHID_p,0,40;
+        #                     Val_Status_p "Validation Status" true true false 15 Text 0 0,First,#,CNRA_Flat_2,VAL_STATUS_p,0,15;
+        #                     Val_Message_p "Validation Message" true true false 15 Text 0 0,First,#;
+        #                     Val_RunDate_p "Validation Run Date" true true false 8 Date 0 0,First,#,CNRA_Flat_2,VAL_RUNDATE_p,-1,-1;
+        #                     Review_Status_p "Review Status" true true false 15 Text 0 0,First,#,CNRA_Flat_2,REVIEW_STATUS_p,0,15;
+        #                     Review_Message_p "Review Message" true true false 15 Text 0 0,First,#;
+        #                     Review_RunDate_p "Review Run Date" true true false 8 Date 0 0,First,#,CNRA_Flat_2,REVIEW_RUNDATE_p,-1,-1;
+        #                     Dataload_Status_p "Dataload Status" true true false 15 Text 0 0,First,#,CNRA_Flat_2,DATALOAD_STATUS_p,0,15;
+        #                     Dataload_Msg_p "Dataload Message" true true false 15 Text 0 0,First,#,CNRA_Flat_2,DATALOAD_MSG_p,0,15;
+        #                     TRMTID_USER "TREATMENT ID USER" true true false 40 Text 0 0,First,#,CNRA_Flat_2,TRMTID_USER,0,50;
+        #                     PROJECTID "PROJECT ID" true true false 50 Text 0 0,First,#,CNRA_Flat_2,PROJECTID,-1,-1;
+        #                     PROJECTNAME_ "PROJECT NAME" true true false 125 Text 0 0,First,#,CNRA_Flat_2,PROJECTNAME_,0,100;
+        #                     ORG_ADMIN_t "ORG DATA STEWARD" true true false 255 Text 0 0,First,#,CNRA_Flat_2,ORG_ADMIN_t,0,150;
+        #                     PRIMARY_OWNERSHIP_GROUP "PRIMARY OWNERSHIP GROUP" true true false 25 Text 0 0,First,#,CNRA_Flat_2,PRIMARY_OWNERSHIP_GROUP,0,25;
+        #                     PRIMARY_OBJECTIVE "PRIMARY OBJECTIVE" true true false 65 Text 0 0,First,#,CNRA_Flat_2,PRIMARY_OBJECTIVE,0,65;
+        #                     SECONDARY_OBJECTIVE "SECONDARY OBJECTIVE" true true false 65 Text 0 0,First,#,CNRA_Flat_2,SECONDARY_OBJECTIVE,0,65;
+        #                     TERTIARY_OBJECTIVE "TERTIARY OBJECTIVE" true true false 65 Text 0 0,First,#,CNRA_Flat_2,TERTIARY_OBJECTIVE,0,65;
+        #                     TREATMENT_STATUS "TREATMENT STATUS" true true false 25 Text 0 0,First,#,CNRA_Flat_2,TREATMENT_STATUS,0,25;
+        #                     COUNTY "COUNTY" true true false 25 Text 0 0,First,#,CNRA_Flat_2,COUNTY,0,35;
+        #                     IN_WUI "IN WUI" true true false 30 Text 0 0,First,#,CNRA_Flat_2,IN_WUI,0,30;
+        #                     REGION "TASK FORCE REGION" true true false 25 Text 0 0,First,#,CNRA_Flat_2,REGION,0,25;
+        #                     TREATMENT_AREA "TREATMENT AREA (GIS ACRES)" true true false 8 Double 0 0,First,#,CNRA_Flat_2,TREATMENT_AREA,-1,-1;
+        #                     TREATMENT_START "TREATMENT START" true true false 8 Date 0 0,First,#,CNRA_Flat_2,TREATMENT_START,-1,-1;
+        #                     TREATMENT_END "TREATMENT END" true true false 8 Date 0 0,First,#,CNRA_Flat_2,TREATMENT_END,-1,-1;
+        #                     RETREATMENT_DATE_EST "RETREATMENT DATE ESTIMATE" true true false 8 Date 0 0,First,#,CNRA_Flat_2,RETREATMENT_DATE_EST,-1,-1;
+        #                     TREATMENT_NAME "TREATMENT NAME" true true false 125 Text 0 0,First,#,CNRA_Flat_2,TREATMENT_NAME,0,150;
+        #                     BatchID "BATCH ID (TREATMENT)" true true false 40 Text 0 0,First,#;
+        #                     Val_Status_t "Validation Status" true true false 15 Text 0 0,First,#,CNRA_Flat_2,VAL_STATUS_t,0,15;
+        #                     Val_Message_t "Validation Message" true true false 15 Text 0 0,First,#;
+        #                     Val_RunDate_t "Validation Run Date" true true false 8 Date 0 0,First,#,CNRA_Flat_2,VAL_RUNDATE_t,-1,-1;
+        #                     Review_Status_t "Review Status" true true false 15 Text 0 0,First,#,CNRA_Flat_2,REVIEW_STATUS_t,0,15;
+        #                     Review_Message_t "Review Message" true true false 15 Text 0 0,First,#;
+        #                     Review_RunDate_t "Review Run Date" true true false 8 Date 0 0,First,#,CNRA_Flat_2,REVIEW_RUNDATE_t,-1,-1;
+        #                     Dataload_Status_t "Dataload Status" true true false 15 Text 0 0,First,#,CNRA_Flat_2,DATALOAD_STATUS_t,0,15;
+        #                     Dataload_Msg_t "Dataload Message" true true false 15 Text 0 0,First,#,CNRA_Flat_2,DATALOAD_MSG_t,0,15;
+        #                     ACTIVID_USER "ACTIVITYID USER" true true false 50 Text 0 0,First,#,CNRA_Flat_2,ACTIVID_USER,0,50;
+        #                     TREATMENTID_ "TREATMENTID" true true false 50 Text 0 0,First,#,CNRA_Flat_2,TREATMENTID_,0,50;
+        #                     ORG_ADMIN_a "ORG DATA STEWARD" true true false 150 Text 0 0,First,#,CNRA_Flat_2,ORG_ADMIN_a,0,150;
+        #                     ACTIVITY_DESCRIPTION "ACTIVITY DESCRIPTION" true true false 70 Text 0 0,First,#,CNRA_Flat_2,ACTIVITY_DESCRIPTION,0,70;
+        #                     ACTIVITY_CAT "ACTIVITY CATEGORY" true true false 40 Text 0 0,First,#,CNRA_Flat_2,ACTIVITY_CAT,0,40;
+        #                     BROAD_VEGETATION_TYPE "BROAD VEGETATION TYPE" true true false 50 Text 0 0,First,#,CNRA_Flat_2,BROAD_VEGETATION_TYPE,0,50;
+        #                     BVT_USERD "IS BVT USER DEFINED" true true false 3 Text 0 0,First,#,CNRA_Flat_2,BVT_USERD,0,3;
+        #                     ACTIVITY_STATUS "ACTIVITY STATUS" true true false 25 Text 0 0,First,#,CNRA_Flat_2,ACTIVITY_STATUS,0,25;
+        #                     ACTIVITY_QUANTITY "ACTIVITY QUANTITY" true true false 8 Double 0 0,First,#,CNRA_Flat_2,ACTIVITY_QUANTITY,-1,-1;
+        #                     ACTIVITY_UOM "ACTIVITY UNITS" true true false 15 Text 0 0,First,#,CNRA_Flat_2,ACTIVITY_UOM,0,15;
+        #                     ACTIVITY_START "ACTIVITY START" true true false 8 Date 0 0,First,#,CNRA_Flat_2,ACTIVITY_START,-1,-1;
+        #                     ACTIVITY_END "ACTIVITY END" true true false 8 Date 0 0,First,#,CNRA_Flat_2,ACTIVITY_END,-1,-1;
+        #                     ADMIN_ORG_NAME "ADMINISTRATION ORGANIZATION NAME" true true false 150 Text 0 0,First,#,CNRA_Flat_2,ADMIN_ORG_NAME,0,150;
+        #                     IMPLEM_ORG_NAME "IMPLEMENTATION ORGANIZATION NAME" true true false 150 Text 0 0,First,#,CNRA_Flat_2,IMPLEM_ORG_NAME,0,150;
+        #                     PRIMARY_FUND_SRC_NAME "PRIMARY FUND SOURCE NAME" true true false 100 Text 0 0,First,#,CNRA_Flat_2,PRIMARY_FUND_SRC_NAME,0,100;
+        #                     PRIMARY_FUND_ORG_NAME "PRIMARY FUND ORGANIZATION NAME" true true false 100 Text 0 0,First,#,CNRA_Flat_2,PRIMARY_FUND_ORG_NAME,0,100;
+        #                     SECONDARY_FUND_SRC_NAME "SECONDARY FUND SOURCE NAME" true true false 100 Text 0 0,First,#,CNRA_Flat_2,SECONDARY_FUND_SRC_NAME,0,100;
+        #                     SECONDARY_FUND_ORG_NAME "SECONDARY FUND ORGANIZATION NAME" true true false 100 Text 0 0,First,#,CNRA_Flat_2,SECONDARY_FUND_ORG_NAME,0,100;
+        #                     TERTIARY_FUND_SRC_NAME "TERTIARY FUND SOURCE NAME" true true false 100 Text 0 0,First,#,CNRA_Flat_2,TERTIARY_FUND_SRC_NAME,0,100;
+        #                     TERTIARY_FUND_ORG_NAME "TERTIARY FUND ORGANIZATION NAME" true true false 100 Text 0 0,First,#,CNRA_Flat_2,TERTIARY_FUND_ORG_NAME,0,100;
+        #                     ACTIVITY_PRCT "ACTIVITY PERCENT" true true false 8 Double 0 0,First,#,CNRA_Flat_2,ACTIVITY_PRCT,-1,-1;
+        #                     RESIDUE_FATE "RESIDUE FATE" true true false 35 Text 0 0,First,#,CNRA_Flat_2,RESIDUE_FATE,0,35;
+        #                     RESIDUE_FATE_QUANTITY "RESIDUE FATE QUANTITY" true true false 8 Double 0 0,First,#,CNRA_Flat_2,RESIDUE_FATE_QUANTITY,-1,-1;
+        #                     RESIDUE_FATE_UNITS "RESIDUE FATE UNITS" true true false 5 Text 0 0,First,#,CNRA_Flat_2,RESIDUE_FATE_UNITS,0,5;
+        #                     ACTIVITY_NAME "ACTIVITY NAME" true true false 150 Text 0 0,First,#,CNRA_Flat_2,ACTIVITY_NAME,0,150;
+        #                     VAL_STATUS_a "VALIDATION STATUS" true true false 15 Text 0 0,First,#,CNRA_Flat_2,VAL_STATUS_a,0,15;
+        #                     VAL_MSG_a "VALIDATION MESSAGE" true true false 15 Text 0 0,First,#,CNRA_Flat_2,VAL_MSG_a,0,15;
+        #                     VAL_RUNDATE_a "VALIDATION RUN DATE" true true false 8 Date 0 0,First,#,CNRA_Flat_2,VAL_RUNDATE_a,-1,-1;
+        #                     REVIEW_STATUS_a "REVIEW STATUS" true true false 15 Text 0 0,First,#,CNRA_Flat_2,REVIEW_STATUS_a,0,15;
+        #                     REVIEW_MSG_a "REVIEW MESSAGE" true true false 15 Text 0 0,First,#,CNRA_Flat_2,REVIEW_MSG_a,0,15;
+        #                     REVIEW_RUNDATE_a "REVIEW RUN DATE" true true false 8 Date 0 0,First,#,CNRA_Flat_2,REVIEW_RUNDATE_a,-1,-1;
+        #                     DATALOAD_STATUS_a "DATALOAD STATUS" true true false 15 Text 0 0,First,#,CNRA_Flat_2,DATALOAD_STATUS_a,0,15;
+        #                     DATALOAD_MSG_a "DATALOAD MESSAGE" true true false 15 Text 0 0,First,#,CNRA_Flat_2,DATALOAD_MSG_a,0,15;
+        #                     Source "Source" true true false 65 Text 0 0,First,#,CNRA_Flat_2,Source,0,65;
+        #                     Year "Calendar Year" true true false 4 Long 0 0,First,#,CNRA_Flat_2,Year,-1,-1;
+        #                     Year_txt "Year as Text" true true false 255 Text 0 0,First,#,CNRA_Flat_2,Year_txt,0,255;
+        #                     Act_Code "USFS Activity Code" true true false 4 Long 0 0,First,#,CNRA_Flat_2,Act_Code,-1,-1;
+        #                     Crosswalk "Crosswalk Activities" true true false 150 Text 0 0,First,#,CNRA_Flat_2,Crosswalk,0,150;
+        #                     Federal_FY "Federal FY" true true false 4 Long 0 0,First,#,CNRA_Flat_2,Federal_FY,-1,-1;
+        #                     State_FY "State FY" true true false 4 Long 0 0,First,#,CNRA_Flat_2,State_FY,-1,-1',"""
+        # )
 
-        # Process: Calculate Org P Null (Calculate Field) (management)
-        Updated_Input_Table_20_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_19_, field="ORG_ADMIN_p", expression="ifelse(!ORG_ADMIN_p!,!ORG_ADMIN_t!)", code_block="""def ifelse(Org_a, Org_t):
-    if Org_p is None:
-        return Org_t
-    else:
-        return Org_p""")
+        print("Part 6 Standardize and Enrich")
+        print("   step 11/17 calc cross")
+        calc_field_10 = arcpy.management.CalculateField(
+            in_table=append_2,
+            field="Crosswalk",
+            expression="!ACTIVITY_DESCRIPTION!",
+        )
 
-        # Process: Calculate Admin Null (Calculate Field) (management)
-        Updated_Input_Table_21_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_20_, field="ADMINISTERING_ORG", expression="ifelse(!ADMINISTERING_ORG!,!ORG_ADMIN_t!)", code_block="""def ifelse(Admin, Org_t):
-    if Admin is None:
-        return Org_t
-    else:
-        return Admin""")
+        print("   step 12/17 calc source")
+        calc_field_11 = arcpy.management.CalculateField(
+            in_table=calc_field_10, field="Source", expression='"CNRA"'
+        )
 
-        # Process: Calculate Agency Null (Calculate Field) (management)
-        Updated_Input_Table_22_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_21_, field="AGENCY", expression="ifelse(!AGENCY!)", code_block="""def ifelse(Agency):
-    if Agency is None:
-        return 'CNRA'
-    else:
-        return Agency""")
+        print("   step 13/17 calc admin")
+        calc_field_12 = arcpy.management.CalculateField(
+            in_table=calc_field_11,
+            field="ORG_ADMIN_a",
+            expression="ifelse(!ORG_ADMIN_a!,!ORG_ADMIN_t!)",
+            code_block="""def ifelse(Org_a, Org_t):
+                            if Org_a is None:
+                                return Org_t
+                            else:
+                                return Org_a""",
+        )
 
-        # Process: Calculate End Date (3) (Calculate Field) (management)
-        Updated_Input_Table_8_ = arcpy.management.CalculateField(in_table=Updated_Input_Table_22_, field="ACTIVITY_END", expression="ifelse(!ACTIVITY_STATUS!, !ACTIVITY_START!,!ACTIVITY_END!)", code_block="""def ifelse(Stat, Start, End):
-    if (Stat == 'ACTIVE' or Stat == 'Active') and End == None:
-        return datetime.datetime.now()
-    if (Stat == 'COMPLETE' or Stat == 'Complete') and End == None:
-        return datetime.datetime.now()
-    if (Stat == 'PLANNED' or Stat == 'Planned') and End == None:
-        return Start
-    else:
-        return End""")
+        calc_field_13 = arcpy.management.CalculateField(
+            in_table=calc_field_12,
+            field="ORG_ADMIN_p",
+            expression="ifelse(!ORG_ADMIN_p!,!ORG_ADMIN_t!)",
+            code_block="""def ifelse(Org_p, Org_t):
+                            if Org_p is None:
+                                return Org_t
+                            else:
+                                return Org_p""",
+        )
+        
+        calc_field_14 = arcpy.management.CalculateField(
+            in_table=calc_field_13,
+            field="ADMINISTERING_ORG",
+            expression="ifelse(!ADMINISTERING_ORG!,!ORG_ADMIN_t!)",
+            code_block="""def ifelse(Admin, Org_t):
+                            if Admin is None:
+                                return Org_t
+                            else:
+                                return Admin""",
+        )
 
-        # Process: 7a Enrichments Polygon (7a Enrichments Polygon) 
-        usfs_edw_facts_common_attributes_enriched_20230626b = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\d_Enriched\\usfs_edw_facts_common_attributes_enriched_20230626b"
-        aEnrichmentsPolygon1(Veg_Summarized_Enriched_Output=usfs_edw_facts_common_attributes_enriched_20230626b, Input_Polygons=Updated_Input_Table_8_)
+        calc_field_15 = arcpy.management.CalculateField(
+            in_table=calc_field_14,
+            field="AGENCY",
+            expression="ifelse(!AGENCY!)",
+            code_block="""def ifelse(Agency):
+                            if Agency is None:
+                                return 'CNRA'
+                            else:
+                                return Agency""",
+        )
 
-        # Process: Calculate GEOM (Calculate Field) (management)
-        Updated_Input_Table_16_ = arcpy.management.CalculateField(in_table=usfs_edw_facts_common_attributes_enriched_20230626b, field="TRMT_GEOM", expression="'POLYGON'")
+        calc_field_16 = arcpy.management.CalculateField(
+            in_table=calc_field_15,
+            field="ACTIVITY_STATUS",
+            expression="ifelse(!ACTIVITY_STATUS!)",
+            code_block="""def ifelse(Stat):
+                            if Stat == None:
+                                return "COMPLETE"
+                            else:
+                                return Stat""",
+        )
 
-        # Process: 2m Counts to MAS (3) (2m Counts to MAS) 
-        CDFW_Enriched_Ln_Table_20230801_4_ = CountsToMAS(Input_Table=Updated_Input_Table_16_)
+        print("   step 14/17 status")
+        calc_field_17 = arcpy.management.CalculateField(
+            in_table=calc_field_16,
+            field="ACTIVITY_END",
+            expression="ifelse(!ACTIVITY_STATUS!, !ACTIVITY_START!, !ACTIVITY_END!)",
+            code_block="""def ifelse(Stat, Start, End):
+                            if (Stat == 'ACTIVE' or Stat == 'Active') and End == None:
+                                return datetime.datetime.now()
+                            if (Stat == 'COMPLETE' or Stat == 'Complete') and End == None:
+                                return datetime.datetime.now()
+                            if (Stat == 'PLANNED' or Stat == 'Planned') and End == None and Start == None:
+                                return datetime.datetime.now()
+                            if (Stat == 'PLANNED' or Stat == 'Planned') and End == None:
+                                return Start
+                            else:
+                                return End""",
+        )
+        print("   step 15/17 activity end date")
 
-        # Process: Calculate Today (Calculate Value) ()
-        Value = time.strftime("%Y%m%d")
+        poly_enriched_1 = enrich_polygons(
+            enrich_in=calc_field_17, 
+            enrich_out=Enrich_Out           
+        )
 
-        # Process: Copy Enriched Features (Copy Features) (management)
-        Output_Feature_Class_6_ = fr"C:\Users\sageg\Documents\ArcGIS\Projects\PC414 CWI Million Acres\PC414 CWI Million Acres.gdb\d_Enriched\CNRA_Enriched_poly_{Value}"
-        if Value:
-            arcpy.management.CopyFeatures(in_features=CDFW_Enriched_Ln_Table_20230801_4_, out_feature_class=Output_Feature_Class_6_)
+        print("Enrichment Complete")
+        Count3 = arcpy.management.GetCount(poly_enriched_1)
+        print("     enriched has {} records".format(Count3[0]))
 
-        # Process: 2b Assign Domains (2b Assign Domains) 
-        if Value:
-            CNRA_Enriched_poly = AssignDomains(in_table=Output_Feature_Class_6_)
+        # print("   step 16/17 delete identical")
+        # deleteidentical_1 = arcpy.management.DeleteIdentical(
+        #     in_dataset=poly_enriched_1,
+        #     fields=[
+        #         "PROJECTID_USER",
+        #         "AGENCY",
+        #         "ORG_ADMIN_p",
+        #         "PROJECT_CONTACT",
+        #         "PROJECT_EMAIL",
+        #         "ADMINISTERING_ORG",
+        #         "PROJECT_NAME",
+        #         "PROJECT_STATUS",
+        #         "PROJECT_START",
+        #         "PROJECT_END",
+        #         "PRIMARY_FUNDING_SOURCE",
+        #         "PRIMARY_FUNDING_ORG",
+        #         "IMPLEMENTING_ORG",
+        #         "LATITUDE",
+        #         "LONGITUDE",
+        #         "BatchID_p",
+        #         "Val_Status_p",
+        #         "Val_Message_p",
+        #         "Val_RunDate_p",
+        #         "Review_Status_p",
+        #         "Review_Message_p",
+        #         "Review_RunDate_p",
+        #         "Dataload_Status_p",
+        #         "Dataload_Msg_p",
+        #         "TRMTID_USER",
+        #         "PROJECTID",
+        #         "PROJECTNAME_",
+        #         "ORG_ADMIN_t",
+        #         "PRIMARY_OWNERSHIP_GROUP",
+        #         "PRIMARY_OBJECTIVE",
+        #         "SECONDARY_OBJECTIVE",
+        #         "TERTIARY_OBJECTIVE",
+        #         "TREATMENT_STATUS",
+        #         "COUNTY",
+        #         "IN_WUI",
+        #         "REGION",
+        #         "TREATMENT_AREA",
+        #         "TREATMENT_START",
+        #         "TREATMENT_END",
+        #         "RETREATMENT_DATE_EST",
+        #         "TREATMENT_NAME",
+        #         "BatchID",
+        #         "Val_Status_t",
+        #         "Val_Message_t",
+        #         "Val_RunDate_t",
+        #         "Review_Status_t",
+        #         "Review_Message_t",
+        #         "Review_RunDate_t",
+        #         "Dataload_Status_t",
+        #         "Dataload_Msg_t",
+        #         "ACTIVID_USER",
+        #         "TREATMENTID_",
+        #         "ORG_ADMIN_a",
+        #         "ACTIVITY_DESCRIPTION",
+        #         "ACTIVITY_CAT",
+        #         "BROAD_VEGETATION_TYPE",
+        #         "BVT_USERD",
+        #         "ACTIVITY_STATUS",
+        #         "ACTIVITY_QUANTITY",
+        #         "ACTIVITY_UOM",
+        #         "ACTIVITY_START",
+        #         "ACTIVITY_END",
+        #         "ADMIN_ORG_NAME",
+        #         "IMPLEM_ORG_NAME",
+        #         "PRIMARY_FUND_SRC_NAME",
+        #         "PRIMARY_FUND_ORG_NAME",
+        #         "SECONDARY_FUND_SRC_NAME",
+        #         "SECONDARY_FUND_ORG_NAME",
+        #         "TERTIARY_FUND_SRC_NAME",
+        #         "TERTIARY_FUND_ORG_NAME",
+        #         "ACTIVITY_PRCT",
+        #         "RESIDUE_FATE",
+        #         "RESIDUE_FATE_QUANTITY",
+        #         "RESIDUE_FATE_UNITS",
+        #         "ACTIVITY_NAME",
+        #         "VAL_STATUS_a",
+        #         "VAL_MSG_a",
+        #         "VAL_RUNDATE_a",
+        #         "REVIEW_STATUS_a",
+        #         "REVIEW_MSG_a",
+        #         "REVIEW_RUNDATE_a",
+        #         "DATALOAD_STATUS_a",
+        #         "DATALOAD_MSG_a",
+        #         "Source",
+        #         "Year",
+        #         "Year_txt",
+        #         "Act_Code",
+        #         "Crosswalk",
+        #         "Federal_FY",
+        #         "State_FY",
+        #         "Shape",
+        #         "TRMT_GEOM",
+        #         "COUNTS_TO_MAS",
+        #     ],
+        # )
 
-        return CNRA_Enriched_poly_scratch
+        print("Export Final")
+        arcpy.management.CopyFeatures(
+            in_features=poly_enriched_1, 
+            out_feature_class=output_poly_enriched
+        )
+        
+        Count4 = arcpy.management.GetCount(output_poly_enriched)
+        print("     final has {} records".format(Count4[0]))
 
-if __name__ == '__main__':
-    # Global Environment settings
-    with arcpy.EnvManager(MDomain="-100000 900719825474.099", XYDomain="-16909700 -8597000 900703015774.099 900711328474.099", ZDomain="-100000 900719825474.099", 
-                          maintainAttachments=False, outputCoordinateSystem="PROJCS[\"NAD_1983_California_Teale_Albers\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",-4000000.0],PARAMETER[\"Central_Meridian\",-120.0],PARAMETER[\"Standard_Parallel_1\",34.0],PARAMETER[\"Standard_Parallel_2\",40.5],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]", scratchWorkspace="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\scratch.gdb", 
-                          workspace="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb"):
-        oCNRAModel202308213(*argv[1:])
+        print("   step 17/17 assign domains")
+        AssignDomains(in_table=output_poly_enriched)
+
+        if delete_scratch:
+            print('Deleting Scratch Files')
+            delete_scratch_files(
+                gdb=scratch_workspace,
+                delete_fc="yes",
+                delete_table="yes",
+                delete_ds="yes",
+            )
+
+        end1 = datetime.datetime.now()
+        elapsed1 = (end1-start1)
+        hours, remainder1 = divmod(elapsed1.total_seconds(), 3600)
+        minutes, remainder2 = divmod(remainder1, 60)
+        seconds, remainder3 = divmod(remainder2, 1)
+        print(f"CNRA Poly script took: {int(hours)}h, {int(minutes)}m, {seconds}s to complete")
+
+    return output_poly_enriched 
+

@@ -8,172 +8,174 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
+import datetime
+start1 = datetime.datetime.now()
+
 import os
-import time
 import arcpy
 from ._1_add_fields import AddFields
 from ._1_assign_domains import AssignDomains
-from ._3_standardize_domains import StandardizeDomains
 from ._3_enrichments_polygon import enrich_polygons
 from ._3_keep_fields import KeepFields
 from .utils import init_gdb, delete_scratch_files
 
-original_gdb, workspace, scratch_workspace = init_gdb()
-
+workspace, scratch_workspace = init_gdb()
 
 def Model_BLM(
-    output_enriched, output_standardized, input_fc, startyear, endyear, California
+    output_enriched, 
+    input_fc, 
+    startyear, 
+    endyear, 
+    California, 
+    delete_scratch=True
 ):
-    start = time.time()
-    print(f"Start Time {time.ctime()}")
-
-    # define intermediary objects in scratch
-    BLM_clip = os.path.join(scratch_workspace, "BLM_clip")
-    BLM_copy = os.path.join(scratch_workspace, "BLM_copy")
-
     # Model Environment settings
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
-        overwriteOutput = True,
+        transferGDBAttributeProperties=False, 
+        overwriteOutput = True
     ):
-        
-        print("Performing Standardization...")
-        # To allow overwriting outputs change overwriteOutput option to True.
-        arcpy.env.overwriteOutput = True
+        print(f"Start Time {start1}")
 
+        # define intermediary objects in scratch
+        BLM_clip = os.path.join(scratch_workspace, "BLM_clip")
+        BLM_copy = os.path.join(scratch_workspace, "BLM_copy")
+        output_standardized = os.path.join(scratch_workspace, "BLM_standardized")
+
+        ### BEGIN TOOL CHAIN
+        print("Performing Standardization...")
         print("   step 1/13 Clip Features...")
-        # Process: Clip (Clip) (analysis)
         arcpy.analysis.Clip(
-            in_features=input_fc, clip_features=California, out_feature_class=BLM_clip
+            in_features=input_fc, 
+            clip_features=California, 
+            out_feature_class=BLM_clip
         )
 
         print("   step 2/13 Repairing Geometry...")
-        # Process: Repair Geometry (Repair Geometry) (management)
-        Repaired_Input_Features = arcpy.management.RepairGeometry(in_features=BLM_clip)
+        repair_geom = arcpy.management.RepairGeometry(BLM_clip)
 
-        # Process: Copy Features (2) (Copy Features) (management)
         arcpy.management.CopyFeatures(
-            in_features=Repaired_Input_Features, out_feature_class=BLM_copy
+            in_features=repair_geom, 
+            out_feature_class=BLM_copy
         )
         print("   step 3/13 Adding Fields...")
-        # Process: 1b Add Fields (1b Add Fields) 
-        BLM_standardized_1 = AddFields(Input_Table=BLM_copy)
+        standardized_1 = AddFields(Input_Table=BLM_copy)
 
         print("   step 4/13 Transfering Attributes...")
-        # Process: Calculate Project ID (Calculate Field) (management)
-        BLM_standardized_2 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_1,
+        calc_field_1 = arcpy.management.CalculateField(
+            in_table=standardized_1,
             field="PROJECTID_USER",
             expression="!UNIQUE_ID!",
         )
 
-        # Process: Calculate Agency (Calculate Field) (management)
-        BLM_standardized_3 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_2, field="AGENCY", expression='"DOI"'
+        calc_field_2 = arcpy.management.CalculateField(
+            in_table=calc_field_1, 
+            field="AGENCY", 
+            expression='"DOI"'
         )
 
-        # Process: Calculate Data Steward (Calculate Field) (management)
-        BLM_standardized_4 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_3, field="ORG_ADMIN_p", expression="'BLM'"
+        calc_field_3 = arcpy.management.CalculateField(
+            in_table=calc_field_2, 
+            field="ORG_ADMIN_p", 
+            expression="'BLM'"
         )
 
-        # Process: Calculate Data Steward (2) (Calculate Field) (management)
-        BLM_standardized_5 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_4, field="ORG_ADMIN_t", expression="'BLM'"
+        calc_field_4 = arcpy.management.CalculateField(
+            in_table=calc_field_3, 
+            field="ORG_ADMIN_t", 
+            expression="'BLM'"
         )
 
-        # Process: Calculate Data Steward (3) (Calculate Field) (management)
-        BLM_standardized_6 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_5, field="ORG_ADMIN_a", expression="'BLM'"
+        calc_field_5 = arcpy.management.CalculateField(
+            in_table=calc_field_4, 
+            field="ORG_ADMIN_a", 
+            expression="'BLM'"
         )
 
-        # Process: Calculate Project Contact (Calculate Field) (management)
-        BLM_standardized_7 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_6, field="PROJECT_CONTACT", expression="None"
+        calc_field_6 = arcpy.management.CalculateField(
+            in_table=calc_field_5, 
+            field="PROJECT_CONTACT", 
+            expression="None"
         )
 
-        # Process: Calculate Project Email (Calculate Field) (management)
-        BLM_standardized_8 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_7, field="PROJECT_EMAIL", expression="None"
+        calc_field_7 = arcpy.management.CalculateField(
+            in_table=calc_field_6, 
+            field="PROJECT_EMAIL", 
+            expression="None"
         )
 
-        # Process: Calculate Admin Org (Calculate Field) (management)
-        BLM_standardized_9 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_8, field="ADMINISTERING_ORG", expression="'BLM'"
+        calc_field_7 = arcpy.management.CalculateField(
+            in_table=calc_field_7, 
+            field="ADMINISTERING_ORG", 
+            expression="'BLM'"
         )
 
-        # Process: Calculate Project Name (Calculate Field) (management)
-        BLM_standardized_10 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_9, field="PROJECT_NAME", expression="!TRTMNT_NM!"
+        calc_field_8 = arcpy.management.CalculateField(
+            in_table=calc_field_7, 
+            field="PROJECT_NAME", 
+            expression="!TRTMNT_NM!"
         )
 
-        # Process: Calculate Fund Source (Calculate Field) (management)
-        BLM_standardized_11 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_10,
+        calc_field_9 = arcpy.management.CalculateField(
+            in_table=calc_field_8,
             field="PRIMARY_FUNDING_SOURCE",
             expression='"FEDERAL"',
         )
 
-        # Process: Calculate Fund Org (Calculate Field) (management)
-        BLM_standardized_12 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_11,
+        calc_field_10 = arcpy.management.CalculateField(
+            in_table=calc_field_9,
             field="PRIMARY_FUNDING_ORG",
             expression='"NPS"',
         )
 
-        # Process: Calculate Imp Org (Calculate Field) (management)
-        BLM_standardized_13 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_12, field="IMPLEMENTING_ORG", expression="'BLM'"
+        calc_field_11 = arcpy.management.CalculateField(
+            in_table=calc_field_10, 
+            field="IMPLEMENTING_ORG", 
+            expression="'BLM'"
         )
 
-        # Process: Calculate Activity Name (Calculate Field) (management)
-        BLM_standardized_14 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_13,
+        calc_field_12 = arcpy.management.CalculateField(
+            in_table=calc_field_11,
             field="ACTIVITY_NAME",
             expression="!TRTMNT_NM!",
         )
 
-        # Process: Calculate Veg User Defined (Calculate Field) (management)
-        BLM_standardized_15 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_14, field="BVT_USERD", expression='"NO"'
+        calc_field_13 = arcpy.management.CalculateField(
+            in_table=calc_field_12, 
+            field="BVT_USERD", 
+            expression='"NO"'
         )
 
-        # Process: Calculate Activity Start (Calculate Field) (management)
-        BLM_standardized_16 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_15,
+        calc_field_14 = arcpy.management.CalculateField(
+            in_table=calc_field_13,
             field="ACTIVITY_START",
             expression="!TRTMNT_START_DT!",
         )
 
         print("   step 5/13 Calculating End Date...")
-        # Process: Calculate Activity End Date (Calculate Field) (management)
-        BLM_standardized_17 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_16,
+        calc_field_15 = arcpy.management.CalculateField(
+            in_table=calc_field_14,
             field="ACTIVITY_END",
             expression="!TRTMNT_END_DT!",
         )
 
         print("   step 6/13 Calculating Status...")
-        # Process: Calculate Status (Calculate Field) (management)
-        BLM_standardized_18 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_17,
+        calc_field_16 = arcpy.management.CalculateField(
+            in_table=calc_field_15,
             field="ACTIVITY_STATUS",
             expression="'COMPLETE'",
         )
 
         print("   step 7/13 Activity Quantity...")
-        # Process: Calculate Activity Quantity (3) (Calculate Field) (management)
-        BLM_standardized_19 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_18,
+        calc_field_17 = arcpy.management.CalculateField(
+            in_table=calc_field_16,
             field="ACTIVITY_QUANTITY",
             expression="ifelse(!BLM_ACRES!, !GIS_ACRES!)",
             code_block="""def ifelse(BLM, GIS):
@@ -184,71 +186,65 @@ def Model_BLM(
             field_type="DOUBLE",
         )
 
-        # Process: Calculate Activity UOM (3) (Calculate Field) (management)
-        BLM_standardized_20 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_19, field="ACTIVITY_UOM", expression='"AC"'
+        calc_field_18 = arcpy.management.CalculateField(
+            in_table=calc_field_17, 
+            field="ACTIVITY_UOM", 
+            expression='"AC"'
         )
 
         print("   step 8/13 Enter Field Values...")
-        # Process: Calculate Admin Org2 (Calculate Field) (management)
-        BLM_standardized_21 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_20, field="ADMIN_ORG_NAME", expression='"BLM"'
+        calc_field_19 = arcpy.management.CalculateField(
+            in_table=calc_field_18, 
+            field="ADMIN_ORG_NAME", 
+            expression='"BLM"'
         )
         
-        # Process: Calculate Implementation Org 2 (Calculate Field) (management)
-        BLM_standardized_22 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_21, field="IMPLEM_ORG_NAME", expression="'BLM'"
+        calc_field_20 = arcpy.management.CalculateField(
+            in_table=calc_field_19, 
+            field="IMPLEM_ORG_NAME", 
+            expression="'BLM'"
         )
         
-        # Process: Calculate Primary Fund Source (Calculate Field) (management)
-        BLM_standardized_23 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_22,
+        calc_field_21 = arcpy.management.CalculateField(
+            in_table=calc_field_20,
             field="PRIMARY_FUND_SRC_NAME",
             expression='"FEDERAL"',
         )
         
-        # Process: Calculate Fund Org 2 (Calculate Field) (management)
-        BLM_standardized_24 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_23,
+        calc_field_22 = arcpy.management.CalculateField(
+            in_table=calc_field_21,
             field="PRIMARY_FUND_ORG_NAME",
             expression='"BLM"',
         )
         
-        # Process: Calculate Source (Calculate Field) (management)
-        BLM_standardized_25 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_24, field="Source", expression="'BLM'"
+        calc_field_23 = arcpy.management.CalculateField(
+            in_table=calc_field_22, 
+            field="Source", 
+            expression="'BLM'"
         )
         
-        # Process: Calculate Year (Calculate Field) (management)
-        BLM_standardized_26 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_25,
+        calc_field_24 = arcpy.management.CalculateField(
+            in_table=calc_field_23,
             field="Year",
             expression="Year($feature.ACTIVITY_END)",
             expression_type="ARCADE",
         )
         
-        # Process: Calculate Treatment Name Lowercase (Calculate Field) (management)
-        BLM_standardized_27 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_26,
+        calc_field_25 = arcpy.management.CalculateField(
+            in_table=calc_field_24,
             field="TRTMNT_NM",
-            # expression="!TRTMNT_NM!.lower()"
             expression="!TRTMNT_NM!",
         )
         
-        # Process: Calculate Treatment Comments Lowercase (Calculate Field) (management)
-        BLM_standardized_28 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_27,
+        calc_field_26 = arcpy.management.CalculateField(
+            in_table=calc_field_25,
             field="TRTMNT_COMMENTS",
-            # expression="!TRTMNT_COMMENTS!.lower()"
             expression="!TRTMNT_COMMENTS!",
         )
+
         print("   step 9/13 Adding original activity description to Crosswalk Field...")
-        # Process: Calculate Crosswalk (Calculate Field) (management)
-        BLM_standardized_29 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_28,
-            # field="Crosswalk",
-            # expression="ifelse(!TRTMNT_NM!,!TRTMNT_TYPE_CD!,!TRTMNT_SUBTYPE!,!TRTMNT_COMMENTS!,!Crosswalk!)",
-            # code_block="""def ifelse(Nm, type, sub, com, cross):
+        calc_field_27 = arcpy.management.CalculateField(
+            in_table=calc_field_26,
             field="Crosswalk",
             expression="ifelse(!TRTMNT_TYPE_CD!,!TRTMNT_SUBTYPE!,!Crosswalk!)",
             code_block="""def ifelse(type, sub, cross): 
@@ -272,9 +268,8 @@ def Model_BLM(
                                 return cross""",
         )
         
-        # Process: Calculate Crosswalk 2 (Calculate Field) (management)
-        BLM_standardized_30 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_29,
+        calc_field_28 = arcpy.management.CalculateField(
+            in_table=calc_field_27,
             field="Crosswalk",
             expression="ifelse(!TRTMNT_NM!,!TRTMNT_TYPE_CD!,!TRTMNT_SUBTYPE!,!TRTMNT_COMMENTS!,!Crosswalk!)",
             code_block="""def ifelse(Nm, type, sub, com, cross):
@@ -298,9 +293,8 @@ def Model_BLM(
                                 return cross""",
         )
         
-        # Process: Calculate Crosswalk 3 (Calculate Field) (management)
-        BLM_standardized_31 = arcpy.management.CalculateField(
-            in_table=BLM_standardized_30,
+        calc_field_29 = arcpy.management.CalculateField(
+            in_table=calc_field_28,
             field="Crosswalk",
             expression="ifelse(!TRTMNT_NM!,!TRTMNT_TYPE_CD!,!TRTMNT_SUBTYPE!,!TRTMNT_COMMENTS!,!Crosswalk!)",
             code_block="""def ifelse(Nm, type, sub, com, cross):
@@ -328,47 +322,58 @@ def Model_BLM(
                                 return cross""",
         )
         
-        print(f"Saving Standardized Output: {output_standardized}")
-        # Process: Select by Years (Select) (analysis)
+        print(f"Saving Standardized Output")
         arcpy.analysis.Select(
-            in_features=BLM_standardized_31,
+            in_features=calc_field_29,
             out_feature_class=output_standardized,
             where_clause="Year >= %d And Year <= %d" % (startyear, endyear),
         )
+        
+        Count1 = arcpy.management.GetCount(output_standardized)
+        print("output_standardized has {} records".format(Count1[0]))
+
         print("   step 10/13 Calculate Geometry...")
-        # Process: Calculate Geometry (Calculate Field) (management)
-        BLM_standardized_32 = arcpy.management.CalculateField(
-            in_table=output_standardized, field="TRMT_GEOM", expression="'POLYGON'"
+        calc_field_30 = arcpy.management.CalculateField(
+            in_table=output_standardized, 
+            field="TRMT_GEOM", 
+            expression="'POLYGON'"
         )
 
-        # Process: 2j Standardize Domains (2j Standardize Domains) 
-        BLM_standardized_33 = StandardizeDomains(Input_Table=BLM_standardized_32)
-
-        # Process: 2k Keep Fields (2k Keep Fields) 
-        Output_Table = KeepFields(Keep_table=BLM_standardized_33)
+        keepfields_1 = KeepFields(Keep_table=calc_field_30)
 
         print("   step 11/13 Enriching Dataset...")
-        # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon) 
-        enrich_polygons(enrich_in=Output_Table, enrich_out=output_enriched)
-        print(f"Saving Enriched Output: {output_enriched}")
+        enrich_polygons(
+            enrich_in=keepfields_1, 
+            enrich_out=output_enriched
+            )
+        print(f"Saving Enriched Output")
+
+        Count2 = arcpy.management.GetCount(output_enriched)
+        print("output_enriched has {} records".format(Count2[0]))
 
         print("   step 12/13 Calculate Treatment ID...")
-        # Process: Calculate Treatment ID (Calculate Field) (management)
-        BLM_standardized_34 = arcpy.management.CalculateField(
+        calc_field_31 = arcpy.management.CalculateField(
             in_table=output_enriched,
             field="TRMTID_USER",
-            expression="!PROJECTID_USER![:7]+'-'+!COUNTY![:3]+'-'+!PRIMARY_OWNERSHIP_GROUP![:4]+'-'+!IN_WUI![:3]+'-'+!PRIMARY_OBJECTIVE![:8]"
+            expression="str(!PROJECTID_USER!)[:7]+'-'+str(!COUNTY!)[:3]+'-'+str(!PRIMARY_OWNERSHIP_GROUP!)[:4]+'-'+str(!IN_WUI![:3])+'-'+str(!PRIMARY_OBJECTIVE!)[:8]"
         )
 
         print("   step 13/13 Assign Domains...")
-        # Process: 2b Assign Domains (2b Assign Domains) 
-        BLM_standardized_35 = AssignDomains(in_table=BLM_standardized_34)
+        AssignDomains(in_table=calc_field_31)
 
-        print('   Deleting Scratch Files')
-        delete_scratch_files(
-            gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-        )
+        if delete_scratch:
+            print('Deleting Scratch Files')
+            delete_scratch_files(
+                gdb=scratch_workspace,
+                delete_fc="yes",
+                delete_table="yes",
+                delete_ds="yes",
+            )
 
-        end = time.time()
-        print(f"Time Elapsed: {(end-start)/60} minutes")
+        end2 = datetime.datetime.now()
+        elapsed2 = (end2-start1)
+        hours, remainder4 = divmod(elapsed2.total_seconds(), 3600)
+        minutes, remainder5 = divmod(remainder4, 60)
+        seconds, remainder6 = divmod(remainder5, 1)
+        print(f"BLM script took: {int(hours)}h, {int(minutes)}m, {seconds}s to complete")
 

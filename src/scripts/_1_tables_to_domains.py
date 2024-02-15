@@ -9,7 +9,7 @@ import arcpy
 from scripts.utils import init_gdb
 
 workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
+
 def TablesToDomains(workspace):
     arcpy.env.overwriteOutput = True
 
@@ -35,7 +35,6 @@ def TablesToDomains(workspace):
     D_VERFIEDMSG_ = os.path.join(Excel, "D_VERFIEDMSG$")
     D_TRMT_GEOM_ = os.path.join(Excel, "D_TRMT_GEOM$")
 
-    # Process: Table To Objectives Domain (Table To Domain) (management)
     Domain_1 = arcpy.management.TableToDomain(
         in_table=D_OBJECTIVE_,
         code_field="CODE",
@@ -46,7 +45,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Status Domain (Table To Domain) (management)
     Domain_2 = arcpy.management.TableToDomain(
         in_table=D_STATUS_,
         code_field="CODE",
@@ -57,7 +55,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To County Domain (Table To Domain) (management)
     Domain_3 = arcpy.management.TableToDomain(
         in_table=D_CNTY_,
         code_field="CODE",
@@ -68,7 +65,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To WUI Domain (Table To Domain) (management)
     Domain_4 = arcpy.management.TableToDomain(
         in_table=D_IN_WUI_,
         code_field="CODE",
@@ -79,7 +75,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Activity Description Domain (Table To Domain) (management)
     Domain_5 = arcpy.management.TableToDomain(
         in_table=D_ACTVDSCRP_,
         code_field="CODE",
@@ -90,7 +85,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Category Domain (Table To Domain) (management)
     Domain_6 = arcpy.management.TableToDomain(
         in_table=D_ACTVCAT_,
         code_field="CODE",
@@ -101,7 +95,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To User Defined Domain (Table To Domain) (management)
     Domain_7 = arcpy.management.TableToDomain(
         in_table=D_USERDEFINED_,
         code_field="CODE",
@@ -112,7 +105,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Veg Domain (Table To Domain) (management)
     Domain_8 = arcpy.management.TableToDomain(
         in_table=D_BVT_,
         code_field="CODE",
@@ -123,7 +115,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Residue Domain (Table To Domain) (management)
     Domain_9 = arcpy.management.TableToDomain(
         in_table=D_RESIDUEFATE_,
         code_field="CODE",
@@ -134,7 +125,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To UOM Domain (Table To Domain) (management)
     Domain_10 = arcpy.management.TableToDomain(
         in_table=D_UOM_,
         code_field="CODE",
@@ -145,7 +135,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Region Domain (Table To Domain) (management)
     Domain_11 = arcpy.management.TableToDomain(
         in_table=D_TASKFORCE_,
         code_field="CODE",
@@ -156,7 +145,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Owner Domain (Table To Domain) (management)
     Domain_12 = arcpy.management.TableToDomain(
         in_table=D_PR_OWN_GR_,
         code_field="CODE",
@@ -167,7 +155,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Funding Source Domain (Table To Domain) (management)
     Domain_13 = arcpy.management.TableToDomain(
         in_table=D_FNDSRC_,
         code_field="CODE",
@@ -178,7 +165,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Funding Source Domain (Table To Domain) (management)
     Domain_14 = arcpy.management.TableToDomain(
         in_table=D_AGENCY_,
         code_field="CODE",
@@ -189,7 +175,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Organization Domain (Table To Domain) (management)
     Domain_15 = arcpy.management.TableToDomain(
         in_table=D_ORGANIZATION_,
         code_field="CODE",
@@ -200,7 +185,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Date Status Domain (Table To Domain) (management)
     Domain_16 = arcpy.management.TableToDomain(
         in_table=D_DATASTATUS_,
         code_field="CODE",
@@ -211,7 +195,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Data Load Domain (Table To Domain) (management)
     Domain_17 = arcpy.management.TableToDomain(
         in_table=D_DATAMSG_,
         code_field="CODE",
@@ -222,7 +205,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Validated Domain (Table To Domain) (management)
     Domain_18 = arcpy.management.TableToDomain(
         in_table=D_VERFIEDMSG_,
         code_field="CODE",
@@ -233,7 +215,6 @@ def TablesToDomains(workspace):
         update_option="REPLACE",
     )
 
-    # Process: Table To Validated Domain (Table To Domain) (management)
     Domain_19 = arcpy.management.TableToDomain(
         in_table=D_TRMT_GEOM_,
         code_field="CODE",

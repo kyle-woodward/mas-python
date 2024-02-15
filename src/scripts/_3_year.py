@@ -13,7 +13,6 @@ workspace, scratch_workspace = init_gdb()
 def Year(Year_Input):
     arcpy.env.overwriteOutput = True
 
-    # Process: Calculate Calendar Year (Calculate Field) (management)
     year_calculated = arcpy.management.CalculateField(
         in_table=Year_Input,
         field="Year",
@@ -24,7 +23,6 @@ def Year(Year_Input):
         enforce_domains="NO_ENFORCE_DOMAINS",
     )
 
-    # Process: Calculate Year as Text (Calculate Field) (management)
     year_txt_calculated = arcpy.management.CalculateField(
         in_table=year_calculated,
         field="Year_txt",
@@ -35,7 +33,6 @@ def Year(Year_Input):
         enforce_domains="NO_ENFORCE_DOMAINS",
     )
 
-    # Process: Calculate Fed FY (Calculate Field) (management)
     #TODO simplify code block, replace hard coding with dynamic coding
     year_fed_fy = arcpy.management.CalculateField(
         in_table=year_txt_calculated,
@@ -115,7 +112,6 @@ def Year(Year_Input):
         enforce_domains="NO_ENFORCE_DOMAINS",
     )
 
-    # Process: Calculate State FY (Calculate Field) (management)
     #TODO simplify code block
     year_final = arcpy.management.CalculateField(
         in_table=year_fed_fy,

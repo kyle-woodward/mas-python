@@ -1,6 +1,7 @@
 """
-# Description: Part 1 in calculating whether an activity counts towards the
-#              Million Acre Strategy.
+# Description:  Part 1 in calculating whether an activity counts towards the
+#               Million Acre Strategy.  Part 2 is completed during the reporting
+#               scripts.
 # Author: Spatial Informatics Group LLC
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
@@ -13,21 +14,22 @@ workspace, scratch_workspace = init_gdb()
 def CountsToMAS(Input_Table):  
     arcpy.env.overwriteOutput = True
 
-    # Process: Calculate No (Calculate Field) (management)
-    CDFW_Enriched_Ln_Table_20230801_4_ = arcpy.management.CalculateField(
+    print("      Calculating 'Counts to MAS'")
+    print("        counts step 1/8: set to 'NO'")
+    calc_field_1 = arcpy.management.CalculateField(
                                                                         in_table=Input_Table, 
                                                                          field="COUNTS_TO_MAS", expression="'NO'"
                                                                          )
 
-    # Process: Select Layer By Attribute (Select Layer By Attribute) (management)
-    CDFW_Enriched_Ln_Table_20230801_5_ = arcpy.management.SelectLayerByAttribute(
-                        in_layer_or_view=CDFW_Enriched_Ln_Table_20230801_4_, 
+    print("        counts step 2/8: select by bounding years (2020-2023)")
+    select_1 = arcpy.management.SelectLayerByAttribute(
+                        in_layer_or_view=calc_field_1, 
                         where_clause="ACTIVITY_END >= timestamp '2020-01-01 00:00:00' And ACTIVITY_END < timestamp '2023-01-01 00:00:00'"
                         )
 
-    # Process: Calculate Counts (Calculate Field) (management)
-    Updated_Input_Table = arcpy.management.CalculateField(
-                        in_table=CDFW_Enriched_Ln_Table_20230801_5_, 
+    print("        counts step 3/8: set to 'YES' if activity description is in the list")
+    calc_field_2 = arcpy.management.CalculateField(
+                        in_table=select_1, 
                         field="COUNTS_TO_MAS", 
                         expression="ifelse(!ACTIVITY_DESCRIPTION!)", 
                         code_block="""def ifelse(Act):
@@ -73,9 +75,9 @@ def CountsToMAS(Input_Table):
                                 return 'NO'"""
                                 )
 
-    # Process: Calculate Counts Towards MAS AC Only (Calculate Field) (management)
-    Updated_Input_Table_2_ = arcpy.management.CalculateField(
-                        in_table=Updated_Input_Table, 
+    print("        counts step 3/8: set to 'NO' if not 'Acres'")
+    calc_field_3 = arcpy.management.CalculateField(
+                        in_table=calc_field_2, 
                         field="COUNTS_TO_MAS", expression="ifelse(!ACTIVITY_UOM!,!Counts_to_MAS!)", 
                         code_block="""def ifelse(UOM, Counts):
                             if UOM != \"AC\":
@@ -85,9 +87,9 @@ def CountsToMAS(Input_Table):
                                 """
                                 )
 
-    # Process: Calculate Counts Towards MAS Status (Calculate Field) (management)
-    Updated_Input_Table_4_ = arcpy.management.CalculateField(
-                        in_table=Updated_Input_Table_2_, 
+    print("        counts step 4/8: set to 'NO' if status is 'Canceled', 'Planned', 'Outyear', or 'Proposed'")
+    calc_field_4 = arcpy.management.CalculateField(
+                        in_table=calc_field_3, 
                         field="COUNTS_TO_MAS", expression="ifelse(!ACTIVITY_STATUS!,!Counts_to_MAS!)", 
                         code_block="""def ifelse(Status, Counts):
                             if Status == \"CANCELLED\" or Status == 'PLANNED' or Status == 'OUTYEAR' or Status == 'PROPOSED':
@@ -97,9 +99,9 @@ def CountsToMAS(Input_Table):
                                 """
                                 )
 
-    # Process: Calculate Counts Towards MAS Watershed Health (Calculate Field) (management)
-    Updated_Input_Table_5_ = arcpy.management.CalculateField(
-                        in_table=Updated_Input_Table_4_, 
+    print("        counts step 5/8: set to 'NO' if Activity Category is 'Watershed Improvement'")
+    calc_field_5 = arcpy.management.CalculateField(
+                        in_table=calc_field_4, 
                         field="COUNTS_TO_MAS", expression="ifelse(!ACTIVITY_CAT!,!Counts_to_MAS!)", 
                         code_block="""def ifelse(Cat, Counts):
                             if Cat == 'WATSHD_IMPRV':
@@ -108,9 +110,9 @@ def CountsToMAS(Input_Table):
                                 return Counts"""
                                 )
 
-    # Process: Calculate PFIRS (Calculate Field) (management)
-    Updated_Input_Table_6_ = arcpy.management.CalculateField(
-                        in_table=Updated_Input_Table_5_, 
+    print("        counts step 6/8: set to 'NO' if Agency is 'Other' and Admin is 'CARB'") # aimed at PIFIRS data
+    calc_field_6 = arcpy.management.CalculateField(
+                        in_table=calc_field_5, 
                         field="COUNTS_TO_MAS", expression="ifelse(!AGENCY!,!ORG_ADMIN_p!,!COUNTS_TO_MAS!)", 
                         code_block="""def ifelse(Agency, Admin, Counts):
                             if Agency == 'OTHER' and Admin == 'CARB':
@@ -119,9 +121,9 @@ def CountsToMAS(Input_Table):
                                 return Counts"""
                                 )
 
-    # Process: Calculate USFS Active (Calculate Field) (management)
-    Updated_Input_Table_3_ = arcpy.management.CalculateField(
-                        in_table=Updated_Input_Table_6_, 
+    print("        counts step 7/8: set to 'NO' if Org is 'USFS' and Status is 'Active'")
+    calc_field_7 = arcpy.management.CalculateField(
+                        in_table=calc_field_6, 
                         field="COUNTS_TO_MAS", 
                         expression="ifelse(!ADMINISTERING_ORG!, !ACTIVITY_STATUS!, !COUNTS_TO_MAS!)", 
                         code_block="""def ifelse(org, status, counts):
@@ -131,9 +133,9 @@ def CountsToMAS(Input_Table):
                                 return counts"""
                                 )
 
-    # Process: Calculate Other Org out (Calculate Field) (management)
-    Updated_Input_Table_7_ = arcpy.management.CalculateField(
-                        in_table=Updated_Input_Table_3_, 
+    print("        counts step 8/8: set to 'NO' if Admin is in the list")
+    calc_field_8 = arcpy.management.CalculateField(
+                        in_table=calc_field_7, 
                         field="COUNTS_TO_MAS", 
                         expression="ifelse(!ADMINISTERING_ORG!,!COUNTS_TO_MAS!)", 
                         code_block="""def ifelse(Admin, Counts):
@@ -143,9 +145,8 @@ def CountsToMAS(Input_Table):
                                 return Counts"""
                                 )
 
-    # Process: Select Layer By Attribute (2) (Select Layer By Attribute) (management)
     counts_final = arcpy.management.SelectLayerByAttribute(
-                        in_layer_or_view=Updated_Input_Table_7_, 
+                        in_layer_or_view=calc_field_8, 
                         selection_type="CLEAR_SELECTION"
                         )
 

@@ -13,10 +13,8 @@ from .utils import init_gdb
 workspace, scratch_workspace = init_gdb()
 
 def StandardizeDomains(Input_Table): 
-    # To allow overwriting outputs change overwriteOutput option to True.
     arcpy.env.overwriteOutput = True
 
-    # Process: Calculate Agency (Calculate Field) (management)
     update_agency = arcpy.management.CalculateField(
         in_table=Input_Table,
         field="AGENCY",
@@ -113,7 +111,6 @@ def StandardizeDomains(Input_Table):
                 else:
                     return Org"""
 
-    # Process: Calculate Project Data Steward (Calculate Field) (management)
     update_org_admin_p = arcpy.management.CalculateField(
         in_table=update_agency,
         field="ORG_ADMIN_p",
@@ -121,7 +118,6 @@ def StandardizeDomains(Input_Table):
         code_block= org_code_block
     )
 
-    # Process: Calculate Admin Org (Calculate Field) (management)
     update_administering_org = arcpy.management.CalculateField(
         in_table=update_org_admin_p,
         field="ADMINISTERING_ORG",
@@ -129,7 +125,6 @@ def StandardizeDomains(Input_Table):
         code_block= org_code_block
     )
 
-    # Process: Calculate Project Status (Calculate Field) (management)
     update_project_status = arcpy.management.CalculateField(
         in_table=update_administering_org,
         field="PROJECT_STATUS",
@@ -155,7 +150,6 @@ def StandardizeDomains(Input_Table):
                     return Stat""",
     )
 
-    # Process: Calculate Ord Data Steward (Calculate Field) (management)
     update_org_admin_p_2 = arcpy.management.CalculateField(
         in_table=update_project_status,
         field="ORG_ADMIN_p",
@@ -163,7 +157,6 @@ def StandardizeDomains(Input_Table):
         code_block= org_code_block
     )
 
-    # Process: Calculate Fund Source (Calculate Field) (management)
     update_primary_funding_source = arcpy.management.CalculateField(
         in_table=update_org_admin_p_2,
         field="PRIMARY_FUNDING_SOURCE",
@@ -197,7 +190,6 @@ def StandardizeDomains(Input_Table):
                     return Org""",
     )
 
-    # Process: Calculate Fund Org (Calculate Field) (management)
     update_primary_funding_org = arcpy.management.CalculateField(
         in_table=update_primary_funding_source,
         field="PRIMARY_FUNDING_ORG",
@@ -205,7 +197,6 @@ def StandardizeDomains(Input_Table):
         code_block= org_code_block
     )
 
-    # Process: Calculate Treatment Data Steward (Calculate Field) (management)
     update_org_admin_t = arcpy.management.CalculateField(
         in_table=update_primary_funding_org,
         field="ORG_ADMIN_t",
@@ -213,7 +204,6 @@ def StandardizeDomains(Input_Table):
         code_block= org_code_block
     )
 
-    # Process: Calculate Ownership (Calculate Field) (management)
     update_primary_ownership_group = arcpy.management.CalculateField(
         in_table=update_org_admin_t,
         field="PRIMARY_OWNERSHIP_GROUP",
@@ -239,7 +229,6 @@ def StandardizeDomains(Input_Table):
                     return Own""",
     )
 
-    # Process: Calculate Objective (Calculate Field) (management)
     update_primary_objective = arcpy.management.CalculateField(
         in_table=update_primary_ownership_group,
         field="PRIMARY_OBJECTIVE",
@@ -334,7 +323,6 @@ def StandardizeDomains(Input_Table):
                     return OBJ""",
     )
 
-    # Process: Calculate Objective (2) (Calculate Field) (management)
     update_secondary_objective = arcpy.management.CalculateField(
         in_table=update_primary_objective,
         field="SECONDARY_OBJECTIVE",
@@ -429,7 +417,6 @@ def StandardizeDomains(Input_Table):
                     return OBJ""",
     )
 
-    # Process: Calculate Objective (3) (Calculate Field) (management)
     update_tertiary_objective = arcpy.management.CalculateField(
         in_table=update_secondary_objective,
         field="TERTIARY_OBJECTIVE",
@@ -524,7 +511,6 @@ def StandardizeDomains(Input_Table):
                     return OBJ""",
     )
 
-    # Process: Calculate Treatment Status (Calculate Field) (management)
     update_treatment_status = arcpy.management.CalculateField(
         in_table=update_tertiary_objective,
         field="TREATMENT_STATUS",
@@ -550,7 +536,6 @@ def StandardizeDomains(Input_Table):
                     return Stat""",
     )
 
-    # Process: Calculate County (Calculate Field) (management)
     update_county = arcpy.management.CalculateField(
         in_table=update_treatment_status,
         field="COUNTY",
@@ -680,7 +665,6 @@ def StandardizeDomains(Input_Table):
                     return County""",
     )
 
-    # Process: Calculate WUI (Calculate Field) (management)
     update_in_wui = arcpy.management.CalculateField(
         in_table=update_county,
         field="IN_WUI",
@@ -712,7 +696,6 @@ def StandardizeDomains(Input_Table):
                     return WUI""",
     )
 
-    # Process: Calculate Region (Calculate Field) (management)
     update_region = arcpy.management.CalculateField(
         in_table=update_in_wui,
         field="REGION",
@@ -742,7 +725,6 @@ def StandardizeDomains(Input_Table):
                     return Region""",
     )
 
-    # Process: Calculate Activity Data Steward (Calculate Field) (management)
     update_org_admin_a = arcpy.management.CalculateField(
         in_table=update_region,
         field="ORG_ADMIN_a",
@@ -750,7 +732,6 @@ def StandardizeDomains(Input_Table):
         code_block= org_code_block
     )
 
-    # Process: Calculate Activity Description (Calculate Field) (management)
     update_activity_description = arcpy.management.CalculateField(
         in_table=update_org_admin_a,
         field="ACTIVITY_DESCRIPTION",
@@ -952,7 +933,6 @@ def StandardizeDomains(Input_Table):
                     return \'TBD\'""",
     )
 
-    # Process: Calculate Activity Category (Calculate Field) (management)
     update_activity_cat = arcpy.management.CalculateField(
         in_table=update_activity_description,
         field="ACTIVITY_CAT",
@@ -980,7 +960,6 @@ def StandardizeDomains(Input_Table):
                     return Cat""",
     )
 
-    # Process: Calculate BVT (Calculate Field) (management)
     update_bvt = arcpy.management.CalculateField(
         in_table=update_activity_cat,
         field="BROAD_VEGETATION_TYPE",
@@ -1028,7 +1007,6 @@ def StandardizeDomains(Input_Table):
                     return VEG""",
     )
 
-    # Process: Calculate BVT ID (Calculate Field) (management)
     update_bvt_userd = arcpy.management.CalculateField(
         in_table=update_bvt,
         field="BVT_USERD",
@@ -1045,7 +1023,6 @@ def StandardizeDomains(Input_Table):
                     """,
     )
 
-    # Process: Calculate Activity Status (Calculate Field) (management)
     update_activity_status = arcpy.management.CalculateField(
         in_table=update_bvt_userd,
         field="ACTIVITY_STATUS",
@@ -1071,7 +1048,6 @@ def StandardizeDomains(Input_Table):
                     return Stat""",
     )
 
-    # Process: Calculate Units (Calculate Field) (management)
     update_activity_uom = arcpy.management.CalculateField(
         in_table=update_activity_status,
         field="ACTIVITY_UOM",
@@ -1121,7 +1097,6 @@ def StandardizeDomains(Input_Table):
                     return Units""",
     )
 
-    # Process: Calculate Activity Admin (Calculate Field) (management)
     update_admin_org_name = arcpy.management.CalculateField(
         in_table=update_activity_uom,
         field="ADMIN_ORG_NAME",
@@ -1129,7 +1104,6 @@ def StandardizeDomains(Input_Table):
         code_block= org_code_block
     )
 
-    # Process: Calculate Act Fund Source (Calculate Field) (management)
     update_primary_fund_src_name = arcpy.management.CalculateField(
         in_table=update_admin_org_name,
         field="PRIMARY_FUND_SRC_NAME",
@@ -1163,7 +1137,6 @@ def StandardizeDomains(Input_Table):
                     return Org""",
     )
 
-    # Process: Calculate Act Fund Org (Calculate Field) (management)
     update_primary_fund_org_name = arcpy.management.CalculateField(
         in_table=update_primary_fund_src_name,
         field="PRIMARY_FUND_ORG_NAME",
@@ -1171,7 +1144,6 @@ def StandardizeDomains(Input_Table):
         code_block= org_code_block
     )
 
-    # Process: Calculate Act Fund Source (2) (Calculate Field) (management)
     update_secondary_fund_src_name = arcpy.management.CalculateField(
         in_table=update_primary_fund_org_name,
         field="SECONDARY_FUND_SRC_NAME",
@@ -1205,7 +1177,6 @@ def StandardizeDomains(Input_Table):
                     return Org""",
     )
 
-    # Process: Calculate Act Fund Org (2) (Calculate Field) (management)
     update_secondary_fund_src_name_2 = arcpy.management.CalculateField(
         in_table=update_secondary_fund_src_name,
         field="SECONDARY_FUND_SRC_NAME",
@@ -1213,7 +1184,6 @@ def StandardizeDomains(Input_Table):
         code_block= org_code_block
     )
 
-    # Process: Calculate Act Fund Source (3) (Calculate Field) (management)
     update_tertiary_fund_src_name = arcpy.management.CalculateField(
         in_table=update_secondary_fund_src_name_2,
         field="TERTIARY_FUND_SRC_NAME",
@@ -1247,7 +1217,6 @@ def StandardizeDomains(Input_Table):
                     return Org""",
     )
 
-    # Process: Calculate Act Fund Org (3) (Calculate Field) (management)
     update_tertiary_fund_src_name_2 = arcpy.management.CalculateField(
         in_table=update_tertiary_fund_src_name,
         field="TERTIARY_FUND_ORG_NAME",
@@ -1255,7 +1224,6 @@ def StandardizeDomains(Input_Table):
         code_block= org_code_block
     )
 
-    # Process: Calculate Residue (Calculate Field) (management)
     update_residue_fate = arcpy.management.CalculateField(
         in_table=update_tertiary_fund_src_name_2,
         field="RESIDUE_FATE",
@@ -1297,7 +1265,6 @@ def StandardizeDomains(Input_Table):
                     return Fate""",
     )
 
-    # Process: Calculate Units (2) (Calculate Field) (management)
     update_residue_fate_units = arcpy.management.CalculateField(
         in_table=update_residue_fate,
         field="RESIDUE_FATE_UNITS",
@@ -1321,7 +1288,6 @@ def StandardizeDomains(Input_Table):
                     return UOM""",
     )
 
-    # Process: Calculate Geometry Type (Calculate Field) (management)
     update_trmt_geom = arcpy.management.CalculateField(
         in_table=update_residue_fate_units,
         field="TRMT_GEOM",
@@ -1341,7 +1307,6 @@ def StandardizeDomains(Input_Table):
                     return Geom""",
     )
 
-    # Process: Calculate Counts Towards (Calculate Field) (management)
     final_output = arcpy.management.CalculateField(
         in_table=update_trmt_geom,
         field="COUNTS_TO_MAS",

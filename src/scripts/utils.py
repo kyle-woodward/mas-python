@@ -72,7 +72,7 @@ def delete_scratch_files(gdb, delete_fc, delete_table, delete_ds):
     fc_list = arcpy.ListFeatureClasses()
     tables = arcpy.ListTables()
     ds_list = arcpy.ListDatasets()
-    [print(f"   Deleting Scratch Files from {gdb}")]
+    # [print(f"   Deleting Scratch Files from {gdb}")]
     # feature classes
     if delete_fc == "yes":
         for fc in fc_list:
