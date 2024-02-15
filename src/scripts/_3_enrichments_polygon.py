@@ -5,83 +5,74 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
+import datetime
+start_ply = datetime.datetime.now()
+
 import os
 import arcpy
-from ._3_calculate_year import Year
+from ._3_year import Year
 from ._3_keep_fields import KeepFields
 from ._3_crosswalk import Crosswalk
-from .utils import init_gdb, delete_scratch_files
+from .utils import init_gdb
 
 workspace, scratch_workspace = init_gdb()
 
 def enrich_polygons(
-    enrich_in, enrich_out, delete_scratch=False
+    enrich_in, 
+    enrich_out
 ):
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
-        overwriteOutput = True,
+        transferGDBAttributeProperties=False, 
+        overwriteOutput = True
     ):
+        print("   Executing Polygon Enrichments...")
+        print(f"     Polygon Enrichment Start Time {start_ply}")
+
         # define file paths to required input datasets (mostly from b_Reference featuredataset in original GDB)
-        Veg_Layer = os.path.join(workspace,'b_Reference','Broad_Vegetation_Types')
-        WUI_Layer = os.path.join(workspace,'b_Reference','WUI')
-        Ownership_Layer = os.path.join(workspace,'b_Reference','CALFIRE_Ownership_Update')
-        Regions_Layer = os.path.join(workspace,'b_Reference','WFRTF_Regions')
+        Veg_Layer = os.path.join(workspace,'a_Reference','Broad_Vegetation_Types')
+        WUI_Layer = os.path.join(workspace,'a_Reference','WUI')
+        Ownership_Layer = os.path.join(workspace,'a_Reference','CALFIRE_Ownership_Update')
+        Regions_Layer = os.path.join(workspace,'a_Reference','WFRTF_Regions')
         
         # define file paths to intermediary outputs in scratch gdb
-        Veg_Summarized_Polygons = os.path.join(
-            scratch_workspace, "Veg_Summarized_Polygons"
-        )
-        WHR13NAME_Summary = os.path.join(scratch_workspace, "WHR13NAME_Summary")
-        WHR13NAME_Summary_SummarizeAttributes = os.path.join(
-            scratch_workspace, "WHR13NAME_Summary_SummarizeAttributes"
-        )
-        Veg_Summarized_Centroids = os.path.join(
-            scratch_workspace, "Veg_Summarized_Centroids"
-        )
-        Veg_Summarized_Join1_Own = os.path.join(
-            scratch_workspace, "Veg_Summarized_Join1_Own"
-        )
-        Veg_Summarized_Join2_RCD = os.path.join(
-            scratch_workspace, "Veg_Summarized_Join2_RCD"
-        )
-        WHR13NAME_Summary_temp = os.path.join(
-            scratch_workspace, "WHR13NAME_Summary_temp"
-        )
-        
-        # BEGIN TOOL CHAIN
+        veg_sum = os.path.join(scratch_workspace, "Veg_Summarized_Polygons")
+        group_table = os.path.join(scratch_workspace, "WHR13NAME_Summary")
+        sum_table = os.path.join(scratch_workspace, "WHR13NAME_Summary_SummarizeAttributes")
+        Veg_Summarized_Centroids = os.path.join(scratch_workspace, "Veg_Summarized_Centroids")
+        Veg_Summarized_Join1_Own = os.path.join(scratch_workspace, "Veg_Summarized_Join1_Own")
+        Veg_Summarized_Join2_Region = os.path.join(scratch_workspace, "Veg_Summarized_Join2_Region")
+                
+        ## BEGIN TOOL CHAIN
 
-        print("Executing Polygon Enrichments...")
-        print("   Calculating Broad Vegetation Type...")
-        # Process: Summarize Within (Summarize Within) (analysis)
-        print("     step 1/34 summarize veg within polygons")
-        arcpy.analysis.SummarizeWithin(
+        print("     Calculating Broad Vegetation Type...")
+        # summarize_1 is the input to summarize_2 and join_2
+        print("       enrich step 1/32 summarize veg within polygons")
+        summarize_1 = arcpy.analysis.SummarizeWithin(
             in_polygons=enrich_in,
             in_sum_features=Veg_Layer,
-            out_feature_class=Veg_Summarized_Polygons,
+            out_feature_class=veg_sum,
             keep_all_polygons="KEEP_ALL",
-            sum_fields=None,  # changed from []
+            sum_fields=None,
             sum_shape="ADD_SHAPE_SUM",
             shape_unit="ACRES",
             group_field="WHR13NAME",
             add_min_maj="NO_MIN_MAJ",
             add_group_percent="NO_PERCENT",
-            out_group_table=WHR13NAME_Summary,
+            out_group_table=group_table,
         )
 
-        # Process: Summarize Attributes (Summarize Attributes) (gapro)
-        print("     step 2/34 summarize attributes")
-        arcpy.gapro.SummarizeAttributes(
-            input_layer=WHR13NAME_Summary,
-            out_table=WHR13NAME_Summary_SummarizeAttributes,
+        print("       enrich step 2/32 summarize attributes")
+        summarize_2 = arcpy.gapro.SummarizeAttributes(
+            input_layer=group_table,
+            out_table=sum_table,
             fields=["Join_ID"],
             summary_fields=[["sum_Area_ACRES", "MAX"]],
             time_step_interval=None,
@@ -89,67 +80,57 @@ def enrich_polygons(
             time_step_reference=None,
         )
 
-        # print('   Performing Field Modifications...')
-        # Process: Add Join (2) (Add Join) (management)
-        print("     step 3/34 add join")
-        WHR13NAME_Summary_SummarizeA = arcpy.management.AddJoin(
-            in_layer_or_view=WHR13NAME_Summary_SummarizeAttributes,
+        print("       enrich step 3/32 add join")
+        join_1 = arcpy.management.AddJoin(
+            in_layer_or_view=sum_table,
             in_field="MAX_Sum_Area_ACRES",
-            join_table=WHR13NAME_Summary,
+            join_table=group_table,
             join_field="sum_Area_ACRES",
             join_type="KEEP_ALL",
             index_join_fields="INDEX_JOIN_FIELDS",
         )
 
-        # Process: Table To Table (Table To Table) (conversion)
-        print("     step 4/34 convert table to table")
-        WHR13NAME_Summary_temp = arcpy.conversion.TableToTable(
-            in_rows=WHR13NAME_Summary_SummarizeA,
+        print("       enrich step 4/32 convert table to table")
+        sum_table = arcpy.conversion.TableToTable(
+            in_rows=join_1,
             out_path=scratch_workspace,
             out_name="WHR13NAME_Summary_temp",
             where_clause="",
             config_keyword="",
         )
 
-        # Process: Delete Identical (Delete Identical) (management)
-        print("     step 5/34 delete identical")
-        WHR13NAME_Summary_temp_2_ = arcpy.management.DeleteIdentical(
-            in_dataset=WHR13NAME_Summary_temp,
+        print("       enrich step 5/32 delete identical")
+        delete_identical_1 = arcpy.management.DeleteIdentical(
+            in_dataset=sum_table,
             fields=["Join_ID", "MAX_Sum_Area_ACRES", "WHR13NAME"],
             xy_tolerance="",
             z_tolerance=0,
         )
 
-        # Count1 = arcpy.management.GetCount(WHR13NAME_Summary_temp_2_)
-        # print("{} has {} records".format(WHR13NAME_Summary_temp_2_, Count1[0]))
+        Count1 = arcpy.management.GetCount(delete_identical_1)
+        print("         step has {} records".format(Count1[0]))
 
-        # Process: Add Join (3) (Add Join) (management)
-        print("     step 6/34 add join")
-        usfs_haz_fuels_treatments_re = arcpy.management.AddJoin(
-            in_layer_or_view=Veg_Summarized_Polygons,
+        print("       enrich step 6/32 add join")
+        join_2 = arcpy.management.AddJoin(
+            in_layer_or_view=veg_sum,
             in_field="Join_ID",
-            join_table=WHR13NAME_Summary_temp_2_,
+            join_table=delete_identical_1,
             join_field="Join_ID",
             join_type="KEEP_ALL",
             index_join_fields="INDEX_JOIN_FIELDS",
         )
 
-        # Process: Select Layer By BVT Not Null (Select Layer By Attribute) (management)
-        print("     step 7/34 select layer by attribute")
-        (
-            Veg_Summarized_Polygons_Laye_3_,
-            Count,
-        ) = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=usfs_haz_fuels_treatments_re,
+        print("       enrich step 7/32 select layer by attribute")
+        select_1 = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=join_2,
             selection_type="NEW_SELECTION",
             where_clause="BROAD_VEGETATION_TYPE IS NOT NULL",
             invert_where_clause="",
         )
 
-        # Process: Calculate BVT User Defined Yes (Calculate Field) (management)
-        print("     step 8/34 calculate user defined veg field yes")
-        Updated_Input_Table_2_ = arcpy.management.CalculateField(
-            in_table=Veg_Summarized_Polygons_Laye_3_,
+        print("       enrich step 8/32 calculate user defined veg field yes")
+        calc_field_1 = arcpy.management.CalculateField(
+            in_table=select_1,
             field="BVT_USERD",
             expression='"YES"',
             expression_type="PYTHON3",
@@ -158,59 +139,28 @@ def enrich_polygons(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Switch Selection (Select Layer By Attribute) (management)
-        print("     step 9/34 select layer by attribute")
-        Updated_Layer_Or_Table_View, Count_5_ = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=Updated_Input_Table_2_,
+        print("       enrich step 9/32 select layer by attribute")
+        select_2 = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=calc_field_1,
             selection_type="SWITCH_SELECTION",
             where_clause="",
             invert_where_clause="",
         )
 
-        # Process: Calculate Veg (Calculate Field) (management)
-        print("     step 10/34 calculate veg domain code")
-        Veg_Summarized_Polygons_Laye_2_ = arcpy.management.CalculateField(
-            in_table=Updated_Layer_Or_Table_View,
+        print("       enrich step 10/32 calculate veg domain code")
+        calc_field_2 = arcpy.management.CalculateField(
+            in_table=select_2,
             field="Veg_Summarized_Polygons.BROAD_VEGETATION_TYPE",
-            expression="ifelse(!WHR13NAME_Summary_temp.WHR13NAME!)",
+            expression="!WHR13NAME_Summary_temp.WHR13NAME!",
             expression_type="PYTHON3",
-            code_block="""def ifelse(VEG):
-                                            if VEG == \"Agriculture\":
-                                                return \"AGRICULTURE\"
-                                            elif VEG == \"Barren/Other\":
-                                                return \"SPARSE\"
-                                            elif VEG == \"Conifer Forest\":
-                                                return \"FOREST\"
-                                            elif VEG == \"Conifer Woodland\":
-                                                return \"FOREST\"
-                                            elif VEG == \"Desert Shrub\":
-                                                return \"SHRB_CHAP\"
-                                            elif VEG == \"Desert Woodland\":
-                                                return \"FOREST\"
-                                            elif VEG == \"Hardwood Forest\":
-                                                return \"FOREST\"
-                                            elif VEG == \"Hardwood Woodland\":
-                                                return \"FOREST\"
-                                            elif VEG == \"Herbaceous\":
-                                                return \"GRASS_HERB\"
-                                            elif VEG == \"Shrub\":
-                                                return \"SHRB_CHAP\"
-                                            elif VEG == \"Urban\":
-                                                return \"URBAN\"
-                                            elif VEG == \"Water\":
-                                                return \"WATER\"
-                                            elif VEG == \"Wetland\":
-                                                return \"WETLAND\"
-                                            else:
-                                                return VEG""",
+            code_block="",
             field_type="TEXT",
-            enforce_domains="NO_ENFORCE_DOMAINS",
+            enforce_domains="NO_ENFORCE_DOMAINS"
         )
 
-        # Process: Calculate BVT User Defined No (Calculate Field) (management)
-        print("     step 11/34 calculate user defined veg field no")
-        Updated_Input_Table_4_ = arcpy.management.CalculateField(
-            in_table=Veg_Summarized_Polygons_Laye_2_,
+        print("       enrich step 11/32 calculate user defined veg field no")
+        calc_field_3 = arcpy.management.CalculateField(
+            in_table=calc_field_2,
             field="BVT_USERD",
             expression='"NO"',
             expression_type="PYTHON3",
@@ -219,36 +169,32 @@ def enrich_polygons(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Switch Selection (Select Layer By Attribute) (management)
-        Updated_Input_Table_4a_ = arcpy.management.SelectLayerByAttribute(
-                                            in_layer_or_view=Updated_Input_Table_4_, 
-                                            selection_type="CLEAR_SELECTION", 
-                                            where_clause="", 
-                                            invert_where_clause=""
-                                            )
-
-        # Process: Remove Join (Remove Join) (management)
-        print("     step 12/34 remove join")
-        Layer_With_Join_Removed = arcpy.management.RemoveJoin(
-            in_layer_or_view=Updated_Input_Table_4a_, join_name="WHR13NAME_Summary_temp"
+        select_3 = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=calc_field_3, 
+            selection_type="CLEAR_SELECTION", 
+            where_clause="", 
+            invert_where_clause=""
         )
-        # Count2 = arcpy.management.GetCount(Layer_With_Join_Removed)
-        # print("{} has {} records".format(Layer_With_Join_Removed, Count2[0]))
 
-        print("   Calculating WUI...")
-        # Process: Select Layer WUI Null (Select Layer By Attribute) (management)
-        print("     step 13/34 select layer by attribute")
-        Veg_Summarized_Polygons_Laye_7_, Count_8_, = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=Layer_With_Join_Removed,
+        print("       enrich step 12/32 remove join")
+        remove_join_1 = arcpy.management.RemoveJoin(
+            in_layer_or_view=select_3, join_name="WHR13NAME_Summary_temp"
+        )
+        Count2 = arcpy.management.GetCount(remove_join_1)
+        print("         step has {} records".format(Count2[0]))
+
+        print("     Calculating WUI...")
+        print("       enrich step 13/32 select layer by attribute")
+        select_4 = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=remove_join_1,
             selection_type="NEW_SELECTION",
             where_clause="IN_WUI IS NULL Or IN_WUI = ''",
             invert_where_clause="",
         )
 
-        # Process: Select Layer By WUI (Select Layer By Location) (management)
-        print("     step 14/34 select layer by WUI location")
-        Veg_Summarized_Polygons_Laye1_2_, Output_Layer_Names_2_, Count_2_, = arcpy.management.SelectLayerByLocation(
-            in_layer=[Veg_Summarized_Polygons_Laye_7_],
+        print("       enrich step 14/32 select layer by WUI location")
+        select_5 = arcpy.management.SelectLayerByLocation(
+            in_layer=[select_4],
             overlap_type="INTERSECT",
             select_features=WUI_Layer,
             search_distance="",
@@ -256,10 +202,9 @@ def enrich_polygons(
             invert_spatial_relationship="NOT_INVERT",
         )
 
-        # Process: Calculate WUI Auto Yes (Calculate Field) (management)
-        print("     step 15/34 calculate WUI yes")
-        usfs_haz_fuels_treatments_re3 = arcpy.management.CalculateField(
-            in_table=Veg_Summarized_Polygons_Laye1_2_,
+        print("       enrich step 15/32 calculate WUI yes")
+        calc_field_4 = arcpy.management.CalculateField(
+            in_table=select_5,
             field="IN_WUI",
             expression='"WUI_AUTO_POP"',
             expression_type="PYTHON3",
@@ -268,19 +213,17 @@ def enrich_polygons(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Select Layer WUI Auto No (Select Layer By Attribute) (management)
-        print("     step 16/34 select layer by attribute")
-        Veg_Summarized_Polygons_Laye_5_, Count_6_, = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=usfs_haz_fuels_treatments_re3,
+        print("       enrich step 16/32 select layer by attribute")
+        select_6 = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=calc_field_4,
             selection_type="NEW_SELECTION",
             where_clause="IN_WUI IS NULL Or IN_WUI = ''",
             invert_where_clause="",
         )
 
-        # Process: Calculate WUI No (Calculate Field) (management)
-        print("     step 17/34 calculate WUI no")
-        usfs_haz_fuels_treatments_re3_2_ = arcpy.management.CalculateField(
-            in_table=Veg_Summarized_Polygons_Laye_5_,
+        print("       enrich step 17/32 calculate WUI no")
+        calc_field_5 = arcpy.management.CalculateField(
+            in_table=select_6,
             field="IN_WUI",
             expression='"NON-WUI_AUTO_POP"',
             expression_type="PYTHON3",
@@ -289,30 +232,26 @@ def enrich_polygons(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Clear Selection (Select Layer By Attribute) (management)
-        print("     step 18/34 clear selection")
-        Treatments_Merge3_California_5_, Count_4_ = arcpy.management.SelectLayerByAttribute(
-            in_layer_or_view=usfs_haz_fuels_treatments_re3_2_, 
+        # input to join_3
+        print("       enrich step 18/32 clear selection")
+        select_7 = arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view=calc_field_5, 
             selection_type="CLEAR_SELECTION", 
             where_clause="", 
             invert_where_clause=""
         )
-        # Count3 = arcpy.management.GetCount(Treatments_Merge3_California_5_)
-        # print('{} has {} records'.format(Treatments_Merge3_California_5_, Count3[0]))
         
-        # Process: Feature To Point (Feature To Point) (management)
-        print("     step 19/34 feature to point")
-        arcpy.management.FeatureToPoint(
-            in_features=Treatments_Merge3_California_5_,
+        print("       enrich step 19/32 feature to point")
+        to_points = arcpy.management.FeatureToPoint(
+            in_features=select_7,
             out_feature_class=Veg_Summarized_Centroids,
             point_location="INSIDE",
         )
 
-        print("   Calculating Ownership, Counties, and Regions...")
-        # Process: Spatial Join (Spatial Join) (analysis)
-        print("     step 20/34 spatial join ownership")
-        arcpy.analysis.SpatialJoin(
-            target_features=Veg_Summarized_Centroids,
+        print("     Calculating Ownership, Counties, and Regions...")
+        print("       enrich step 20/32 spatial join ownership")
+        spatial_join_1 = arcpy.analysis.SpatialJoin(
+            target_features=to_points,
             join_features=Ownership_Layer,
             out_feature_class=Veg_Summarized_Join1_Own,
             join_operation="JOIN_ONE_TO_ONE",
@@ -322,12 +261,11 @@ def enrich_polygons(
             distance_field_name="",
         )
 
-        # Process: Spatial Join (2) (Spatial Join) (analysis)
-        print("     step 21/34 spatial join veg")
-        arcpy.analysis.SpatialJoin(
-            target_features=Veg_Summarized_Join1_Own,
+        print("       enrich step 21/32 spatial join veg")
+        spatial_join_2 = arcpy.analysis.SpatialJoin(
+            target_features=spatial_join_1,
             join_features=Regions_Layer,
-            out_feature_class=Veg_Summarized_Join2_RCD,
+            out_feature_class=Veg_Summarized_Join2_Region,
             join_operation="JOIN_ONE_TO_ONE",
             join_type="KEEP_ALL",
             match_option="INTERSECT",
@@ -335,272 +273,118 @@ def enrich_polygons(
             distance_field_name="",
         )
 
-        # Process: Add Join (19) (Add Join) (management)
-        print("     step 22/34 add join")
-        Veg_Summarized_Polygons_Laye2_2_ = arcpy.management.AddJoin(
-            in_layer_or_view=Treatments_Merge3_California_5_,
+        print("       enrich step 22/32 add join")
+        join_3 = arcpy.management.AddJoin(
+            in_layer_or_view=select_7,
             in_field="OBJECTID",
-            join_table=Veg_Summarized_Join2_RCD,
+            join_table=spatial_join_2,
             join_field="ORIG_FID",
             join_type="KEEP_ALL",
             index_join_fields="INDEX_JOIN_FIELDS",
         )
 
-        # Process: Calculate Owner (Calculate Field) (management)
-        print("     step 23/34 calculate ownership field")
-        Veg_Summarized_Polygons_Laye = arcpy.management.CalculateField(
-            in_table=Veg_Summarized_Polygons_Laye2_2_,
+        print("       enrich step 23/32 calculate ownership field")
+        calc_field_6 = arcpy.management.CalculateField(
+            in_table=join_3,
             field="Veg_Summarized_Polygons.PRIMARY_OWNERSHIP_GROUP",
-            expression="ifelse(!Veg_Summarized_Join2_RCD.AGNCY_LEV!)",
+            expression="!Veg_Summarized_Join2_Region.AGNCY_LEV!",
             expression_type="PYTHON3",
-            code_block="""def ifelse(Own):
-                                        if Own == \"Federal\":
-                                            return \"FEDERAL\"
-                                        if Own == \"Local\":
-                                            return \"LOCAL\"
-                                        if Own == \"NGO\":
-                                            return \"NGO\"
-                                        if Own == \"Private - Industrial\":
-                                            return \"PRIVATE_INDUSTRY\"
-                                        if Own == \"Private - Non Industrial\":
-                                            return \"PRIVATE_NON-INDUSTRY\"
-                                        if Own == \"Private - Non-Industrial\":
-                                            return \"PRIVATE_NON-INDUSTRY\"
-                                        if Own == \"State\":
-                                            return \"STATE\"
-                                        if Own == \"Tribal\":
-                                            return \"TRIBAL\"
-                                        else:
-                                            return Own""",
+            code_block="",
             field_type="TEXT",
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate County (Calculate Field) (management)
-        print("     step 24/34 calculate county field")
-        Veg_Summarized_Polygons_Laye2_4_ = arcpy.management.CalculateField(
-            in_table=Veg_Summarized_Polygons_Laye,
+        print("       enrich step 24/32 calculate county field")
+        calc_field_7 = arcpy.management.CalculateField(
+            in_table=calc_field_6,
             field="Veg_Summarized_Polygons.COUNTY",
-            expression="ifelse(!Veg_Summarized_Join2_RCD.COUNTY_1!)",
+            expression="!Veg_Summarized_Join2_Region.COUNTY_1!",
             expression_type="PYTHON3",
-            code_block="""def ifelse(CO):
-                                            if CO == \"Alameda\":
-                                                return \"ALA\"
-                                            if CO == \"Alpine\":
-                                                return \"ALP\"
-                                            if CO == \"Amador\":
-                                                return \"AMA\"
-                                            if CO == \"Butte\":
-                                                return \"BUT\"
-                                            if CO == \"Calaveras\":
-                                                return \"CAL\"
-                                            if CO == \"Colusa\":
-                                                return \"COL\"
-                                            if CO == \"Contra Costa\":
-                                                return \"CC\"
-                                            if CO == \"Del Norte\":
-                                                return \"DN\"
-                                            if CO == \"El Dorado\":
-                                                return \"ED\"
-                                            if CO == \"Fresno\":
-                                                return \"FRE\"
-                                            if CO == \"Glenn\":
-                                                return \"GLE\"
-                                            if CO == \"Humboldt\":
-                                                return \"HUM\"
-                                            if CO == \"Imperial\":
-                                                return \"IMP\"
-                                            if CO == \"Inyo\":
-                                                return \"INY\"
-                                            if CO == \"Kern\":
-                                                return \"KER\"
-                                            if CO == \"Kings\":
-                                                return \"KIN\"
-                                            if CO == \"Lake\":
-                                                return \"LAK\"
-                                            if CO == \"Lassen\":
-                                                return \"LAS\"
-                                            if CO == \"Los Angeles\":
-                                                return \"LA\"
-                                            if CO == \"Madera\":
-                                                return \"MAD\"
-                                            if CO == \"Marin\":
-                                                return \"MRN\"
-                                            if CO == \"Mariposa\":
-                                                return \"MPA\"
-                                            if CO == \"Mendocino\":
-                                                return \"MEN\"
-                                            if CO == \"Merced\":
-                                                return \"MER\"
-                                            if CO == \"Modoc\":
-                                                return \"MOD\"
-                                            if CO == \"Monterey\":
-                                                return \"MON\"
-                                            if CO == \"Mono\":
-                                                return \"MNO\"
-                                            if CO == \"Napa\":
-                                                return \"NAP\"
-                                            if CO == \"Nevada\":
-                                                return \"NEV\"
-                                            if CO == \"Orange\":
-                                                return \"ORA\"
-                                            if CO == \"Placer\":
-                                                return \"PLA\"
-                                            if CO == \"Plumas\":
-                                                return \"PLU\"
-                                            if CO == \"Riverside\":
-                                                return \"RIV\"
-                                            if CO == \"Sacramento\":
-                                                return \"SAC\"
-                                            if CO == \"San Benito\":
-                                                return \"SBT\"
-                                            if CO == \"San Bernardino\":
-                                                return \"SBD\"
-                                            if CO == \"San Diego\":
-                                                return \"SD\"
-                                            if CO == \"San Francisco\":
-                                                return \"SF\"
-                                            if CO == \"San Joaquin\":
-                                                return \"SJ\"
-                                            if CO == \"San Luis Obispo\":
-                                                return \"SLO\"
-                                            if CO == \"San Mateo\":
-                                                return \"SM\"
-                                            if CO == \"Santa Barbara\":
-                                                return \"SB\"
-                                            if CO == \"Santa Clara\":
-                                                return \"SCL\"
-                                            if CO == \"Santa Cruz\":
-                                                return \"SCR\"
-                                            if CO == \"Shasta\":
-                                                return \"SHA\"
-                                            if CO == \"Sierra\":
-                                                return \"SIE\"
-                                            if CO == \"Siskiyou\":
-                                                return \"SIS\"
-                                            if CO == \"Solano\":
-                                                return \"SOL\"
-                                            if CO == \"Sonoma\":
-                                                return \"SON\"
-                                            if CO == \"Stanislaus\":
-                                                return \"STA\"
-                                            if CO == \"Sutter\":
-                                                return \"SUT\"
-                                            if CO == \"Tehama\":
-                                                return \"TEH\"
-                                            if CO == \"Tuolumne\":
-                                                return \"TUO\"
-                                            if CO == \"Trinity\":
-                                                return \"TRI\"
-                                            if CO == \"Tulare\":
-                                                return \"TUL\"
-                                            if CO == \"Ventura\":
-                                                return \"VEN\"
-                                            if CO == \"Yolo\":
-                                                return \"YOL\"
-                                            if CO == \"Yuba\":
-                                                return \"YUB\"
-                                            else:
-                                                return CO""",
+            code_block="",
             field_type="TEXT",
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Region (Calculate Field) (management)
-        print("     step 25/34 calculate region field")
-        Veg_Summarized_Polygons_Laye_6_ = arcpy.management.CalculateField(
-            in_table=Veg_Summarized_Polygons_Laye2_4_,
+        print("       enrich step 25/32 calculate region field")
+        calc_field_8 = arcpy.management.CalculateField(
+            in_table=calc_field_7,
             field="Veg_Summarized_Polygons.REGION",
-            expression="ifelse(!Veg_Summarized_Join2_RCD.Region!)",
+            expression="!Veg_Summarized_Join2_Region.Region_1!",
             expression_type="PYTHON3",
-            code_block="""def ifelse(Reg):
-                                        if Reg == \"Central Coast\":
-                                            return \"CENTRAL_COAST\"
-                                        if Reg == \"North Coast\":
-                                            return \"NORTH_COAST\"
-                                        if Reg == \"Sierra Nevada\":
-                                            return \"SIERRA_NEVADA\"
-                                        if Reg == \"Southern California\":
-                                            return \"SOUTHERN_CA\"
-                                        else:
-                                            return Reg""",
+            code_block="",
             field_type="TEXT",
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Remove Join (10) (Remove Join) (management)
-        print("     step 26/34 remove join")
-        Veg_Summarized_Polygons_Laye2 = arcpy.management.RemoveJoin(
-            in_layer_or_view=Veg_Summarized_Polygons_Laye_6_,
-            join_name="Veg_Summarized_Join2_RCD",
+        print("       enrich step 26/32 remove join")
+        remove_join_2 = arcpy.management.RemoveJoin(
+            in_layer_or_view=calc_field_8,
+            join_name="Veg_Summarized_Join2_Region",
         )
 
-        # Count4 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye2)
-        # print("{} has {} records".format(Veg_Summarized_Polygons_Laye2, Count4[0]))
+        calc_field_9 = arcpy.management.CalculateField(
+            in_table=remove_join_2, 
+            field="TRMT_GEOM", 
+            expression="'POLYGON'"
+        )
 
-        print("     step 27/34 Calculating Years...")
-        # Process: 2h Calculate Year (2h Calculate Year) (PC414CWIMillionAcres)
-        Veg_Summarized_Polygons_Laye3_7_ = Year(Year_Input=Veg_Summarized_Polygons_Laye2)
+        Count3 = arcpy.management.GetCount(calc_field_9)
+        print("         step has {} records".format(Count3[0]))
+
+        print("       enrich step 27/32 Calculating Years...")
+        year = Year(Year_Input=calc_field_9)
         
-        print("   step 28/34 Initiating Crosswalk...")
-        # Process: Crosswalk
-        crosswalk_table = Crosswalk(Input_Table=Veg_Summarized_Polygons_Laye3_7_)
-        print("   Crosswalk Complete, Continuing Enrichment...")
+        print("       enrich step 28/32 Initiating Crosswalk...")
+        crosswalk_table = Crosswalk(Input_Table=year)
+        print("     Crosswalk Complete, Continuing Enrichment...")
 
-        # Count5 = arcpy.management.GetCount(crosswalk_table)
-        # print('{} has {} records'.format(crosswalk_table, Count5[0]))
+        Count4 = arcpy.management.GetCount(crosswalk_table)
+        print('         step has {} records'.format(Count4[0]))
 
-        print("     step 29/34 Calculating Latitude and Longitude...")
-        # Process: Calculate Geometry Attributes (3) (Calculate Geometry Attributes) (management)
-        Veg_Summarized_Polygons_Laye_4_ = arcpy.management.CalculateGeometryAttributes(
-            in_features=Veg_Summarized_Polygons_Laye3_7_,
+        print("       enrich step 29/32 Calculating Latitude and Longitude...")
+        calc_geom_1 = arcpy.management.CalculateGeometryAttributes(
+            in_features=crosswalk_table,
             geometry_property=[
                 ["LATITUDE", "INSIDE_Y"], 
                 ["LONGITUDE", "INSIDE_X"]],
             length_unit="",
             area_unit="",
-            coordinate_system='GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+            coordinate_system=4269,  # "GCS_WGS_1984"
             coordinate_format="DD",
         )
 
-        # Process: Calculate Geometry Attributes (4) (Calculate Geometry Attributes) (management)
-        print("     step 30/34 calculate treatment acres")
-        Veg_Summarized_Polygons_Laye_8_ = arcpy.management.CalculateGeometryAttributes(
-            in_features=Veg_Summarized_Polygons_Laye_4_,
+        print("       enrich step 30/32 calculate treatment acres")
+        calc_geom_2 = arcpy.management.CalculateGeometryAttributes(
+            in_features=calc_geom_1,
             geometry_property=[["TREATMENT_AREA", "AREA"]],
             length_unit="",
             area_unit="ACRES_US",
-            coordinate_system='PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+            coordinate_system=3310, # "NAD_1983_California_Teale_Albers"
             coordinate_format="SAME_AS_INPUT",
         )
 
-        # # Process: Keep Fields (Delete Field) (management)
-        print("     step 31/34 removing unnecessary fields")
-        Veg_Summarized_Polygons_Laye_11_ = KeepFields(Veg_Summarized_Polygons_Laye_8_)       
+        print("       enrich step 31/32 removing unnecessary fields")
+        keep_fields_1 = KeepFields(calc_geom_2)       
         
-        # Count6 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye_11_)
-        # print('{} has {} records'.format(Veg_Summarized_Polygons_Laye_11_, Count6[0]))
+        Count5 = arcpy.management.GetCount(keep_fields_1)
+        print('         step has {} records'.format(Count5[0]))
 
-        # Process: Select (Select) (analysis)
-        print("     step 33/34 delete if County is Null")
-        Veg_Summarized_Polygons_Laye_13_ = arcpy.analysis.Select(
-            in_features=Veg_Summarized_Polygons_Laye_11_,
+        print("       enrich step 32/32") # delete if County is Null")
+        select_8 = arcpy.analysis.Select(
+            in_features=keep_fields_1,
             out_feature_class=enrich_out,
-            where_clause="County IS NOT NULL",
+            where_clause="" # "County IS NOT NULL",
         )
 
-        # Count7 = arcpy.management.GetCount(Veg_Summarized_Polygons_Laye_13_)
-        # print("{} has {} records".format(Veg_Summarized_Polygons_Laye_13_, Count7[0]))
+        Count6 = arcpy.management.GetCount(select_8)
+        print("         step has {} records".format(Count6[0]))
+        
+        end_ply = datetime.datetime.now()
+        elapsed_ply = (end_ply-start_ply)
+        hours, remainder1 = divmod(elapsed_ply.total_seconds(), 3600)
+        minutes, remainder2 = divmod(remainder1, 60)
+        seconds, remainder3 = divmod(remainder2, 1)
+        print("   Enrich Polygons Complete...")
+        print(f"     Enrichment Polygon script took: {int(hours)}h, {int(minutes)}m, {seconds}s to complete")
 
-        print("     step 34/34 delete scratch files")
-
-        if delete_scratch:
-            print('Deleting Scratch Files')
-            delete_scratch_files(
-                gdb=scratch_workspace,
-                delete_fc="yes",
-                delete_table="yes",
-                delete_ds="yes",
-            )
-
-        print("Enrich Polygons Complete...")
+        return enrich_out

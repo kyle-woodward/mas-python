@@ -7,8 +7,10 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
+import datetime
+start1 = datetime.datetime.now()
+
 import os
-import time
 import arcpy
 from ._1_add_fields import AddFields
 from ._1_assign_domains import AssignDomains
@@ -24,81 +26,90 @@ def CalTrans(
     input_lines22,
     input_table21,
     input_table22,
-    output_lines_standardized,
     output_lines_enriched,
+    delete_scratch=True
 ):
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
-        overwriteOutput = True,
+        transferGDBAttributeProperties=False, 
+        overwriteOutput = True
     ):
-
-        start = time.time()
-        print(f"Start Time {time.ctime()}")
-        
-        # arcpy.ImportToolbox(
-        #     r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Data Management Tools.tbx"
-        # )
+        print(f"Start Time {start1}")
 
         # define intermediary objects in scratch
         CalTrans21_scratch = os.path.join(scratch_workspace, "CalTrans21_scratch")
         CalTrans22_scratch = os.path.join(scratch_workspace, "CalTrans22_scratch")
-
+        output_lines_standardized = os.path.join(scratch_workspace, "CalTrans_standardized")
         
-        # #TODO Verify joined input Treatments and Activities
-
-        ### BEGIN POLYLINE WORKFLOW
-        # Process: Add Join (2) (Add Join) (management)
-        print("     step 3/33 add join")
+        ### BEGIN TOOL CHAIN
+        print("Part 1 join features and tables")
+        print("     step 1/8 add 2021 join")
         input_table21_join = arcpy.management.AddJoin(
             in_layer_or_view=input_lines21,
             in_field="HIghwayID",
             join_table=input_table21,
             join_field="HighwayID",
-            join_type="KEEP_COMMON",
+            join_type="KEEP_ALL",
             index_join_fields="INDEX_JOIN_FIELDS",
         )
 
-        # Process: Copy Features (Copy Features) (management)
+        print("     step 2/8 save features")
         input_table21_join_copy = arcpy.management.CopyFeatures(
             input_table21_join, CalTrans21_scratch
         )
+        
+        # remove join needed to prevent modification of original data set
+        arcpy.RemoveJoin_management(input_table21_join)
 
+        Count1 = arcpy.management.GetCount(input_table21_join_copy)
+        print("        input_table21_join_copy has {} records".format(Count1[0]))
+
+        print("     step 3/8 add 2022 join")
         input_table22_join = arcpy.management.AddJoin(
             in_layer_or_view=input_lines22,
             in_field="HIghwayID",
             join_table=input_table22,
             join_field="Highway_ID",
-            join_type="KEEP_COMMON",
+            join_type="KEEP_ALL",
             index_join_fields="INDEX_JOIN_FIELDS",
         )
 
-        # Process: Copy Features (2) (Copy Features) (management)
+        print("     step 4/8 save features")
         input_table22_join_copy = arcpy.management.CopyFeatures(
             input_table22_join, CalTrans22_scratch
         )
+        
+        Count2 = arcpy.management.GetCount(input_table22_join_copy)
+        print("        input_table22_join_copy has {} records".format(Count2[0]))
 
-        print("Appending Lines")
-        # Process: Create Feature Class (Create Feature Class) (management)
-        CalTransLns_scratch = arcpy.management.CreateFeatureclass(out_path=scratch_workspace, out_name="CalTransLns_scratch", geometry_type="POLYLINE", template=CalTrans22_scratch)
+        # remove join needed to prevent modification of original data set
+        arcpy.RemoveJoin_management(input_table22_join)
 
-        # Process: Append (Append) (management)
-        # CalTransLns_append = arcpy.management.Append(
+        print("     step 5/8 combine 2021 and 2022")
+        print("   Appending Lines")
+        CalTransLns_scratch = arcpy.management.CreateFeatureclass(
+            out_path=scratch_workspace, 
+            out_name="CalTransLns_scratch", 
+            geometry_type="POLYLINE", 
+            template=CalTrans22_scratch
+            )
+        
+        # Use this append or the following append with field mapping depending on the situation.
+        # append_1 = arcpy.management.Append(
         #     inputs=[input_table21_join_copy, input_table22_join_copy], 
         #     target=CalTransLns_scratch, 
         #     schema_type="TEST", 
         #     field_mapping=""
         # )
 
-        CalTransLns_append = arcpy.management.Append(
+        append_1 = arcpy.management.Append(
             inputs=[input_table21_join_copy, input_table22_join_copy], 
             target=CalTransLns_scratch, schema_type="NO_TEST", 
             field_mapping="""DISTRICT_CODE \"DISTRICT_CODE\" true true false 255 Text 0 0,First,#,input_table22_join_copy,DISTRICT_CODE,0,255,input_table21_join_copy,DISTRICT_CODE,0,255;
@@ -174,139 +185,50 @@ def CalTrans(
                 """
         )
 
-        print("Performing Line Standardization")
-        # Process: Copy Features (2) (Copy Features) (management)
-        # CalTransLns_append_2 = os.path.join(scratch_workspace, "CalTransLns_Copy")
-        # arcpy.management.CopyFeatures(
-        #     in_features=CalTransLns_append,
-        #     out_feature_class=CalTransLns_append_2,
-        #     config_keyword="",
-        #     spatial_grid_1=None,
-        #     spatial_grid_2=None,
-        #     spatial_grid_3=None,
-        # )
+        Count3 = arcpy.management.GetCount(append_1)
+        print("       CalTransLns_append has {} records".format(Count3[0]))
 
-        # Process: Repair Geometry (Repair Geometry) (management)
-        caltrans_poly_copy_repaired_geom = arcpy.management.RepairGeometry(
-            in_features=CalTransLns_append,
+        print("Part 2: Performing Standardization")
+        print("     step 6/8 repair geometry")
+        repair_geom_1 = arcpy.management.RepairGeometry(
+            in_features=append_1,
             delete_null="KEEP_NULL",
             validation_method="ESRI",
         )
 
-        # Process: Alter Field County (2) (Alter Field) (management)
-        caltrans_poly_alterfield_v1 = arcpy.management.AlterField(
-            in_table=caltrans_poly_copy_repaired_geom,
+        print("     step 7/8 alter & add fields")
+        alterfield_1 = arcpy.management.AlterField(
+            in_table=repair_geom_1,
             field="County",
             new_field_name="County2",
             new_field_alias="County2",
             field_type="TEXT",
-            # field_length=25,
-            # field_is_nullable="NULLABLE",
             clear_field_alias="DO_NOT_CLEAR",
         )
 
-        # Process: Alter Field Activity Description (2) (Alter Field) (management)
-        caltrans_poly_alterfield_v2 = arcpy.management.AlterField(
-            in_table=caltrans_poly_alterfield_v1,
+        alterfield_2 = arcpy.management.AlterField(
+            in_table=alterfield_1,
             field="Activity_Description",
             new_field_name="Activity_Description_",
             new_field_alias="Activity_Description_",
             field_type="TEXT",
-            # field_length=70,
-            # field_is_nullable="NULLABLE",
             clear_field_alias="DO_NOT_CLEAR",
         )
 
-        # # Process: Alter Field Veg (2) (Alter Field) (management)
-        # caltrans_poly_alterfield_v3 = arcpy.management.AlterField(
-        #     in_table=caltrans_poly_alterfield_v2,
-        #     field="Broad_Vegetation_Type",
-        #     new_field_name="BVT",
-        #     new_field_alias="BVT",
-        #     field_type="TEXT",
-        #     # field_length=50,
-        #     # field_is_nullable="NULLABLE",
-        #     clear_field_alias="DO_NOT_CLEAR",
-        # )
-
-        # # Process: Alter Field Activity Status (2) (Alter Field) (management)
-        # caltrans_poly_alterfield_v4 = arcpy.management.AlterField(
-        #     in_table=caltrans_poly_alterfield_v2,
-        #     field="Activity_Status",
-        #     new_field_name="Act_Status",
-        #     new_field_alias="Act_Status",
-        #     field_type="TEXT",
-        #     # field_length=25,
-        #     # field_is_nullable="NULLABLE",
-        #     clear_field_alias="DO_NOT_CLEAR",
-        # )
-
-        # # Process: Alter Activity Quantity (2) (Alter Field) (management)
-        # caltrans_poly_alterfield_v5 = arcpy.management.AlterField(
-        #     in_table=caltrans_poly_alterfield_v4,
-        #     field="Activity_Quantity",
-        #     new_field_name="Production_Quantity",
-        #     new_field_alias="Production_Quantity",
-        #     field_type="DOUBLE",
-        #     # field_length=8,
-        #     # field_is_nullable="NULLABLE",
-        #     clear_field_alias="DO_NOT_CLEAR",
-        # )
-
-        # # Process: Alter Field Residue Fate (2) (Alter Field) (management)
-        # caltrans_poly_alterfield_v6 = arcpy.management.AlterField(
-        #     in_table=caltrans_poly_alterfield_v5,
-        #     field="Residue_Fate",
-        #     new_field_name="Fate",
-        #     new_field_alias="Fate",
-        #     field_type="TEXT",
-        #     # field_length=35,
-        #     # field_is_nullable="NULLABLE",
-        #     clear_field_alias="DO_NOT_CLEAR",
-        # )
-
-        # # Process: Alter Field Fate Units (2) (Alter Field) (management)
-        # caltrans_poly_alterfield_v7 = arcpy.management.AlterField(
-        #     in_table=caltrans_poly_alterfield_v6,
-        #     field="Residue_Fate_Units",
-        #     new_field_name="FateUnits",
-        #     new_field_alias="FateUnits",
-        #     field_type="TEXT",
-        #     # field_length=5,
-        #     # field_is_nullable="NULLABLE",
-        #     clear_field_alias="DO_NOT_CLEAR",
-        # )
-
-        # # Process: Alter Residue Quantity (2) (Alter Field) (management)
-        # caltrans_poly_alterfield_v8 = arcpy.management.AlterField(
-        #     in_table=caltrans_poly_alterfield_v7,
-        #     field="Residue_Fate_Quantity",
-        #     new_field_name="FateQuantity",
-        #     new_field_alias="FateQuantity",
-        #     field_type="DOUBLE",
-        #     # field_length=8,
-        #     # field_is_nullable="NULLABLE",
-        #     clear_field_alias="DO_NOT_CLEAR",
-        # )
-
-        # Process: Treatment User ID (Alter Field) (management)
-        caltrans_poly_alterfield_v9 = arcpy.management.AlterField(
-            in_table=caltrans_poly_copy_repaired_geom,
+        alterfield_3 = arcpy.management.AlterField(
+            in_table=alterfield_2,
             field="TRMTID_USER",
             new_field_name="TRMTID_USER_2",
             new_field_alias="TRMTID_USER_2",
             field_type="TEXT",
-            # field_length=30,
-            # field_is_nullable="NULLABLE",
             clear_field_alias="DO_NOT_CLEAR",
         )
 
-        # Process: 1b Add Fields (2) (1b Add Fields)
-        caltrans_poly_addfields = AddFields(Input_Table=caltrans_poly_alterfield_v9)
+        addfields_1 = AddFields(Input_Table=alterfield_3)
 
-        # Process: Calculate Project ID (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v1 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_addfields,
+        print("     step 8/8 transfer attributes")
+        calc_field_1 = arcpy.management.CalculateField(
+            in_table=addfields_1,
             field="PROJECTID_USER",
             expression="!HighwayID!",
             expression_type="PYTHON3",
@@ -315,9 +237,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Agency (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v2 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v1,
+        calc_field_2 = arcpy.management.CalculateField(
+            in_table=calc_field_1,
             field="AGENCY",
             expression='"CALSTA"',
             expression_type="PYTHON3",
@@ -326,9 +247,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Data Steward (Calculate Field) (management)
-        caltrans_poly_calc_field_v3 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v2,
+        calc_field_3 = arcpy.management.CalculateField(
+            in_table=calc_field_2,
             field="ORG_ADMIN_p",
             expression='"CALTRANS"',
             expression_type="PYTHON3",
@@ -337,9 +257,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
         
-        # Process: Calculate Data Steward (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v3a = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v3,
+        calc_field_4 = arcpy.management.CalculateField(
+            in_table=calc_field_3,
             field="ORG_ADMIN_t",
             expression='"CALTRANS"',
             expression_type="PYTHON3",
@@ -348,9 +267,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
         
-        # Process: Calculate Data Steward (3) (Calculate Field) (management)
-        caltrans_poly_calc_field_v3b = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v3a,
+        calc_field_5 = arcpy.management.CalculateField(
+            in_table=calc_field_4,
             field="ORG_ADMIN_a",
             expression='"CALTRANS"',
             expression_type="PYTHON3",
@@ -359,9 +277,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Project Contact (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v4 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v3b,
+        calc_field_6 = arcpy.management.CalculateField(
+            in_table=calc_field_5,
             field="PROJECT_CONTACT",
             expression='"Division of Maintenance"',
             expression_type="PYTHON3",
@@ -370,9 +287,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Email (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v5 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v4,
+        calc_field_7 = arcpy.management.CalculateField(
+            in_table=calc_field_6,
             field="PROJECT_EMAIL",
             expression='"andrew.lozano@dot.ca.gov"',
             expression_type="PYTHON3",
@@ -381,9 +297,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Admin Org (Calculate Field) (management)
-        caltrans_poly_calc_field_v6 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v5,
+        calc_field_8 = arcpy.management.CalculateField(
+            in_table=calc_field_7,
             field="ADMINISTERING_ORG",
             expression='"CALTRANS"',
             expression_type="PYTHON3",
@@ -392,9 +307,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Admin Org (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v6a = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v6,
+        calc_field_9 = arcpy.management.CalculateField(
+            in_table=calc_field_8,
             field="ADMIN_ORG_NAME",
             expression='"CALTRANS"',
             expression_type="PYTHON3",
@@ -403,9 +317,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Primary Funding Source (Calculate Field) (management)
-        caltrans_poly_calc_field_v7 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v6a,
+        calc_field_10 = arcpy.management.CalculateField(
+            in_table=calc_field_9,
             field="PRIMARY_FUNDING_SOURCE",
             expression='"GENERAL_FUND"',
             expression_type="PYTHON3",
@@ -414,9 +327,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Primary Funding Source (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v7a = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v7,
+        calc_field_11 = arcpy.management.CalculateField(
+            in_table=calc_field_10,
             field="PRIMARY_FUND_SRC_NAME",
             expression='"GENERAL_FUND"',
             expression_type="PYTHON3",
@@ -425,9 +337,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Primary Funding Org (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v8 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v7a,
+        calc_field_12 = arcpy.management.CalculateField(
+            in_table=calc_field_11,
             field="PRIMARY_FUNDING_ORG",
             expression='"CALTRANS"',
             expression_type="PYTHON3",
@@ -436,9 +347,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Primary Funding Org (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v8a = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v8,
+        calc_field_13 = arcpy.management.CalculateField(
+            in_table=calc_field_12,
             field="PRIMARY_FUND_ORG_NAME",
             expression='"CALTRANS"',
             expression_type="PYTHON3",
@@ -447,9 +357,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
         
-        # Process: Calculate Treatment ID (2) (Calculate Field) (management)
-        Updated_Input_Table_46_ = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v8a,
+        calc_field_14 = arcpy.management.CalculateField(
+            in_table=calc_field_13,
             field="TRMTID_USER",
             expression="str(!HIghwayID!)+'-'+str(!From_PM!)+'-'+str(!To_PM!)",
             expression_type="PYTHON3",
@@ -458,26 +367,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS"
         )
 
-        # # Process: Calculate WUI (2) (Calculate Field) (management)
-        # caltrans_poly_calc_field_v9 = arcpy.management.CalculateField(
-        #     in_table=Updated_Input_Table_46_,
-        #     field="IN_WUI",
-        #     expression="ifelse(!WUI!)",
-        #     expression_type="PYTHON3",
-        #     code_block="""def ifelse(WUI):
-        #                     if WUI == "Yes":
-        #                         return "WUI_USER_DEFINED"
-        #                     elif WUI == "No":
-        #                         return "NON-WUI_USER_DEFINED"
-        #                     else:
-        #                         return WUI""",
-        #     field_type="TEXT",
-        #     enforce_domains="NO_ENFORCE_DOMAINS",
-        # )
-
-        # Process: Calculate Treatment Area (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v10 = arcpy.management.CalculateField(
-            in_table=Updated_Input_Table_46_,
+        calc_field_15 = arcpy.management.CalculateField(
+            in_table=calc_field_14,
             field="TREATMENT_AREA",
             expression="ifelse(!UOM!, !Production_Quantity!)",
             expression_type="PYTHON3",
@@ -490,20 +381,19 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Activity ID (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v11 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v10,
+        # NOTE: A unique Activity ID for each record is required for the line enrichment tool to work properly
+        calc_field_16 = arcpy.management.CalculateField(
+            in_table=calc_field_15,
             field="ACTIVID_USER",
-            expression="!Work_Order_Number!",
+            expression="'CALTRANS-'+str(!Work_Order!)+'-'+str(!OBJECTID!)",
             expression_type="PYTHON3",
             code_block="",
             field_type="TEXT",
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Implementing Org (Calculate Field) (management)
-        caltrans_poly_calc_field_v12 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v11,
+        calc_field_17 = arcpy.management.CalculateField(
+            in_table=calc_field_16,
             field="IMPLEMENTING_ORG",
             expression="!DISTRICT_CODE!",
             expression_type="PYTHON3",
@@ -512,9 +402,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Implementing Org (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v12a = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v12,
+        calc_field_18 = arcpy.management.CalculateField(
+            in_table=calc_field_17,
             field="IMPLEM_ORG_NAME",
             expression="!DISTRICT_CODE!",
             expression_type="PYTHON3",
@@ -523,9 +412,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Activity UOM (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v13 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v12a,
+        calc_field_19 = arcpy.management.CalculateField(
+            in_table=calc_field_18,
             field="ACTIVITY_UOM",
             expression="ifelse(!UOM!)",
             expression_type="PYTHON3",
@@ -538,9 +426,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Activity Quantity (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v14 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v13,
+        calc_field_20 = arcpy.management.CalculateField(
+            in_table=calc_field_19,
             field="ACTIVITY_QUANTITY",
             expression="!Production_Quantity!",
             expression_type="PYTHON3",
@@ -549,9 +436,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Status (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v15 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v14,
+        calc_field_21 = arcpy.management.CalculateField(
+            in_table=calc_field_20,
             field="ACTIVITY_STATUS",
             expression='"COMPLETE"',
             expression_type="PYTHON3",
@@ -560,9 +446,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Activity Start (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v16 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v15,
+        calc_field_22 = arcpy.management.CalculateField(
+            in_table=calc_field_21,
             field="ACTIVITY_START",
             expression="None",
             expression_type="PYTHON3",
@@ -571,9 +456,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Activity End (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v17 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v16,
+        calc_field_23 = arcpy.management.CalculateField(
+            in_table=calc_field_22,
             field="ACTIVITY_END",
             expression="!Charge_Date!",
             expression_type="PYTHON3",
@@ -582,9 +466,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Source (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v18 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v17,
+        calc_field_24 = arcpy.management.CalculateField(
+            in_table=calc_field_23,
             field="Source",
             expression='"CALTRANS"',
             expression_type="PYTHON3",
@@ -593,9 +476,8 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Crosswalk (2) (Calculate Field) (management)
-        caltrans_poly_calc_field_v19 = arcpy.management.CalculateField(
-            in_table=caltrans_poly_calc_field_v18,
+        calc_field_25 = arcpy.management.CalculateField(
+            in_table=calc_field_24,
             field="Crosswalk",
             expression="!Activity_Description_!",
             expression_type="PYTHON3",
@@ -604,53 +486,40 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Geometry Attributes (2) (Calculate Geometry Attributes) (management)
-        # CalTrans_pts_Copy_15_ = arcpy.management.CalculateGeometryAttributes(in_features=caltrans_poly_calc_field_v19,
-        #                                                                      geometry_property=[["LATITUDE", "INSIDE_Y"], ["LONGITUDE", "INSIDE_X"]],
-        #                                                                      length_unit="",
-        #                                                                      area_unit="",
-        #                                                                      coordinate_system="GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]]",
-        #                                                                      coordinate_format="DD")
+        calc_field_26 = arcpy.management.CalculateField(
+            in_table=calc_field_25,
+            field="TRMT_GEOM",
+            expression="'LINE'",
+            expression_type="PYTHON3",
+            code_block="",
+            field_type="TEXT",
+            enforce_domains="NO_ENFORCE_DOMAINS",
+        )
 
-        # Process: Keep Fields (Delete Field) (management)
-        caltrans_poly_keepfields = KeepFields(caltrans_poly_calc_field_v19)
-
-        print(f"Saving Output Lines Standardized: {output_lines_standardized}")
-        # Process: Copy Features (3) (Copy Features) (management)
-        arcpy.management.CopyFeatures(
-            in_features=caltrans_poly_keepfields,
+        print("Saving Standardized Output")
+        standardized_1 = arcpy.management.CopyFeatures(
+            in_features=calc_field_26,
             out_feature_class=output_lines_standardized,
-            config_keyword="",
-            spatial_grid_1=None,
-            spatial_grid_2=None,
-            spatial_grid_3=None,
         )
 
-        # Process: 2b Assign Domains (3) (2b Assign Domains)
-        caltrans_line_standardized_assigndomains = AssignDomains(
-            in_table=output_lines_standardized
-        )
+        keepfields_1 = KeepFields(standardized_1)
 
-        print("Performing Lines Enrichments")
-        # Process: 7c Enrichments Lines (2) (7c Enrichments Lines)
-        caltrans_lines_enriched = enrich_lines(
-            line_fc=caltrans_line_standardized_assigndomains
-        )  # don't delete scratch
+        print("Enriching Dataset")
+        lines_enriched_1 = enrich_lines(
+            line_fc=keepfields_1
+        ) 
 
-        print(f"Saving Output Lines Enriched: {output_lines_enriched}")
-        # Process: Copy Features (4) (Copy Features) (management)
-        arcpy.management.CopyFeatures(
-            in_features=caltrans_lines_enriched,
+        print(f"Saving Enriched Output")
+        lines_enriched_2 = arcpy.management.CopyFeatures(
+            in_features=lines_enriched_1,
             out_feature_class=output_lines_enriched,
-            config_keyword="",
-            spatial_grid_1=None,
-            spatial_grid_2=None,
-            spatial_grid_3=None,
         )
 
-        # Process: Calculate Owner State (2) (Calculate Field) (management)
-        caltrans_lines_enriched_calc_field_v1 = arcpy.management.CalculateField(
-            in_table=output_lines_enriched,
+        Count4 = arcpy.management.GetCount(output_lines_enriched)
+        print("   output_enriched has {} records".format(Count4[0]))
+
+        calc_field_27 = arcpy.management.CalculateField(
+            in_table=lines_enriched_2,
             field="PRIMARY_OWNERSHIP_GROUP",
             expression='"STATE"',
             expression_type="PYTHON3",
@@ -659,31 +528,34 @@ def CalTrans(
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        ## *** IMMS_Unit_ID and IMMS_ID no longer exist after running a 7 tool on the data, so changed to 'TREATMENT_ID_USER' since that was filled with IMMS
-        ## *** prior to the 7 tool being ran. Get non-specific error (no line traceback) that nontypes and string types cannot be concatenated when
-        ## *** running the script with this block of code intact. The output table "caltrans_lines_enriched_calc_field_v2" should be fed into AssignDomains below once functioning.
-        # Process: Calculate Treatment ID (2) (Calculate Field) (management)
-        # caltrans_lines_enriched_calc_field_v2 = arcpy.management.CalculateField(
-        #     in_table=caltrans_lines_enriched_calc_field_v1,
-        #     field="TREATMENT_ID_USER",
-        #     expression="!PROJECTID_USER!+'-'+!COUNTY![:8]+'-'+!REGION![:3]+'-'+!IN_WUI![:3]",
-        #     expression_type="PYTHON3",
-        #     code_block="",
-        #     field_type="TEXT",
-        #     enforce_domains="NO_ENFORCE_DOMAINS",
-        # )
-
-        # Process: 2b Assign Domains (4) (2b Assign Domains)
-        caltrans_lines_enriched_assigndomains = AssignDomains(
-            in_table=caltrans_lines_enriched_calc_field_v1
+        calc_field_28 = arcpy.management.CalculateField(
+            in_table=calc_field_27,
+            field="TREATMENT_ID_USER",
+            expression="!PROJECTID_USER!+'-'+str(!COUNTY!)[:8]+'-'+str(!REGION!)[:3]+'-'+str(!IN_WUI!)[:3]",
+            expression_type="PYTHON3",
+            code_block="",
+            field_type="TEXT",
+            enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # print("Deleting Scratch Files")
-        # delete_scratch_files(
-        #     gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-        # )
+        AssignDomains(
+            in_table=calc_field_28
+        )
 
-        end = time.time()
-        print(f"Time Elapsed: {(end-start)/60} minutes")
+        if delete_scratch:
+            print('Deleting Scratch Files')
+            delete_scratch_files(
+                gdb=scratch_workspace,
+                delete_fc="yes",
+                delete_table="yes",
+                delete_ds="yes",
+            )
+
+        end1 = datetime.datetime.now()
+        elapsed1 = (end1-start1)
+        hours, remainder1 = divmod(elapsed1.total_seconds(), 3600)
+        minutes, remainder2 = divmod(remainder1, 60)
+        seconds, remainder3 = divmod(remainder2, 1)
+        print(f"CalTrans script took: {int(hours)}h, {int(minutes)}m, {seconds}s to complete")
 
 

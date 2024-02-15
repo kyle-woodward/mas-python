@@ -10,9 +10,7 @@ from .utils import init_gdb, delete_scratch_files
 
 workspace, scratch_workspace = init_gdb()
 
-# TODO add print steps, rename variables
-
-def wui(delete_scratch=False):
+def wui(delete_scratch=True):
     with arcpy.EnvManager(
         workspace=workspace,
         scratchWorkspace=scratch_workspace, 
@@ -28,20 +26,19 @@ def wui(delete_scratch=False):
         WUI12_3 = "https://egis.fire.ca.gov/arcgis/rest/services/FRAP/WUI/ImageServer"
         WUI_Out = os.path.join(workspace, "a_Reference", "WUI")
         
-        # Process: Reclassify (Reclassify) (sa)
+        print("Reclassify WUI12_3 layer")
         Reclass_WUI11 = os.path.join(scratch_workspace, "Reclass_WUI11")
         Reclassify = Reclass_WUI11
         Reclass_WUI11 = arcpy.sa.Reclassify(WUI12_3, "WUI_DESC", "'Not WUI' NODATA;'Influence Zone' 1;Intermix 1;Interface 1", "NODATA")
         Reclass_WUI11.save(Reclassify)
 
-        # Process: Raster to Polygon (Raster to Polygon) (conversion)
-        # RasterT_Reclass_WUI = os.path.join(scratch_workspace, "RasterT_Reclass_WUI")
         arcpy.conversion.RasterToPolygon(in_raster=Reclass_WUI11, out_polygon_features=WUI_Out, simplify="SIMPLIFY")
 
-        # Process: Repair Geometry (Repair Geometry) (management)
         Repaired_WUI_Features = arcpy.management.RepairGeometry(in_features=WUI_Out)
+        print("Done")
 
         if delete_scratch:
+            print('Deleting Scratch Files')
             delete_scratch_files(
                 gdb=scratch_workspace,
                 delete_fc="yes",

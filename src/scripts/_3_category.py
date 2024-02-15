@@ -1,7 +1,6 @@
 """
-# Description: 
-#               
-#               
+# Description:  Calculates Activity Category using Activity Description, Broad 
+#               Vegetation Type and Primary Objective
 #              
 # Author: Spatial Informatics Group LLC
 # Version: 1.0.0
@@ -16,7 +15,7 @@ workspace, scratch_workspace = init_gdb()
 def Category(Input_Table):
     arcpy.env.overwriteOutput = True
 
-    # Process: Calculate Category (Calculate Field) (management)
+    print("      Calculate Activity Category Step 1/1")
     category_calculated = arcpy.management.CalculateField(
         in_table=Input_Table,
         field="ACTIVITY_CAT",

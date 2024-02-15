@@ -8,8 +8,11 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
+import datetime
+start1 = datetime.datetime.now()
+print(f"Start Time {start1}")
+
 import os
-import time
 import arcpy
 from ._1_add_fields import AddFields
 from ._1_assign_domains import AssignDomains
@@ -17,60 +20,63 @@ from ._3_enrichments_polygon import enrich_polygons
 from ._3_keep_fields import KeepFields
 from .utils import init_gdb, delete_scratch_files
 
-original_gdb, workspace, scratch_workspace = init_gdb()
+workspace, scratch_workspace = init_gdb()
 
-# def NPS(nps_flat_fuels_enriched_20221102="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\d_Enriched\\nps_flat_fuels_enriched_20221102", usfs_haz_fuels_treatments_standardized_20220713_2_="C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\PC414 CWI Million Acres.gdb\\c_Standardized\\nps_flat_fuels_standardized_20221102"):  # 6r NPS 20221123
-def NPS(input_fc, output_standardized, output_enriched):
-    start = time.time()
-    print(f"Start Time {time.ctime()}")
+def NPS(input_fc, 
+        startyear, 
+        endyear, 
+        output_enriched, 
+        delete_scratch=True
+        ):
     with arcpy.EnvManager(
+        workspace=workspace,
+        scratchWorkspace=scratch_workspace, 
         outputCoordinateSystem= arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
         cartographicCoordinateSystem=arcpy.SpatialReference("NAD 1983 California (Teale) Albers (Meters)"), #WKID 3310
-        extent="""450000, -374900, 540100, -604500,
-                  DATUM["NAD 1983 California (Teale) Albers (Meters)"]""",
+        extent="xmin=-374900, ymin=-604500, xmax=540100, ymax=450000, spatial_reference='NAD 1983 California (Teale) Albers (Meters)'", 
         preserveGlobalIds=True, 
         qualifiedFieldNames=False, 
-        scratchWorkspace=scratch_workspace, 
         transferDomains=False, 
-        transferGDBAttributeProperties=True, 
-        workspace=workspace,
-        overwriteOutput = True,
+        transferGDBAttributeProperties=False, 
+        overwriteOutput = True
     ):
 
-        # TODO: download from feature service upon run-time
-        # in meantime have access to copy of the file from Dropbox 1/3/23
-        California = os.path.join(workspace, "b_Reference", "California")
+        California = os.path.join(workspace, "a_Reference", "California")
 
         # define intermediary scratch files
         nps_selection = os.path.join(scratch_workspace, "nps_selection")
         nps_clipped = os.path.join(scratch_workspace, "nps_clipped")
         nps_dissolved = os.path.join(scratch_workspace, "nps_dissolved")
+        output_standardized = os.path.join(scratch_workspace,'nps_flat_fuels_standardized')
         nps_enriched_scratch = os.path.join(scratch_workspace, "nps_enriched_scratch")
 
+        ### BEGIN TOOL CHAIN
         print("Performing Standardization")
-        # Process: Select (Select) (analysis)
-        arcpy.analysis.Select(
+        print("   step 1/7 select after 1995")
+        select_date_after_1995 = arcpy.analysis.Select(
             in_features=input_fc,
             out_feature_class=nps_selection,
             where_clause="ActualCompletionDate> timestamp '1995-01-01 00:00:00' Or ActualCompletionDate IS NULL",
         )
 
-        # Process: Repair Geometry (Repair Geometry) (management)
-        nps_repaired_geom = arcpy.management.RepairGeometry(
-            in_features=nps_selection, delete_null="KEEP_NULL", validation_method="ESRI"
+        print("   step 2/7 repairing geometry")
+        repair_geom_1 = arcpy.management.RepairGeometry(
+            in_features=select_date_after_1995, 
+            delete_null="KEEP_NULL", 
+            validation_method="ESRI"
         )
 
-        # Process: Pairwise Clip (Pairwise Clip) (analysis)
-        arcpy.analysis.PairwiseClip(
-            in_features=nps_repaired_geom,
+        print("   step 3/7 clip features by CA")
+        clip_CA = arcpy.analysis.PairwiseClip(
+            in_features=repair_geom_1,
             clip_features=California,
             out_feature_class=nps_clipped,
             cluster_tolerance="",
         )
 
-        # Process: Pairwise Dissolve (Pairwise Dissolve) (analysis)
-        arcpy.analysis.PairwiseDissolve(
-            in_features=nps_clipped,
+        print("   step 4/7 dissolve to implement multipart polygons")
+        dissolve_1 = arcpy.analysis.PairwiseDissolve(
+            in_features=clip_CA,
             out_feature_class=nps_dissolved,
             dissolve_field=[
                 "TreatmentID",
@@ -111,24 +117,21 @@ def NPS(input_fc, output_standardized, output_enriched):
             concatenation_separator="",
         )
 
-        # Process: Alter Field (Alter Field) (management)
-        nps_altered_prjid = arcpy.management.AlterField(
-            in_table=nps_dissolved,
+        print("   step 5/7 rename and add fields")
+        alterfield_1 = arcpy.management.AlterField(
+            in_table=dissolve_1,
             field="ProjectID",
             new_field_name="PrjID",
             new_field_alias="",
-            # field_type="TEXT", # otherwise get Error Cannot alter field types on populated tables.
-            field_length=50,
             field_is_nullable="NULLABLE",
             clear_field_alias="DO_NOT_CLEAR",
         )
 
-        # Process: 1b Add Fields (1b Add Fields)
-        nps_addfields = AddFields(Input_Table=nps_altered_prjid)
+        addfields_1 = AddFields(Input_Table=alterfield_1)
 
-        # Process: Calculate Project ID (Calculate Field) (management)
-        nps_calc_prjid = arcpy.management.CalculateField(
-            in_table=nps_addfields,
+        print("   step 6/7 import attributes")
+        calc_field_1 = arcpy.management.CalculateField(
+            in_table=addfields_1,
             field="PROJECTID_USER",
             expression="ifelse(!PrjID!, !TreatmentID!)",
             expression_type="PYTHON3",
@@ -141,9 +144,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Agency (Calculate Field) (management)
-        nps_calc_agency = arcpy.management.CalculateField(
-            in_table=nps_calc_prjid,
+        calc_field_2 = arcpy.management.CalculateField(
+            in_table=calc_field_1,
             field="AGENCY",
             expression='"NPS"',
             expression_type="PYTHON3",
@@ -152,9 +154,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Data Steward (Calculate Field) (management)
-        nps_calc_data_stew = arcpy.management.CalculateField(
-            in_table=nps_calc_agency,
+        calc_field_3 = arcpy.management.CalculateField(
+            in_table=calc_field_2,
             field="ORG_ADMIN_p",
             expression="!UnitName!",
             expression_type="PYTHON3",
@@ -163,9 +164,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Project Contact (Calculate Field) (management)
-        nps_calc_contact = arcpy.management.CalculateField(
-            in_table=nps_calc_data_stew,
+        calc_field_4 = arcpy.management.CalculateField(
+            in_table=calc_field_3,
             field="PROJECT_CONTACT",
             expression='"Kent van Wagtendonk"',
             expression_type="PYTHON3",
@@ -174,9 +174,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Project Email (Calculate Field) (management)
-        nps_calc_email = arcpy.management.CalculateField(
-            in_table=nps_calc_contact,
+        calc_field_5 = arcpy.management.CalculateField(
+            in_table=calc_field_4,
             field="PROJECT_EMAIL",
             expression='"Kent_Van_Wagtendonk@nps.gov"',
             expression_type="PYTHON3",
@@ -185,9 +184,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Admin Org (Calculate Field) (management)
-        nps_calc_admin_org = arcpy.management.CalculateField(
-            in_table=nps_calc_email,
+        calc_field_6 = arcpy.management.CalculateField(
+            in_table=calc_field_5,
             field="ADMINISTERING_ORG",
             expression="!UnitCode!",
             expression_type="PYTHON3",
@@ -196,9 +194,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Project Name (Calculate Field) (management)
-        nps_calc_pjtname = arcpy.management.CalculateField(
-            in_table=nps_calc_admin_org,
+        calc_field_7 = arcpy.management.CalculateField(
+            in_table=calc_field_6,
             field="PROJECT_NAME",
             expression="!TreatmentName!",
             expression_type="PYTHON3",
@@ -207,9 +204,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Fund Source (Calculate Field) (management)
-        nps_calc_fund_src = arcpy.management.CalculateField(
-            in_table=nps_calc_pjtname,
+        calc_field_8 = arcpy.management.CalculateField(
+            in_table=calc_field_7,
             field="PRIMARY_FUNDING_SOURCE",
             expression='"NPS"',
             expression_type="PYTHON3",
@@ -218,9 +214,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Fund Org (Calculate Field) (management)
-        nps_calc_fund_org = arcpy.management.CalculateField(
-            in_table=nps_calc_fund_src,
+        calc_field_9 = arcpy.management.CalculateField(
+            in_table=calc_field_8,
             field="PRIMARY_FUNDING_ORG",
             expression='"OTHER"',
             expression_type="PYTHON3",
@@ -229,9 +224,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Imp Org (Calculate Field) (management)
-        nps_calc_imp_org = arcpy.management.CalculateField(
-            in_table=nps_calc_fund_org,
+        calc_field_10 = arcpy.management.CalculateField(
+            in_table=calc_field_9,
             field="IMPLEMENTING_ORG",
             expression="!UnitName!",
             expression_type="PYTHON3",
@@ -240,9 +234,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Project Name (2) (Calculate Field) (management)
-        nps_calc_pjtname_2 = arcpy.management.CalculateField(
-            in_table=nps_calc_imp_org,
+        calc_field_11 = arcpy.management.CalculateField(
+            in_table=calc_field_10,
             field="PROJECTNAME_",
             expression="!TreatmentName!",
             expression_type="PYTHON3",
@@ -251,9 +244,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Data Steward 2 (Calculate Field) (management)
-        nps_calc_data_stew_2 = arcpy.management.CalculateField(
-            in_table=nps_calc_pjtname_2,
+        calc_field_12 = arcpy.management.CalculateField(
+            in_table=calc_field_11,
             field="ORG_ADMIN_t",
             expression="None",
             expression_type="PYTHON3",
@@ -262,9 +254,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Veg User Defined (Calculate Field) (management)
-        nps_calc_bvt_user = arcpy.management.CalculateField(
-            in_table=nps_calc_data_stew_2,
+        calc_field_13 = arcpy.management.CalculateField(
+            in_table=calc_field_12,
             field="BVT_USERD",
             expression='"NO"',
             expression_type="PYTHON3",
@@ -273,9 +264,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Activity End Date (Calculate Field) (management)
-        nps_calc_act_end = arcpy.management.CalculateField(
-            in_table=nps_calc_bvt_user,
+        calc_field_14 = arcpy.management.CalculateField(
+            in_table=calc_field_13,
             field="ACTIVITY_END",
             expression="ifelse(!ActualCompletionDate! , !ActualCompletionFiscalYear!)",
             expression_type="PYTHON3",
@@ -289,9 +279,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Status (Calculate Field) (management)
-        nps_calc_status = arcpy.management.CalculateField(
-            in_table=nps_calc_act_end,
+        calc_field_15 = arcpy.management.CalculateField(
+            in_table=calc_field_14,
             field="ACTIVITY_STATUS",
             expression="ifelse(!TreatmentStatus!)",
             expression_type="PYTHON3",
@@ -305,9 +294,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Activity Quantity (3) (Calculate Field) (management)
-        nps_calc_act_qnt = arcpy.management.CalculateField(
-            in_table=nps_calc_status,
+        calc_field_16 = arcpy.management.CalculateField(
+            in_table=calc_field_15,
             field="ACTIVITY_QUANTITY",
             expression="!TreatmentAcres!",
             expression_type="PYTHON3",
@@ -316,9 +304,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Activity UOM (3) (Calculate Field) (management)
-        nps_calc_act_uom = arcpy.management.CalculateField(
-            in_table=nps_calc_act_qnt,
+        calc_field_17 = arcpy.management.CalculateField(
+            in_table=calc_field_16,
             field="ACTIVITY_UOM",
             expression='"AC"',
             expression_type="PYTHON3",
@@ -327,9 +314,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Admin Org2 (Calculate Field) (management)
-        nps_calc_admin_org2 = arcpy.management.CalculateField(
-            in_table=nps_calc_act_uom,
+        calc_field_18 = arcpy.management.CalculateField(
+            in_table=calc_field_17,
             field="ADMIN_ORG_NAME",
             expression='"NPS"',
             expression_type="PYTHON3",
@@ -338,9 +324,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Implementation Org 2 (Calculate Field) (management)
-        nps_calc_imp_org2 = arcpy.management.CalculateField(
-            in_table=nps_calc_admin_org2,
+        calc_field_19 = arcpy.management.CalculateField(
+            in_table=calc_field_18,
             field="IMPLEM_ORG_NAME",
             expression="!UnitName!",
             expression_type="PYTHON3",
@@ -349,9 +334,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Primary Fund Source (Calculate Field) (management)
-        nps_calc_fund_src = arcpy.management.CalculateField(
-            in_table=nps_calc_imp_org2,
+        calc_field_20 = arcpy.management.CalculateField(
+            in_table=calc_field_19,
             field="PRIMARY_FUND_SRC_NAME",
             expression='"NPS"',
             expression_type="PYTHON3",
@@ -360,9 +344,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Fund Org 2 (Calculate Field) (management)
-        nps_calc_fund_org2 = arcpy.management.CalculateField(
-            in_table=nps_calc_fund_src,
+        calc_field_21 = arcpy.management.CalculateField(
+            in_table=calc_field_20,
             field="PRIMARY_FUND_ORG_NAME",
             expression='"NPS"',
             expression_type="PYTHON3",
@@ -371,9 +354,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Source (Calculate Field) (management)
-        nps_calc_src = arcpy.management.CalculateField(
-            in_table=nps_calc_fund_org2,
+        calc_field_22 = arcpy.management.CalculateField(
+            in_table=calc_field_21,
             field="Source",
             expression='"nps_flat_fuelstreatments"',
             expression_type="PYTHON3",
@@ -382,9 +364,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Year (Calculate Field) (management)
-        nps_calc_year = arcpy.management.CalculateField(
-            in_table=nps_calc_src,
+        calc_field_23 = arcpy.management.CalculateField(
+            in_table=calc_field_22,
             field="Year",
             expression="Year($feature.ActualCompletionDate)",
             expression_type="ARCADE",
@@ -393,9 +374,8 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Calculate Crosswalk (Calculate Field) (management)
-        nps_calc_xwalk = arcpy.management.CalculateField(
-            in_table=nps_calc_year,
+        calc_field_24 = arcpy.management.CalculateField(
+            in_table=calc_field_23,
             field="Crosswalk",
             expression="Reclass(!TreatmentType!, !TreatmentCategory!)",
             expression_type="PYTHON3",
@@ -410,67 +390,58 @@ def NPS(input_fc, output_standardized, output_enriched):
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: Select by Years (Select) (analysis)
-        arcpy.analysis.Select(
-            in_features=nps_calc_xwalk,
+        select_years = arcpy.analysis.Select(
+            in_features=calc_field_24,
             out_feature_class=output_standardized,
-            where_clause="Year >= 1995 And Year <= 2025",
+            where_clause="Year >= %d And Year <= %d" % (startyear, endyear),
         )
-        print(f"Saving Output Standardized: {output_standardized}")
-        # Process: Delete Field (Delete Field) (management)
-        nps_standardized_keepfields = KeepFields(output_standardized)
 
-        print("Performing Enrichments")
-        # Process: 7a Enrichments Polygon (2) (7a Enrichments Polygon)
+        print("   Saving Output Standardized:")
+        keepfields_1 = KeepFields(select_years)
+
+        Count1 = arcpy.management.GetCount(keepfields_1)
+        print("     standardized has {} records".format(Count1[0]))
+
+        print("   Performing Enrichments")
         enrich_polygons(
-            enrich_out=nps_enriched_scratch, enrich_in=nps_standardized_keepfields
+            enrich_in=keepfields_1,
+            enrich_out=nps_enriched_scratch
         )
+        
+        print("   Saving Output Enriched")
+        Count2 = arcpy.management.GetCount(nps_enriched_scratch)
+        print("     enriched has {} records".format(Count2[0]))
 
-        print(f"Saving Output Enriched: {output_enriched}")
-        # Process: Copy Features (Copy Features) (management)
         arcpy.management.CopyFeatures(
             in_features=nps_enriched_scratch,
-            out_feature_class=output_enriched,
-            config_keyword="",
-            spatial_grid_1=None,
-            spatial_grid_2=None,
-            spatial_grid_3=None,
+            out_feature_class=output_enriched
         )
 
-        # Process: Calculate Treatment ID (Calculate Field) (management)
-        # nps_calc_trt_id =
-        arcpy.management.CalculateField(
+        print("   step 7/7 adding treatment ID")
+        calc_field_25 = arcpy.management.CalculateField(
             in_table=output_enriched,
             field="TRMTID_USER",
-            expression="!PROJECTID_USER![:7]+'-'+(!COUNTY![:3])+'-'+(!PRIMARY_OWNERSHIP_GROUP![:4])+'-'+!IN_WUI![:3]+'-'+!PRIMARY_OBJECTIVE![:8]",
+            expression="str(!PROJECTID_USER!)[:7]+'-'+str(!COUNTY!)[:3]+'-'+str(!PRIMARY_OWNERSHIP_GROUP!)[:4]+'-'+str(!IN_WUI!)[:3]+'-'+str(!PRIMARY_OBJECTIVE!)[:8]",
             expression_type="PYTHON3",
             code_block="",
             field_type="TEXT",
             enforce_domains="NO_ENFORCE_DOMAINS",
         )
 
-        # Process: 2b Assign Domains (2b Assign Domains)
-        # nps_enriched_assign_domains =
-        AssignDomains(in_table=output_enriched)
+        AssignDomains(in_table=calc_field_25)
 
-        print("Deleting Scratch Files")
-        delete_scratch_files(
-            gdb=scratch_workspace, delete_fc="yes", delete_table="yes", delete_ds="yes"
-        )
+        if delete_scratch:
+            print('Deleting Scratch Files')
+            delete_scratch_files(
+                gdb=scratch_workspace,
+                delete_fc="yes",
+                delete_table="yes",
+                delete_ds="yes",
+            )
 
-        end = time.time()
-        print(f"Time Elapsed: {(end-start)/60} minutes")
-
-
-# if __name__ == "__main__":
-#     runner(workspace, scratch_workspace, NPS, "*argv[1:]")
-    # # Global Environment settings
-    # with arcpy.EnvManager(
-    # extent="""-124.415162172178 32.5342699477235 -114.131212866967 42.0095193288898 GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]""",  outputCoordinateSystem="""PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]""",
-    # preserveGlobalIds=True,
-    # qualifiedFieldNames=False,
-    # scratchWorkspace=scratch_workspace,
-    # transferDomains=True,
-    # transferGDBAttributeProperties=True,
-    # workspace=workspace):
-    #     NPS(*argv[1:])
+        end1 = datetime.datetime.now()
+        elapsed1 = (end1-start1)
+        hours, remainder1 = divmod(elapsed1.total_seconds(), 3600)
+        minutes, remainder2 = divmod(remainder1, 60)
+        seconds, remainder3 = divmod(remainder2, 1)
+        print(f"NPS script took: {int(hours)}h, {int(minutes)}m, {seconds}s to complete")

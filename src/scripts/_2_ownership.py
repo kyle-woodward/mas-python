@@ -6,18 +6,13 @@
 # Version: 1.0.0
 # Date Created: Jan 24, 2024
 """
-
 import os
 import arcpy
 from .utils import init_gdb, delete_scratch_files
 
-# from arcpy.sa import *
-
 workspace, scratch_workspace = init_gdb()
 
-# TODO add print steps, rename variables
-
-def ownership(delete_scratch=False):
+def ownership(delete_scratch=True):
     with arcpy.EnvManager(
         workspace=workspace,
         scratchWorkspace=scratch_workspace,
@@ -30,75 +25,62 @@ def ownership(delete_scratch=False):
         transferGDBAttributeProperties=False,
         overwriteOutput=True,
     ):
-
-        # Check out any necessary licenses.
-        # arcpy.CheckOutExtension("3D")
-        # arcpy.CheckOutExtension("spatial")
-        # arcpy.CheckOutExtension("Foundation")
-        # arcpy.CheckOutExtension("Defense")
-        # arcpy.CheckOutExtension("BusinessPrem")
-        # arcpy.CheckOutExtension("Business")
-
-        # arcpy.ImportToolbox(r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Data Management Tools.tbx")
-        # arcpy.ImportToolbox(r"c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Conversion Tools.tbx")
-        # Model Environment settings
+        # define intermediary objects in scratch
+        Reclass_forest_own = os.path.join(scratch_workspace, "Reclass_forest_own")
+        forest_own1_Clip = os.path.join(scratch_workspace, "forest_own1_Clip")
+        Forest_Ownership_2020 = os.path.join(scratch_workspace, "Forest_Ownership_2020")
+        RasterT_forest_1_EliminatePo1 = os.path.join(scratch_workspace, "RasterT_forest_1_EliminatePo1")
+        CalFire_copy = os.path.join(scratch_workspace, "LandOwnership_CopyFeatures")
+        USFS_CalFire = os.path.join(scratch_workspace, "RasterT_forest_1_Elim_Update")
+        Counties_Select = os.path.join(scratch_workspace, "Counties_Select")
+        USFS_CalFire_Counties = os.path.join(scratch_workspace, "Counties_Select_Union")
 
         # Download Forest_own1.tif from https://www.fs.usda.gov/rds/archive/catalog/RDS-2020-0044
         forest_own1_tif = os.path.join("..", "forest_own1.tif")
 
-        California = os.path.join(workspace, "a_Reference", "California")
+        California = os.path.join(workspace, "a_Reference", "California") #from AGOL Living Atlas 
         Land_Ownership = "https://egis.fire.ca.gov/arcgis/rest/services/FRAP/ownership/FeatureServer/0"
-        Counties = os.path.join(workspace, "a_Counties")
-        Ownership_Update = os.path.join(
-            workspace, "a_Reference", "CALFIRE_Ownership_Update"
+        Counties = os.path.join(workspace, "a_Reference", "Counties") #from AGOL Living Atlas 
+        Ownership_Update = os.path.join(workspace, "a_Reference", "CALFIRE_Ownership_Update")
+
+        ### BEGIN TOOL CHAIN
+        ## Part 1 formats the USFS raster, Part 2 formats Calfire Ownership.  Part 3 combines the 2 datasets
+        print("Part 1: Format USFS forest ownership")
+        copy_1 = arcpy.CopyRaster_management(forest_own1_tif, Reclass_forest_own)
+        reclas_own = arcpy.sa.Reclassify(
+            Reclass_forest_own, "Value", "1 1;2 2;3 3;4 4;5 5;6 6;7 7;8 8;NODATA 1", "DATA"
         )
 
-        # for I_Ownership_Update_COUNTY, Value in #  NOT  IMPLEMENTED(Ownership_Update, [["COUNTY", ""]], True):
+        reclas_own.save(reclas_own)
 
-        # Process: Reclassify (Reclassify) (sa)
-        Reclass_forest_own = os.path.join(scratch_workspace, "Reclass_forest_own")
-        # Reclass_forest_own2 = arcpy.CopyRaster_management(forest_own1_tif, Reclass_forest_own)
-        # Reclassify = Reclass_forest_own
-        Reclass_forest_own = arcpy.sa.Reclassify(
-            forest_own1_tif, "Value", "1 1;2 2;3 3;4 4;5 5;6 6;7 7;8 8;NODATA 1", "DATA"
-        )
-        Reclass_forest_own.save(Reclass_forest_own)
-        # Reclass_forest_own.save(Reclassify)
-
-        # Process: Clip Raster (Clip Raster) (management)
-        forest_own1_Clip = os.path.join(scratch_workspace, "forest_own1_Clip")
-        arcpy.management.Clip(
-            in_raster=Reclass_forest_own,
+        print("   step 1/7: clip to California")
+        clip_raster = arcpy.management.Clip(
+            in_raster=reclas_own,
             rectangle="-374445.3268 -604500.6078 540038.467 450022.046",
             out_raster=forest_own1_Clip,
             in_template_dataset=California,
             clipping_geometry="ClippingGeometry",
         )
-        forest_own1_Clip = arcpy.Raster(forest_own1_Clip)
+        save_raster = arcpy.Raster(clip_raster)
 
-        # Process: Raster to Polygon (Raster to Polygon) (conversion)
-        Forest_Ownership_2020 = os.path.join(scratch_workspace, "Forest_Ownership_2020")
-        # with arcpy.EnvManager(outputMFlag="Disabled", outputZFlag="Disabled"):
-        arcpy.conversion.RasterToPolygon(
-            in_raster=forest_own1_Clip,
+        print("   step 2/7: convert to polygon")
+        to_poly = arcpy.conversion.RasterToPolygon(
+            in_raster=save_raster,
             out_polygon_features=Forest_Ownership_2020,
             simplify="SIMPLIFY",
             create_multipart_features="SINGLE_OUTER_PART",
         )
 
-        # Process: Select (6) (Select) (analysis)
-        RasterT_forest_1_EliminatePo1 = os.path.join(
-            scratch_workspace, "RasterT_forest_1_EliminatePo1"
-        )
-        arcpy.analysis.Select(
-            in_features=Forest_Ownership_2020,
+        print("   setp 3/7: select non-federal ownership")
+        select_1 = arcpy.analysis.Select(
+            in_features=to_poly,
             out_feature_class=RasterT_forest_1_EliminatePo1,
             where_clause="GRIDCODE = 1 Or GRIDCODE = 2 Or GRIDCODE = 3 Or GRIDCODE = 4",
         )
 
-        # Process: Add Fields (multiple) (5) (Add Fields (multiple)) (management)
-        RasterT_forest_1_EliminatePo1_5_ = arcpy.management.AddFields(
-            in_table=RasterT_forest_1_EliminatePo1,
+        print("   setp 4/7: add fields")
+        add_fields_1 = arcpy.management.AddFields(
+            in_table=select_1,
             field_description=[
                 ["Own_Level", "TEXT", "", "30", "", ""],
                 ["Own_Agency", "TEXT", "", "70", "", ""],
@@ -107,9 +89,9 @@ def ownership(delete_scratch=False):
             ],
         )
 
-        # Process: Calculate Field (22) (Calculate Field) (management)
-        RasterT_forest_1_EliminatePo1_7_ = arcpy.management.CalculateField(
-            in_table=RasterT_forest_1_EliminatePo1_5_,
+        print("   setp 5/7: standardize ownership attributes")
+        calc_field_1 = arcpy.management.CalculateField(
+            in_table=add_fields_1,
             field="Own_Level",
             expression="ifelse(!GRIDCODE!)",
             code_block="""def ifelse(GRIDCODE):
@@ -134,9 +116,8 @@ def ownership(delete_scratch=False):
                     """,
         )
 
-        # Process: Calculate Field (23) (Calculate Field) (management)
-        RasterT_forest_1_EliminatePo1_3_ = arcpy.management.CalculateField(
-            in_table=RasterT_forest_1_EliminatePo1_7_,
+        calc_field_2 = arcpy.management.CalculateField(
+            in_table=calc_field_1,
             field="Own_Agency",
             expression="ifelse(!GRIDCODE!)",
             code_block="""def ifelse(GRIDCODE):
@@ -160,9 +141,8 @@ def ownership(delete_scratch=False):
                     return None""",
         )
 
-        # Process: Calculate Field (24) (Calculate Field) (management)
-        RasterT_forest_1_EliminatePo1_2_ = arcpy.management.CalculateField(
-            in_table=RasterT_forest_1_EliminatePo1_3_,
+        calc_field_3 = arcpy.management.CalculateField(
+            in_table=calc_field_2,
             field="Own_Group",
             expression="ifelse(!GRIDCODE!)",
             code_block="""def ifelse(GRIDCODE):
@@ -186,9 +166,8 @@ def ownership(delete_scratch=False):
                     return None""",
         )
 
-        # Process: Calculate Field (5) (Calculate Field) (management)
-        RasterT_forest_1_EliminatePo1_8_ = arcpy.management.CalculateField(
-            in_table=RasterT_forest_1_EliminatePo1_2_,
+        calc_field_4 = arcpy.management.CalculateField(
+            in_table=calc_field_3,
             field="AGNCY_LEV",
             expression="ifelse(!GRIDCODE!)",
             code_block="""def ifelse(GRIDCODE):
@@ -212,42 +191,36 @@ def ownership(delete_scratch=False):
                         return None""",
         )
 
-        # Process: Repair Geometry (7) (Repair Geometry) (management)
-        Repaired_Input_Features_7_ = arcpy.management.RepairGeometry(
-            in_features=RasterT_forest_1_EliminatePo1_8_
-        )
-
-        # Process: Delete Field (2) (Delete Field) (management)
-        RasterT_forest_1_EliminatePo1_6_ = arcpy.management.DeleteField(
-            in_table=Repaired_Input_Features_7_,
+        print("   setp 6/7: delete unnecessary fields")
+        delete_field = arcpy.management.DeleteField(
+            in_table=calc_field_4,
             drop_field=["Own_Level", "Own_Agency", "Own_Group", "AGNCY_LEV"],
             method="KEEP_FIELDS",
         )
 
-        # Process: Repair Geometry (3) (Repair Geometry) (management)
-        Repaired_Input_Features_3_ = arcpy.management.RepairGeometry(
-            in_features=RasterT_forest_1_EliminatePo1_6_
+        print("   setp 7/7: repair geometry")
+        repair_geom_1 = arcpy.management.RepairGeometry(
+            in_features=delete_field
         )
 
-        # Process: Copy Features (Copy Features) (management)
-        Output_Feature_Class_3_ = os.path.join(
-            scratch_workspace, "LandOwnership_CopyFeatures"
-        )
-        arcpy.management.CopyFeatures(
-            in_features=Land_Ownership, out_feature_class=Output_Feature_Class_3_
+        print("Part 2: Format CalFire ownership layer")
+        print("   setp 1/3: copy feature service")
+        save_features_1 = arcpy.management.CopyFeatures(
+            in_features=Land_Ownership, 
+            out_feature_class=CalFire_copy
         )
 
-        # Process: Add Field (Add Field) (management)
-        Land_Ownership_2_ = arcpy.management.AddField(
-            in_table=Output_Feature_Class_3_,
+        print("   setp 2/3: add field")
+        add_field_1 = arcpy.management.AddField(
+            in_table=save_features_1,
             field_name="AGNCY_LEV",
             field_type="TEXT",
             field_length=50,
         )
 
-        # Process: Calculate Field (34) (Calculate Field) (management)
-        Land_Ownership_3_ = arcpy.management.CalculateField(
-            in_table=Land_Ownership_2_,
+        print("   setp 3/3: standardize ownership attributes")
+        calc_field_5 = arcpy.management.CalculateField(
+            in_table=add_field_1,
             field="AGNCY_LEV",
             expression="ifelse(!OWN_LEVEL!)",
             expression_type="PYTHON3",
@@ -270,56 +243,49 @@ def ownership(delete_scratch=False):
                             return NAME""",
         )
 
-        # Process: Update (Update) (analysis)
-        Output_Feature_Class_5_ = os.path.join(
-            scratch_workspace, "RasterT_forest_1_Elim_Update"
-        )
-        arcpy.analysis.Update(
-            in_features=Repaired_Input_Features_3_,
-            update_features=Land_Ownership_3_,
-            out_feature_class=Output_Feature_Class_5_,
+        print("Part 3: Combine Parts 1 & 2")
+        print("   setp 1/10: update USFS layer to CalFire Ownership layer")
+        USFS_CalFire_update = arcpy.analysis.Update(
+            in_features=repair_geom_1,
+            update_features=calc_field_5,
+            out_feature_class=USFS_CalFire,
         )
 
-        # Process: Select (4) (Select) (analysis)
-        Counties_Select = os.path.join(scratch_workspace, "Counties_Select")
-        arcpy.analysis.Select(
+        print("   setp 2/10: delete slivers")
+        CA_counties = arcpy.analysis.Select(
             in_features=Counties,
             out_feature_class=Counties_Select,
             where_clause="STATE_NAME = 'California'",
         )
 
-        # Process: Alter Field (3) (Alter Field) (management)
-        Counties_Select_8_ = arcpy.management.AlterField(
-            in_table=Counties_Select,
+        alter_field_1 = arcpy.management.AlterField(
+            in_table=CA_counties,
             field="NAME",
             new_field_name="COUNTY",
             new_field_alias="COUNTY",
         )
 
-        # Process: Repair Geometry (2) (Repair Geometry) (management)
-        Repaired_Input_Features_2_ = arcpy.management.RepairGeometry(
-            in_features=Counties_Select_8_
+        print("   setp 3/10: repair geometry")
+        repair_geom_2 = arcpy.management.RepairGeometry(
+            in_features=alter_field_1
         )
 
-        # Process: Delete Field (Delete Field) (management)
-        Counties_Select_3_ = arcpy.management.DeleteField(
-            in_table=Repaired_Input_Features_2_,
+        print("   setp 4/10: delete unnecessary field")
+        delete_field_2 = arcpy.management.DeleteField(
+            in_table=repair_geom_2,
             drop_field=["COUNTY"],
             method="KEEP_FIELDS",
         )
 
-        # Process: Union (Union) (analysis)
-        Output_Feature_Class_6_ = os.path.join(
-            scratch_workspace, "Counties_Select_Union"
-        )
-        arcpy.analysis.Union(
-            in_features=[[Output_Feature_Class_5_, ""], [Counties_Select_3_, ""]],
-            out_feature_class=Output_Feature_Class_6_,
+        print("   step5/10: Add counties to fill in the gaps in the 2 datasets.  Gaps are assumed to be 'Private Non-Industry'")
+        USFS_CalFire_Counties_update = arcpy.analysis.Union(
+            in_features=[[USFS_CalFire_update, ""], [delete_field_2, ""]],
+            out_feature_class=USFS_CalFire_Counties,
         )
 
-        # Process: Calculate Field (Calculate Field) (management)
-        Counties_Select_Union = arcpy.management.CalculateField(
-            in_table=Output_Feature_Class_6_,
+        print("   setp 6/10: standardize attributes")
+        calc_field_6 = arcpy.management.CalculateField(
+            in_table=USFS_CalFire_Counties_update,
             field="AGNCY_LEV",
             expression="ifelse(!AGNCY_LEV!)",
             code_block="""def ifelse(AGNCY):
@@ -329,22 +295,22 @@ def ownership(delete_scratch=False):
                     return AGNCY""",
         )
 
-        # Process: Dissolve (Dissolve) (management)
-        arcpy.management.Dissolve(
-            in_features=Counties_Select_Union,
+        print("   setp 7/10: dissolve by agency and county")
+        dissolve_1 = arcpy.management.Dissolve(
+            in_features=calc_field_6,
             out_feature_class=Ownership_Update,
             dissolve_field=["AGNCY_LEV", "COUNTY"],
             multi_part="MULTI_PART",
         )
 
-        # Process: Repair Geometry (Repair Geometry) (management)
-        Repaired_Input_Features = arcpy.management.RepairGeometry(
-            in_features=Ownership_Update
+        print("   setp 8/10: repair geometry")
+        repair_geom_3 = arcpy.management.RepairGeometry(
+            in_features=dissolve_1
         )
 
-        # Process: Calculate County (Calculate Field) (management)
-        Updated_Input_Table_10_ = arcpy.management.CalculateField(
-            in_table=Repaired_Input_Features,
+        print("   setp 9/10: standardize county attributes")
+        calc_field_7 = arcpy.management.CalculateField(
+            in_table=repair_geom_3,
             field="COUNTY",
             expression="ifelse(!COUNTY!)",
             code_block="""def ifelse(County):
@@ -468,14 +434,13 @@ def ownership(delete_scratch=False):
                         return County""",
         )
 
-        # Process: Calculate Geometry Attributes (Calculate Geometry Attributes) (management)
-        CPAD_Ownership_Update_3_ = arcpy.management.CalculateGeometryAttributes(
-            in_features=Updated_Input_Table_10_,
+        print("   setp 10/10: calculate acres")
+        Ownership_Update_Final = arcpy.management.CalculateGeometryAttributes(
+            in_features=calc_field_7,
             geometry_property=[["GIS_ACRES", "AREA_GEODESIC"]],
-            area_unit="ACRES",
-            # coordinate_system='PROJCS["NAD_1983_California_Teale_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",-4000000.0],PARAMETER["Central_Meridian",-120.0],PARAMETER["Standard_Parallel_1",34.0],PARAMETER["Standard_Parallel_2",40.5],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+            area_unit="ACRES"
         )
-
+        print("Done")
         # Process: Table To Excel (Table To Excel) (conversion)
         # CPAD_Ownership_Update_TableToExcel_xlsx = "C:\\Users\\sageg\\Documents\\ArcGIS\\Projects\\PC414 CWI Million Acres\\2-Map Exports\\CPAD_Ownership_Update_TableToExcel.xlsx"
         # arcpy.conversion.TableToExcel(Input_Table=CPAD_Ownership_Update_3_, Output_Excel_File=CPAD_Ownership_Update_TableToExcel_xlsx, Use_field_alias_as_column_header="ALIAS")
@@ -499,6 +464,7 @@ def ownership(delete_scratch=False):
         # )
 
         if delete_scratch:
+            print('Deleting Scratch Files')
             delete_scratch_files(
                 gdb=scratch_workspace,
                 delete_fc="yes",
@@ -506,4 +472,4 @@ def ownership(delete_scratch=False):
                 delete_ds="yes",
             )
         
-        return CPAD_Ownership_Update_3_
+        return Ownership_Update_Final

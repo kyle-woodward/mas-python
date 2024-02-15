@@ -12,7 +12,6 @@ workspace, scratch_workspace = init_gdb()
 def UtilityVegTreat(Input_Table):
     arcpy.env.overwriteOutput = True
 
-    # Process: Calculate Utility ID (Calculate Field) (management)
     Updated_Input_Table = arcpy.management.CalculateField(
         in_table=Input_Table,
         field="UtilityID",
@@ -26,7 +25,6 @@ def UtilityVegTreat(Input_Table):
         enforce_domains="NO_ENFORCE_DOMAINS",
     )
 
-    # Process: Calculate Treatment (Calculate Field) (management)
     Output_Table = arcpy.management.CalculateField(
         in_table=Updated_Input_Table,
         field="VegetationTreatmentType",

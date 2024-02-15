@@ -12,8 +12,6 @@ from .utils import init_gdb
 
 workspace, scratch_workspace = init_gdb()
 
-# TODO add print steps, rename variables
-
 def veg():
     with arcpy.EnvManager(
         workspace=workspace,
@@ -29,12 +27,17 @@ def veg():
     ):
 
         CalVeg = arcpy.Raster("https://egis.fire.ca.gov/arcgis/services/FRAP/fveg/ImageServer")
-        RasterT_veg = os.path.join(workspace, "a_Reference", "Broad_Vegetation_Types2")
+        BVT = os.path.join(workspace, "a_Reference", "Broad_Vegetation_Types2")
 
-        # Process: Raster to Polygon (2) (Raster to Polygon) (conversion)
-        RasterT_poly = arcpy.conversion.RasterToPolygon(in_raster=CalVeg, out_polygon_features=RasterT_veg, raster_field="WHR13NAME")
+        print("Vegetation Types Layer")
+        print("step 1/2: Convert Raster to Polygon")
+        RasterT_poly = arcpy.conversion.RasterToPolygon(
+            in_raster=CalVeg, 
+            out_polygon_features=BVT, 
+            raster_field="WHR13NAME")
 
-        # Process: Repair Geometry (Repair Geometry) (management)
-        Repaired_Input_Features = arcpy.management.RepairGeometry(in_features=RasterT_poly)
+        print("step 2/2: repair geometry")
+        Veg_Layer = arcpy.management.RepairGeometry(in_features=RasterT_poly)
+        print("Done")
 
-    return Repaired_Input_Features
+    return Veg_Layer

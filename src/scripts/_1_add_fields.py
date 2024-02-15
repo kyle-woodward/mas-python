@@ -9,11 +9,10 @@ from scripts._1_assign_domains import AssignDomains
 from scripts.utils import init_gdb
 
 workspace, scratch_workspace = init_gdb()
-# TODO add print steps, rename variables
 
 def FieldExists(
     featureclass, fieldname
-):  # * Start if function to check if field exist  */
+):  # Start if function to check if field exist
     fieldList = arcpy.ListFields(featureclass, fieldname)
 
     fieldCount = len(fieldList)
@@ -47,7 +46,7 @@ def AlterExisting(schema, featureclass):
     return featureclass
 
 
-def AddFields(Input_Table, alter_fields=False):  # 1b Add Fields
+def AddFields(Input_Table, alter_fields=False):
     """
     Adds a defined schema of fields to a feature class;
 
@@ -123,39 +122,11 @@ def AddFields(Input_Table, alter_fields=False):  # 1b Add Fields
         ["ADMIN_ORG_NAME", "TEXT", "ADMINISTRATION ORGANIZATION NAME", "150", "", ""],
         ["IMPLEM_ORG_NAME", "TEXT", "IMPLEMENTATION ORGANIZATION NAME", "150", "", ""],
         ["PRIMARY_FUND_SRC_NAME", "TEXT", "PRIMARY FUND SOURCE NAME", "100", "", ""],
-        [
-            "PRIMARY_FUND_ORG_NAME",
-            "TEXT",
-            "PRIMARY FUND ORGANIZATION NAME",
-            "100",
-            "",
-            "",
-        ],
-        [
-            "SECONDARY_FUND_SRC_NAME",
-            "TEXT",
-            "SECONDARY FUND SOURCE NAME",
-            "100",
-            "",
-            "",
-        ],
-        [
-            "SECONDARY_FUND_ORG_NAME",
-            "TEXT",
-            "SECONDARY FUND ORGANIZATION NAME",
-            "100",
-            "",
-            "",
-        ],
+        ["PRIMARY_FUND_ORG_NAME","TEXT","PRIMARY FUND ORGANIZATION NAME","100","","",],
+        ["SECONDARY_FUND_SRC_NAME","TEXT","SECONDARY FUND SOURCE NAME","100","","",],
+        ["SECONDARY_FUND_ORG_NAME","TEXT","SECONDARY FUND ORGANIZATION NAME","100","","",],
         ["TERTIARY_FUND_SRC_NAME", "TEXT", "TERTIARY FUND SOURCE NAME", "100", "", ""],
-        [
-            "TERTIARY_FUND_ORG_NAME",
-            "TEXT",
-            "TERTIARY FUND ORGANIZATION NAME",
-            "100",
-            "",
-            "",
-        ],
+        ["TERTIARY_FUND_ORG_NAME","TEXT","TERTIARY FUND ORGANIZATION NAME","100","","",],
         ["ACTIVITY_PRCT", "SHORT", "ACTIVITY PERCENT", "3", "", ""],
         ["RESIDUE_FATE", "TEXT", "RESIDUE FATE", "35", "", ""],
         ["RESIDUE_FATE_QUANTITY", "DOUBLE", "RESIDUE FATE QUANTITY", "8", "", ""],
@@ -184,12 +155,10 @@ def AddFields(Input_Table, alter_fields=False):  # 1b Add Fields
     if alter_fields:
         altered = AlterExisting(schema, Input_Table)
 
-    # Process: Add Projects Fields (multiple) (Add Fields (multiple)) (management)
     add_fields = arcpy.management.AddFields(
         in_table=Input_Table, field_description=schema
     )
 
-    # Process: 2b Assign Domains (4) (2b Assign Domains)
     Assign_Domains_ = AssignDomains(in_table=add_fields)
 
     return Assign_Domains_

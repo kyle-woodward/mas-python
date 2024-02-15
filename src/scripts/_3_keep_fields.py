@@ -10,6 +10,7 @@ from .utils import init_gdb
 workspace, scratch_workspace = init_gdb()
 
 def KeepFields(Keep_table):
+    print("          removing unnecessary fields")
     arcpy.env.overwriteOutput = True
     fields_kept = arcpy.management.DeleteField(
         in_table=Keep_table,
