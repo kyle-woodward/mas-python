@@ -27,7 +27,7 @@ def veg():
     ):
 
         CalVeg = arcpy.Raster("https://egis.fire.ca.gov/arcgis/services/FRAP/fveg/ImageServer")
-        BVT = os.path.join(workspace, "a_Reference", "Broad_Vegetation_Types2")
+        BVT = os.path.join(workspace, "a_Reference", "Broad_Vegetation_Types")
 
         print("Vegetation Types Layer")
         print("step 1/2: Convert Raster to Polygon")

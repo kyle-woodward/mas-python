@@ -10,11 +10,19 @@ from .utils import init_gdb
 workspace, scratch_workspace = init_gdb()
 
 def AssignDomains(in_table):
+    print("      assigning domains")
+    ProjectDomains(in_table_p=in_table)
+    TreatmentDomains(in_table_t=in_table)
+    ActivityDomains(in_table_a=in_table)
+
+def ProjectDomains(in_table_p):
     arcpy.env.overwriteOutput = True
 
-    print("      assigning domains")
     D_ORGANIZATION = arcpy.management.AssignDomainToField(
-        in_table=in_table, field_name="AGENCY", domain_name="D_AGENCY", subtype_code=[]
+        in_table=in_table_p, 
+        field_name="AGENCY", 
+        domain_name="D_AGENCY", 
+        subtype_code=[]
     )
 
     ORG_ADMIN_p = arcpy.management.AssignDomainToField(
@@ -94,8 +102,13 @@ def AssignDomains(in_table):
         subtype_code=[],
     )
 
+    return Dataload_Msg_p
+
+def TreatmentDomains(in_table_t):
+    arcpy.env.overwriteOutput = True
+
     ORG_ADMIN_t = arcpy.management.AssignDomainToField(
-        in_table=Dataload_Msg_p,
+        in_table=in_table_t,
         field_name="ORG_ADMIN_t",
         domain_name="D_ORGANIZATION",
         subtype_code=[],
@@ -199,8 +212,13 @@ def AssignDomains(in_table):
         subtype_code=[],
     )
 
+    return Dataload_Msg_t
+
+def ActivityDomains(in_table_a):
+    arcpy.env.overwriteOutput = True
+
     ORG_ADMIN_a = arcpy.management.AssignDomainToField(
-        in_table=Dataload_Msg_t,
+        in_table=in_table_a,
         field_name="ORG_ADMIN_a",
         domain_name="D_ORGANIZATION",
         subtype_code=[],
