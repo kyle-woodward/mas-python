@@ -228,7 +228,7 @@ def CalTrans(
 
         print("     step 8/8 transfer attributes")
         calc_field_1 = arcpy.management.CalculateField(
-            in_table=addfields_1,
+            in_table=alterfield_3,
             field="PROJECTID_USER",
             expression="!HighwayID!",
             expression_type="PYTHON3",
@@ -530,7 +530,7 @@ def CalTrans(
 
         calc_field_28 = arcpy.management.CalculateField(
             in_table=calc_field_27,
-            field="TREATMENT_ID_USER",
+            field="TRMTID_USER",
             expression="!PROJECTID_USER!+'-'+str(!COUNTY!)[:8]+'-'+str(!REGION!)[:3]+'-'+str(!IN_WUI!)[:3]",
             expression_type="PYTHON3",
             code_block="",

@@ -3,8 +3,12 @@
 ## Clone the repository into desired local location
 In a Terminal window, run:
 ```
-cd <desired/folder/location>
-git clone https://github.com/kyle-woodward/mas-python.git
+git clone https://gitlab.sig-gis.com/sig-gis/interagency-tracking-system.git
+cd interagency-tracking-system
+git switch --create main
+touch README.md
+git add README.md
+git commit -m "add README"
 ```
 
 ## Python setup
@@ -17,9 +21,13 @@ The processing workflow for each dataset requires various input (original) datas
 
 Maybe have a [living document](https://docs.google.com/document/d/14RdlL0rXei1X8xqQeO2uxwIPmY1pKIlVm4L159goDak/edit) thats up to date on data sources and methods 
 
+edit workspace geodatabase name in settings.yml
+
 ## Running the notebooks
 From your favorite python IDE (suggested: VS Code or Jupyter Lab), open each notebook and run each cell in order.
 The first cell sets up the required inputs and the new file paths to save the output datasets to. If you see this message in the cell's output:
 
 
-##TODO Arcpy license levels, Packages required Pandas, ArcPy, os, datetime, time, shutil...
+##TODO Arcpy license levels, Packages required Pandas, ArcPy, os, datetime, time, shutil... conda
+
+arcgispro-py3 (python 3.9.18)

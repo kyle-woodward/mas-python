@@ -1,6 +1,6 @@
 """
 # Description:  Updates the CalFire's Ownership layer with the US Forest  
-#               Service's "Forest ownership in the conterminious United  
+#               Service's "Forest ownership in the conterminous United  
 #               States", and US Census California Counties
 # Author: Spatial Informatics Group LLC
 # Version: 1.0.0
